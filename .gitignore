@@ -91,3 +91,9 @@ logs
 # Temporary files
 *.tmp
 *.temp
+
+# Apps directory structure
+apps/*/target/
+apps/*/node_modules/
+apps/*/.env
+apps/*/.env.local
