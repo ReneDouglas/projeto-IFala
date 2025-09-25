@@ -8,12 +8,14 @@ import java.util.UUID;
 import br.edu.ifpi.ifala.entities.enums.Categorias;
 import br.edu.ifpi.ifala.entities.enums.Status;
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 
+@Entity
 public class Denuncia {
 
     @Id
