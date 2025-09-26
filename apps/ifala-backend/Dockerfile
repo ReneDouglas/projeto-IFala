@@ -13,7 +13,7 @@ COPY checkstyle.xml .
 RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
 
 
-# ---- ESTÁGIO 2: Runtime ----
+# ---- ESTÁGIO 2: Runtime ---- Java 25 com CDS
 FROM bellsoft/liberica-runtime-container:jre-25-cds-slim-musl
 WORKDIR /app
 
