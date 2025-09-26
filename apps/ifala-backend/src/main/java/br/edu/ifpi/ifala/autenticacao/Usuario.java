@@ -1,4 +1,4 @@
-package br.edu.ifpi.ifala.admin;
+package br.edu.ifpi.ifala.autenticacao;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,18 +11,19 @@ import jakarta.persistence.Id;
  * @author Renê Morais
  */
 @Entity
-public class Administrador {
+public class Usuario {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+  private String nome;
   private String email;
   private String senha;
 
   /**
    * Construtor padrão da classe Administrador.
    */
-  public Administrador() {}
+  public Usuario() {}
 
   public Long getId() {
     return id;
@@ -30,6 +31,14 @@ public class Administrador {
 
   public void setId(Long id) {
     this.id = id;
+  }
+
+  public String getNome() {
+    return nome;
+  }
+
+  public void setNome(String nome) {
+    this.nome = nome;
   }
 
   public String getEmail() {
