@@ -1,6 +1,7 @@
 package br.edu.ifpi.ifala.denuncia;
 
 import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
+import br.edu.ifpi.ifala.notificacao.Notificacao;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
 import jakarta.persistence.Column;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.cglib.core.Local;
 
 /**
  * Classe que representa uma denúncia no sistema. Esta entidade armazena informações sobre
@@ -36,6 +38,8 @@ public class Denuncia {
   @Enumerated
   private Status status;
 
+  private String motivoRejeicao;
+
   @Column(name = "token_acompanhamento", unique = true, updatable = false, nullable = false)
   private UUID tokenAcompanhamento;
 
@@ -44,6 +48,12 @@ public class Denuncia {
 
   @OneToMany(mappedBy = "denuncia")
   private Set<Acompanhamento> acompanhamentos = new HashSet<>();
+
+  @OneToMany(mappedBy = "denuncia")
+  private Set<Notificacao> notificacoes = new HashSet<>();
+
+  private String alteradoPor;
+  private LocalDateTime alteradoEm;
 
   /**
    * Construtor padrão que inicializa uma nova denúncia. Define um token de acompanhamento único,
@@ -87,6 +97,14 @@ public class Denuncia {
     this.status = status;
   }
 
+  public String getMotivoRejeicao() {
+    return motivoRejeicao;
+  }
+
+  public void setMotivoRejeicao(String motivoRejeicao) {
+    this.motivoRejeicao = motivoRejeicao;
+  }
+
   public UUID getTokenAcompanhamento() {
     return tokenAcompanhamento;
   }
@@ -110,4 +128,29 @@ public class Denuncia {
   public void setAcompanhamentos(Set<Acompanhamento> acompanhamentos) {
     this.acompanhamentos = acompanhamentos;
   }
+
+  public Set<Notificacao> getNotificacoes() {
+    return notificacoes;
+  }
+
+  public void setNotificacoes(Set<Notificacao> notificacoes) {
+    this.notificacoes = notificacoes;
+  }
+
+  public String getAlteradoPor() {
+    return alteradoPor;
+  }
+
+  public void setAlteradoPor(String alteradoPor) {
+    this.alteradoPor = alteradoPor;
+  }
+
+  public LocalDateTime getAlteradoEm() {
+    return alteradoEm;
+  }
+
+  public void setAlteradoEm(LocalDateTime alteradoEm) {
+    this.alteradoEm = alteradoEm;
+  }
+
 }
