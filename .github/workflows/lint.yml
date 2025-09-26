@@ -1,0 +1,59 @@
+name: Lint
+
+on:
+  pull_request:
+    branches: [main, development, staging]
+
+jobs:
+  prettier:
+    name: Prettier - Validação de Estilo (TypeScript)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/ifala-frontend
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v3
+
+      - name: Configuração do Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: apps/ifala-frontend/package-lock.json
+
+      - name: Instalação de Dependências
+        run: npm ci
+
+      - name: Verificação com Prettier
+        run: npm run format:check
+
+  checkstyle:
+    name: Checkstyle - Validação de Estilo (Java)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/ifala-backend
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v3
+
+      - name: Configuração do JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '25'
+          distribution: 'amazon'
+          cache: 'maven'
+
+      - name: Validação com Checkstyle
+        run: mvn checkstyle:check
+      - name: Gerar Relatório Checkstyle
+        run: mvn checkstyle:checkstyle
+      - name: Upload Relatório Checkstyle
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: target/checkstyle/*
+          retention-days: 15
