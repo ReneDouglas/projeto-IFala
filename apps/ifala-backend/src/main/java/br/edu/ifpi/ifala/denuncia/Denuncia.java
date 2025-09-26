@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.cglib.core.Local;
 
 /**
  * Classe que representa uma denúncia no sistema. Esta entidade armazena informações sobre
@@ -50,6 +51,9 @@ public class Denuncia {
 
   @OneToMany(mappedBy = "denuncia")
   private Set<Notificacao> notificacoes = new HashSet<>();
+
+  private String alteradoPor;
+  private LocalDateTime alteradoEm;
 
   /**
    * Construtor padrão que inicializa uma nova denúncia. Define um token de acompanhamento único,
@@ -132,4 +136,21 @@ public class Denuncia {
   public void setNotificacoes(Set<Notificacao> notificacoes) {
     this.notificacoes = notificacoes;
   }
+
+  public String getAlteradoPor() {
+    return alteradoPor;
+  }
+
+  public void setAlteradoPor(String alteradoPor) {
+    this.alteradoPor = alteradoPor;
+  }
+
+  public LocalDateTime getAlteradoEm() {
+    return alteradoEm;
+  }
+
+  public void setAlteradoEm(LocalDateTime alteradoEm) {
+    this.alteradoEm = alteradoEm;
+  }
+
 }

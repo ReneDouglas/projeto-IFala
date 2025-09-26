@@ -30,6 +30,7 @@ public class Notificacao {
   private Denuncia denuncia;
 
   private Boolean lida;
+  private String lidaPor;
   private LocalDateTime dataEnvio;
 
   /**
@@ -75,6 +76,14 @@ public class Notificacao {
 
   public void setLida(Boolean lida) {
     this.lida = lida;
+  }
+
+  public String getLidaPor() {
+    return lidaPor;
+  }
+
+  public void setLidaPor(String lidaPor) {
+    this.lidaPor = lidaPor;
   }
 
   public LocalDateTime getDataEnvio() {
