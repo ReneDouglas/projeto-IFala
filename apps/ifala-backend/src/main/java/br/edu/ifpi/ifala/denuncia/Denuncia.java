@@ -1,6 +1,7 @@
 package br.edu.ifpi.ifala.denuncia;
 
 import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
+import br.edu.ifpi.ifala.notificacao.Notificacao;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
 import jakarta.persistence.Column;
@@ -36,6 +37,8 @@ public class Denuncia {
   @Enumerated
   private Status status;
 
+  private String motivoRejeicao;
+
   @Column(name = "token_acompanhamento", unique = true, updatable = false, nullable = false)
   private UUID tokenAcompanhamento;
 
@@ -44,6 +47,9 @@ public class Denuncia {
 
   @OneToMany(mappedBy = "denuncia")
   private Set<Acompanhamento> acompanhamentos = new HashSet<>();
+
+  @OneToMany(mappedBy = "denuncia")
+  private Set<Notificacao> notificacoes = new HashSet<>();
 
   /**
    * Construtor padrão que inicializa uma nova denúncia. Define um token de acompanhamento único,
@@ -87,6 +93,14 @@ public class Denuncia {
     this.status = status;
   }
 
+  public String getMotivoRejeicao() {
+    return motivoRejeicao;
+  }
+
+  public void setMotivoRejeicao(String motivoRejeicao) {
+    this.motivoRejeicao = motivoRejeicao;
+  }
+
   public UUID getTokenAcompanhamento() {
     return tokenAcompanhamento;
   }
@@ -109,5 +123,13 @@ public class Denuncia {
 
   public void setAcompanhamentos(Set<Acompanhamento> acompanhamentos) {
     this.acompanhamentos = acompanhamentos;
+  }
+
+  public Set<Notificacao> getNotificacoes() {
+    return notificacoes;
+  }
+
+  public void setNotificacoes(Set<Notificacao> notificacoes) {
+    this.notificacoes = notificacoes;
   }
 }
