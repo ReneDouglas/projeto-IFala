@@ -6,10 +6,10 @@
 # 📖 Sobre o Projeto
 
 O **IFala** é um sistema de denúncias anônimas desenvolvido para instituições
-federais de ensino, permitindo que alunos, servidores e comunidade acadêmica
-relatem ocorrências de forma segura e protegida. A plataforma garante total
-anonimato aos denunciantes enquanto oferece ferramentas eficientes para o
-acompanhamento e tratamento das denúncias pelos gestores institucionais.
+federais de ensino, permitindo que alunos relatem ocorrências de forma segura e
+protegida. A plataforma garante total anonimato aos denunciantes enquanto
+oferece ferramentas eficientes para o acompanhamento e tratamento das denúncias
+pelos gestores institucionais.
 
 **Sua voz importa. Sua identidade está protegida.**
 
