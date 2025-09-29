@@ -19,24 +19,24 @@
      PALETA DE CORES INSTITUCIONAL
      Cores oficiais do IFPI - Campus Corrente
      ============================ */
-  --verde-if: #006838;          /* Verde institucional do IF */
-  --azul-confianca: #1A4E8A;    /* Azul principal para confiança */
-  --azul-claro: #4A90E2;        /* Azul mais claro para variações */
-  --neutro-escuro: #333333;     /* Cinza escuro para textos */
-  --neutro-claro: #F5F5F5;      /* Cinza claro para fundos */
-  --acento-amarelo: #F2C94C;    /* Amarelo para destaques */
-  --erro-vermelho: #E94F37;     /* Vermelho para alertas/erros */
-  --white: #FFFFFF;             /* Branco puro */
-  
+  --verde-if: #006838; /* Verde institucional do IF */
+  --azul-confianca: #1a4e8a; /* Azul principal para confiança */
+  --azul-claro: #4a90e2; /* Azul mais claro para variações */
+  --neutro-escuro: #333333; /* Cinza escuro para textos */
+  --neutro-claro: #f5f5f5; /* Cinza claro para fundos */
+  --acento-amarelo: #f2c94c; /* Amarelo para destaques */
+  --erro-vermelho: #e94f37; /* Vermelho para alertas/erros */
+  --white: #ffffff; /* Branco puro */
+
   /* Sombras para Elementos */
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);        /* Sombra padrão */
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Sombra padrão */
   --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.15); /* Sombra no hover */
 
   /* Otimizações de Renderização */
-  font-synthesis: none;                    /* Desabilita síntese de fonte */
-  text-rendering: optimizeLegibility;      /* Melhora legibilidade */
-  -webkit-font-smoothing: antialiased;     /* Suavização WebKit */
-  -moz-osx-font-smoothing: grayscale;      /* Suavização Firefox/macOS */
+  font-synthesis: none; /* Desabilita síntese de fonte */
+  text-rendering: optimizeLegibility; /* Melhora legibilidade */
+  -webkit-font-smoothing: antialiased; /* Suavização WebKit */
+  -moz-osx-font-smoothing: grayscale; /* Suavização Firefox/macOS */
 }
 
 /* ================================
@@ -44,20 +44,20 @@
    Remove margens e paddings padrão
    ================================ */
 * {
-  margin: 0;                    /* Remove margem padrão */
-  padding: 0;                   /* Remove padding padrão */
-  box-sizing: border-box;       /* Inclui border e padding no cálculo de largura */
+  margin: 0; /* Remove margem padrão */
+  padding: 0; /* Remove padding padrão */
+  box-sizing: border-box; /* Inclui border e padding no cálculo de largura */
 }
 
 /* ================================
    ESTILOS DO CORPO DA PÁGINA
    ================================ */
 body {
-  margin: 0;                           /* Remove margem do body */
-  background: var(--neutro-claro);     /* Fundo cinza claro */
-  min-height: 100vh;                   /* Altura mínima da viewport */
-  color: var(--neutro-escuro);         /* Cor padrão do texto */
-  overflow-x: hidden;                  /* Remove scroll horizontal */
+  margin: 0; /* Remove margem do body */
+  background: var(--neutro-claro); /* Fundo cinza claro */
+  min-height: 100vh; /* Altura mínima da viewport */
+  color: var(--neutro-escuro); /* Cor padrão do texto */
+  overflow-x: hidden; /* Remove scroll horizontal */
 }
 
 /* ================================
@@ -65,59 +65,64 @@ body {
    Centraliza conteúdo com largura máxima
    ================================ */
 .container {
-  max-width: 1200px;    /* Largura máxima para telas grandes */
-  margin: 0 auto;       /* Centraliza horizontalmente */
-  padding: 0 20px;      /* Espaçamento lateral */
+  max-width: 1200px; /* Largura máxima para telas grandes */
+  margin: 0 auto; /* Centraliza horizontalmente */
+  padding: 0 20px; /* Espaçamento lateral */
 }
 
 /* ================================
    ESTILOS DE LINKS
    ================================ */
 a {
-  color: var(--azul-confianca);   /* Cor azul institucional */
-  text-decoration: none;          /* Remove sublinhado */
-  transition: color 0.3s ease;    /* Transição suave na cor */
+  color: var(--azul-confianca); /* Cor azul institucional */
+  text-decoration: none; /* Remove sublinhado */
+  transition: color 0.3s ease; /* Transição suave na cor */
 }
 
 /* Estado hover dos links */
 a:hover {
-  color: var(--verde-if);         /* Muda para verde no hover */
+  color: var(--verde-if); /* Muda para verde no hover */
 }
 
 /* ================================
    TÍTULOS (H1 a H6)
    ================================ */
-h1, h2, h3, h4, h5, h6 {
-  line-height: 1.2;        /* Altura de linha compacta para títulos */
-  margin-bottom: 1rem;     /* Espaçamento inferior */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  line-height: 1.2; /* Altura de linha compacta para títulos */
+  margin-bottom: 1rem; /* Espaçamento inferior */
 }
 
 /* ================================
    PARÁGRAFOS
    ================================ */
 p {
-  margin-bottom: 1rem;           /* Espaçamento entre parágrafos */
-  color: var(--neutro-escuro);   /* Cor do texto */
+  margin-bottom: 1rem; /* Espaçamento entre parágrafos */
+  color: var(--neutro-escuro); /* Cor do texto */
 }
 
 /* ================================
    ESTILOS BASE DOS BOTÕES
    ================================ */
 button {
-  border-radius: 12px;         /* Bordas arredondadas */
-  border: none;                /* Remove borda padrão */
-  padding: 14px 28px;          /* Espaçamento interno */
-  font-size: 16px;             /* Tamanho da fonte */
-  font-weight: 600;            /* Peso da fonte (semi-bold) */
-  font-family: inherit;        /* Herda fonte do elemento pai */
-  cursor: pointer;             /* Cursor de ponteiro */
-  transition: all 0.3s ease;   /* Transição suave para todas as propriedades */
-  box-shadow: var(--shadow);   /* Sombra padrão */
+  border-radius: 12px; /* Bordas arredondadas */
+  border: none; /* Remove borda padrão */
+  padding: 14px 28px; /* Espaçamento interno */
+  font-size: 16px; /* Tamanho da fonte */
+  font-weight: 600; /* Peso da fonte (semi-bold) */
+  font-family: inherit; /* Herda fonte do elemento pai */
+  cursor: pointer; /* Cursor de ponteiro */
+  transition: all 0.3s ease; /* Transição suave para todas as propriedades */
+  box-shadow: var(--shadow); /* Sombra padrão */
 }
 
 /* Estado hover dos botões */
 button:hover {
-  transform: translateY(-2px);     /* Eleva o botão */
+  transform: translateY(-2px); /* Eleva o botão */
   box-shadow: var(--shadow-hover); /* Sombra mais intensa */
 }
 
@@ -125,7 +130,7 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 3px solid rgba(46, 139, 87, 0.3); /* Contorno verde translúcido */
-  outline-offset: 2px;                        /* Espaçamento do contorno */
+  outline-offset: 2px; /* Espaçamento do contorno */
 }
 
 /* ================================
@@ -134,27 +139,35 @@ button:focus-visible {
 
 /* Botão Primário - Verde */
 .btn-primary {
-  background: linear-gradient(135deg, var(--verde-if) 0%, #004d29 100%); /* Gradiente verde */
-  color: white;                                                           /* Texto branco */
+  background: linear-gradient(
+    135deg,
+    var(--verde-if) 0%,
+    #004d29 100%
+  ); /* Gradiente verde */
+  color: white; /* Texto branco */
 }
 
 /* Botão Secundário - Azul */
 .btn-secondary {
-  background: linear-gradient(135deg, var(--azul-confianca) 0%, #123456 100%); /* Gradiente azul */
-  color: white;                                                                 /* Texto branco */
+  background: linear-gradient(
+    135deg,
+    var(--azul-confianca) 0%,
+    #123456 100%
+  ); /* Gradiente azul */
+  color: white; /* Texto branco */
 }
 
 /* Botão com Contorno */
 .btn-outline {
-  background: transparent;                /* Fundo transparente */
+  background: transparent; /* Fundo transparente */
   border: 2px solid var(--azul-confianca); /* Borda azul */
-  color: var(--azul-confianca);           /* Texto azul */
+  color: var(--azul-confianca); /* Texto azul */
 }
 
 /* Estado hover do botão outline */
 .btn-outline:hover {
-  background: var(--azul-confianca);      /* Fundo azul no hover */
-  color: white;                           /* Texto branco no hover */
+  background: var(--azul-confianca); /* Fundo azul no hover */
+  color: white; /* Texto branco no hover */
 }
 
 /* ================================
@@ -164,12 +177,12 @@ button:focus-visible {
 @media (max-width: 768px) {
   /* Container com padding menor em mobile */
   .container {
-    padding: 0 16px;      /* Padding lateral reduzido */
+    padding: 0 16px; /* Padding lateral reduzido */
   }
-  
+
   /* Botões menores em mobile */
   button {
-    padding: 12px 24px;   /* Padding reduzido */
-    font-size: 14px;      /* Fonte menor */
+    padding: 12px 24px; /* Padding reduzido */
+    font-size: 14px; /* Fonte menor */
   }
 }
