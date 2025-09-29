@@ -1,0 +1,195 @@
+/* ================================
+   TEMA GLOBAL - SISTEMA IFALA
+   Paleta de cores, gradientes e assets institucionais
+   ================================ */
+
+/* ================================
+   PALETA DE CORES INSTITUCIONAL
+   Cores oficiais do Instituto Federal do Piauí
+   ================================ */
+:root {
+  /* === CORES PRIMÁRIAS === */
+  --verde-esperanca: #2E8B57;          /* Verde principal - Esperança e crescimento */
+  --azul-confianca: #1E3A8A;           /* Azul escuro - Confiança e segurança */
+  --azul-claro: #3B82F6;               /* Azul médio - Modernidade */
+  --azul-suave: #60A5FA;               /* Azul claro - Suavidade */
+
+  /* === CORES NEUTRAS === */
+  --cinza-escuro: #374151;             /* Cinza escuro - Textos principais */
+  --cinza-medio: #6B7280;              /* Cinza médio - Textos secundários */
+  --cinza-claro: #F3F4F6;              /* Cinza claro - Fundos suaves */
+  --cinza-extra-claro: #F9FAFB;        /* Cinza extra claro - Fundos neutros */
+  --branco: #FFFFFF;                   /* Branco puro - Fundos principais */
+
+  /* === CORES DE ESTADO === */
+  --vermelho-alerta: #DC2626;          /* Vermelho - Alertas e erros */
+  --amarelo-atencao: #F59E0B;          /* Amarelo - Avisos */
+  --verde-sucesso: #10B981;            /* Verde - Sucessos e confirmações */
+
+  /* === CORES COM TRANSPARÊNCIA === */
+  --verde-esperanca-10: rgba(46, 139, 87, 0.1);     /* Verde com 10% opacidade */
+  --verde-esperanca-20: rgba(46, 139, 87, 0.2);     /* Verde com 20% opacidade */
+  --azul-confianca-10: rgba(30, 58, 138, 0.1);      /* Azul com 10% opacidade */
+  --azul-confianca-20: rgba(30, 58, 138, 0.2);      /* Azul com 20% opacidade */
+
+  /* === SOMBRAS === */
+  --sombra-suave: 0 2px 8px rgba(0, 0, 0, 0.1);     /* Sombra suave */
+  --sombra-media: 0 4px 16px rgba(0, 0, 0, 0.15);   /* Sombra média */
+  --sombra-forte: 0 8px 32px rgba(0, 0, 0, 0.2);    /* Sombra forte */
+}
+
+/* ================================
+   GRADIENTES INSTITUCIONAIS
+   Gradientes baseados nas cores da instituição
+   ================================ */
+.gradient-primary {
+  /* Gradiente principal - Verde para Azul */
+  background: linear-gradient(135deg, var(--verde-esperanca) 0%, var(--azul-confianca) 100%);
+}
+
+.gradient-secondary {
+  /* Gradiente secundário - Azul claro para Azul escuro */
+  background: linear-gradient(135deg, var(--azul-suave) 0%, var(--azul-confianca) 100%);
+}
+
+.gradient-success {
+  /* Gradiente de sucesso - Verde claro para Verde escuro */
+  background: linear-gradient(135deg, var(--verde-sucesso) 0%, var(--verde-esperanca) 100%);
+}
+
+.gradient-hero {
+  /* Gradiente especial para hero section */
+  background: linear-gradient(135deg, 
+    var(--verde-esperanca) 0%, 
+    var(--azul-claro) 50%, 
+    var(--azul-confianca) 100%
+  );
+}
+
+.gradient-subtle {
+  /* Gradiente sutil para backgrounds */
+  background: linear-gradient(135deg, 
+    var(--cinza-extra-claro) 0%, 
+    var(--cinza-claro) 100%
+  );
+}
+
+/* ================================
+   CONFIGURAÇÕES DE ASSETS
+   Paths e informações sobre logos e imagens
+   ================================ */
+
+/* === LOGOS INSTITUCIONAIS === */
+/* 
+  LOGO IFALA (Principal):
+  - Arquivo: /src/assets/IFala-logo.png
+  - Formato: PNG com transparência
+  - Tamanho recomendado: 60px de altura
+  - Uso: Header, footer, seções principais
+  
+  LOGO IFPI (Institucional):
+  - Arquivo: /src/assets/Logo-IFPI-Horizontal.png
+  - Formato: PNG com transparência
+  - Tamanho recomendado: 60px de altura
+  - Uso: Rodapé, seções institucionais
+*/
+
+.logo-ifala {
+  height: 60px;
+  width: auto;
+  filter: drop-shadow(var(--sombra-suave));
+}
+
+.logo-ifpi {
+  height: 60px;
+  width: auto;
+  filter: drop-shadow(var(--sombra-suave));
+}
+
+/* ================================
+   GUIA DE USO DAS CORES
+   Como e quando usar cada cor da paleta
+   ================================ */
+
+/*
+=== GUIA DE APLICAÇÃO DAS CORES ===
+
+1. CORES PRIMÁRIAS:
+   - --verde-esperanca: Botões principais, calls-to-action, elementos de destaque
+   - --azul-confianca: Títulos principais, elementos de navegação, footer
+   - --azul-claro: Links, botões secundários, ícones informativos
+   - --azul-suave: Hover states, elementos interativos suaves
+
+2. CORES NEUTRAS:
+   - --cinza-escuro: Textos principais, títulos secundários
+   - --cinza-medio: Textos auxiliares, legendas, placeholders
+   - --cinza-claro: Bordas, separadores, backgrounds de seções
+   - --cinza-extra-claro: Background da página, cards suaves
+   - --branco: Background de cards, modais, elementos principais
+
+3. CORES DE ESTADO:
+   - --vermelho-alerta: Mensagens de erro, validações, alertas críticos
+   - --amarelo-atencao: Avisos, notificações, informações importantes
+   - --verde-sucesso: Mensagens de sucesso, confirmações, status positivos
+
+4. GRADIENTES:
+   - .gradient-primary: Hero sections, banners principais
+   - .gradient-secondary: Botões secundários, elements de apoio
+   - .gradient-success: Mensagens de sucesso, confirmações
+   - .gradient-hero: Background do hero principal
+   - .gradient-subtle: Backgrounds suaves, seções alternadas
+
+5. LOGOS:
+   - .logo-ifala: Logo principal do sistema (IFala-logo.png)
+   - .logo-ifpi: Logo institucional (Logo-IFPI-Horizontal.png)
+   - Sempre usar com filter: drop-shadow para melhor legibilidade
+   - Manter proporção original, ajustar apenas altura
+
+=== ACESSIBILIDADE ===
+- Todas as cores atendem ao contraste mínimo WCAG 2.1 AA
+- Usar sempre textos escuros (--cinza-escuro) sobre backgrounds claros
+- Usar textos brancos sobre backgrounds escuros (--azul-confianca, --verde-esperanca)
+- Nunca usar apenas cor para transmitir informação importante
+
+=== RESPONSIVIDADE ===
+- Logos: Reduzir para 40px em telas pequenas
+- Gradientes: Manter em todas as resoluções
+- Sombras: Reduzir intensidade em dispositivos móveis
+*/
+
+/* ================================
+   CLASSES UTILITÁRIAS DE COR
+   Classes prontas para uso rápido
+   ================================ */
+
+/* Backgrounds */
+.bg-primary { background-color: var(--verde-esperanca); }
+.bg-secondary { background-color: var(--azul-confianca); }
+.bg-light { background-color: var(--cinza-extra-claro); }
+.bg-white { background-color: var(--branco); }
+.bg-success { background-color: var(--verde-sucesso); }
+.bg-warning { background-color: var(--amarelo-atencao); }
+.bg-danger { background-color: var(--vermelho-alerta); }
+
+/* Textos */
+.text-primary { color: var(--verde-esperanca); }
+.text-secondary { color: var(--azul-confianca); }
+.text-dark { color: var(--cinza-escuro); }
+.text-muted { color: var(--cinza-medio); }
+.text-white { color: var(--branco); }
+.text-success { color: var(--verde-sucesso); }
+.text-warning { color: var(--amarelo-atencao); }
+.text-danger { color: var(--vermelho-alerta); }
+
+/* Bordas */
+.border-primary { border-color: var(--verde-esperanca); }
+.border-secondary { border-color: var(--azul-confianca); }
+.border-light { border-color: var(--cinza-claro); }
+.border-success { border-color: var(--verde-sucesso); }
+.border-warning { border-color: var(--amarelo-atencao); }
+.border-danger { border-color: var(--vermelho-alerta); }
+
+/* Sombras */
+.shadow-sm { box-shadow: var(--sombra-suave); }
+.shadow-md { box-shadow: var(--sombra-media); }
+.shadow-lg { box-shadow: var(--sombra-forte); }
