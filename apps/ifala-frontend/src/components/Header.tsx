@@ -9,7 +9,6 @@ import ifalaLogo from '../assets/IFala-logo.png';
 interface HeaderProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
-  isLoggedIn: boolean;
   onHomeClick: () => void;
 }
 
@@ -19,7 +18,6 @@ interface HeaderProps {
 function Header({
   sidebarOpen,
   setSidebarOpen,
-  isLoggedIn,
   onHomeClick,
 }: HeaderProps) {
   // Alterna estado do menu lateral (abre/fecha)
@@ -30,18 +28,7 @@ function Header({
   return (
     <header className='header'>
       <div className='header-container'>
-        {/* Botão do menu hamburger - visível apenas quando logado */}
-        {isLoggedIn && (
-          <button
-            className='hamburger-menu'
-            onClick={toggleSidebar}
-            aria-label='Abrir menu de navegação'
-          >
-            <span className='material-symbols-outlined'>menu</span>
-          </button>
-        )}
-
-        {/* Logo e título - área clicável */}
+        {/* Logo e título - área clicável) */}
         <div
           className='header-brand'
           onClick={onHomeClick}
@@ -50,15 +37,19 @@ function Header({
         >
           <img src={ifalaLogo} alt='Logo IFala' className='header-logo' />
           <div className='header-title'>
-            <h1 className='app-title'>IFala</h1>
-            <p className='app-subtitle'>Sistema de Denúncias Anônimas</p>
+            <h1 className='app-title'></h1>
+            <p className='app-subtitle'>Campus Corrente</p>
           </div>
         </div>
 
-        {/* Espaço reservado para futuros botões de ação */}
-        <div className='header-actions'>
-          {/* Aqui podem ser adicionados botões como notificações, perfil, etc. */}
-        </div>
+        {/* Botão do menu hamburger) */}
+        <button
+          className='hamburger-menu'
+          onClick={toggleSidebar}
+          aria-label='Abrir menu de navegação'
+        >
+          <span className='material-symbols-outlined'>menu</span>
+        </button>
       </div>
     </header>
   );

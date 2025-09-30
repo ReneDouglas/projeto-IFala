@@ -45,7 +45,7 @@ function Sidebar({
       <nav className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         {/* Cabeçalho do menu */}
         <div className='sidebar-header'>
-          <h2 className='sidebar-title'>Menu</h2>
+          <h2 className='sidebar-title'></h2>
           <button
             className='sidebar-close'
             onClick={closeSidebar}

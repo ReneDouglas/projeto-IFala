@@ -111,7 +111,6 @@ function App() {
       <Header
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-        isLoggedIn={isLoggedIn}
         onHomeClick={handleHomeClick}
       />
 

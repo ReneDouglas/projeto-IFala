@@ -11,22 +11,22 @@
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 200;
-  opacity: 0;
-  animation: fadeIn 0.3s ease-out forwards;
+  z-index: 999;
+  opacity: 1;
+  cursor: pointer;
 }
 
 /* Menu lateral */
 .sidebar {
   position: fixed;
   top: 0;
-  left: 0;
+  right: 0;
   width: 300px;
   height: 100%;
   background: white;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  z-index: 201;
-  transform: translateX(-100%);
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transform: translateX(100%);
   transition: transform 0.3s ease-out;
   display: flex;
   flex-direction: column;
@@ -106,12 +106,17 @@
   font-size: 0.9rem;
   color: var(--cinza-texto);
   transition: all 0.3s ease;
+  box-shadow: none;
+  border-radius: 8px;
+  margin: 0.25rem 0.5rem;
+  width: calc(100% - 1rem);
 }
 
 /* Estado hover dos itens */
 .menu-item:hover {
-  background: var(--azul-suave-claro);
-  color: var(--azul-confianca);
+  background: var(--azul-confianca);
+  color: white;
+  transform: translateY(-2px);
 }
 
 /* Item de logout */
@@ -130,6 +135,16 @@
 /* Ícones dos itens */
 .menu-item .material-symbols-outlined {
   font-size: 1.25rem;
+}
+
+/* Remove sombras dos estilos globais */
+.menu-item {
+  box-shadow: none !important;
+}
+
+/* Efeito especial no hover */
+.menu-item:hover .material-symbols-outlined {
+  transform: scale(1.1);
 }
 
 /* Animação de fade in */
