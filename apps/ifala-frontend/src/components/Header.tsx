@@ -15,11 +15,7 @@ interface HeaderProps {
 // ================================
 // COMPONENTE HEADER
 // ================================
-function Header({
-  sidebarOpen,
-  setSidebarOpen,
-  onHomeClick,
-}: HeaderProps) {
+function Header({ sidebarOpen, setSidebarOpen, onHomeClick }: HeaderProps) {
   // Alterna estado do menu lateral (abre/fecha)
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
