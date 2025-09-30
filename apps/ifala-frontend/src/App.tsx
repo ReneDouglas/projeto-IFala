@@ -1,8 +1,10 @@
 // ================================
 // IMPORTAÇÕES E DEPENDÊNCIAS
 // ================================
-import { useState } from 'react'; // Hook para gerenciar estados
-import './App.css'; // Estilos do componente
+import { useState } from 'react';              // Hook para gerenciar estados
+import './App.css';                            // Estilos do componente
+import Header from './components/Header';      // Componente Header
+import Sidebar from './components/Sidebar';   // Componente Sidebar
 import ifalaLogo from './assets/IFala-logo.png'; // Logo do IFala
 import ifpiLogo from './assets/Logo-IFPI-Horizontal.png'; // Logo do IFPI
 
@@ -56,18 +58,8 @@ function App() {
   // ================================
   // FUNÇÕES DO MENU LATERAL
   // ================================
-
-  // Alterna estado do menu lateral (abre/fecha)
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  // Fecha o menu lateral
-  const closeSidebar = () => {
-    setSidebarOpen(false);
-  };
-
-  // Manipula clique no botão home (logo + título)
+  
+  // Nota: Funções de toggle e close do sidebar agora estão nos componentes  // Manipula clique no botão home (logo + título)
   const handleHomeClick = () => {
     // Rola suavemente para o topo da página
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -81,35 +73,30 @@ function App() {
   const handleLogin = () => {
     // TODO: Implementar navegação para página de login
     console.log('Redirecionando para login');
-    closeSidebar(); // Fecha menu após ação
   };
 
   // Manipula processo de logout
   const handleLogout = () => {
     setIsLoggedIn(false); // Atualiza estado de autenticação
     console.log('Logout realizado com sucesso');
-    closeSidebar(); // Fecha menu após ação
   };
 
   // Navega para dashboard do usuário
   const handleDashboard = () => {
     // TODO: Implementar navegação para dashboard
     console.log('Redirecionando para dashboard');
-    closeSidebar();
   };
 
   // Navega para página de alterar senha
   const handleChangePassword = () => {
     // TODO: Implementar navegação para alterar senha
     console.log('Redirecionando para alterar senha');
-    closeSidebar();
   };
 
   // Navega para criar nova denúncia
   const handleNewDenuncia = () => {
     // TODO: Implementar navegação para nova denúncia
     console.log('Redirecionando para nova denúncia');
-    closeSidebar();
   };
 
   // ================================
@@ -118,75 +105,26 @@ function App() {
   return (
     <div className='app'>
       {/* ================================
-          CABEÇALHO DA APLICAÇÃO
-          Contém logo, título e botão do menu
+          COMPONENTES DE NAVEGAÇÃO
+          Header e Sidebar reutilizáveis
           ================================ */}
-      <header className='header'>
-        <div className='container'>
-          <div className='header-content'>
-            {/* Botão Home (Logo + Título) */}
-            <button className='home-button' onClick={handleHomeClick}>
-              <img src={ifalaLogo} alt='IFala Logo' className='home-logo' />
-              <h1 className='header-title'>Corrente Piaui</h1>
-            </button>
-
-            {/* Botão Menu Hamburger */}
-            <button
-              className={`menu-toggle ${sidebarOpen ? 'active' : ''}`}
-              onClick={toggleSidebar}
-              aria-label='Menu'
-            >
-              {/* Linhas do ícone hamburger */}
-              <div className='hamburger-line'></div>
-              <div className='hamburger-line'></div>
-              <div className='hamburger-line'></div>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Sidebar Overlay */}
-      <div
-        className={`sidebar-overlay ${sidebarOpen ? 'show' : ''}`}
-        onClick={closeSidebar}
-      ></div>
-
-      {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className='sidebar-header'>
-          <h2 className='sidebar-title'>Menu</h2>
-          <button className='close-button' onClick={closeSidebar}>
-            ×
-          </button>
-        </div>
-
-        <div className='sidebar-content'>
-          {!isLoggedIn ? (
-            <button className='menu-item' onClick={handleLogin}>
-              Login
-            </button>
-          ) : (
-            <>
-              <button className='menu-item' onClick={handleDashboard}>
-                <span className='menu-item-icon'>📊</span>
-                Dashboard
-              </button>
-              <button className='menu-item' onClick={handleChangePassword}>
-                <span className='menu-item-icon'>🔑</span>
-                Alterar Senha
-              </button>
-              <button className='menu-item' onClick={handleNewDenuncia}>
-                <span className='menu-item-icon'>📝</span>
-                Nova Denúncia
-              </button>
-              <button className='menu-item' onClick={handleLogout}>
-                <span className='menu-item-icon'>🚪</span>
-                Sair
-              </button>
-            </>
-          )}
-        </div>
-      </aside>
+      <Header 
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        isLoggedIn={isLoggedIn}
+        onHomeClick={handleHomeClick}
+      />
+      
+      <Sidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        isLoggedIn={isLoggedIn}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
+        onDashboard={handleDashboard}
+        onChangePassword={handleChangePassword}
+        onNewDenuncia={handleNewDenuncia}
+      />
 
       {/* ================================
           SEÇÃO HERO (BANNER PRINCIPAL)
