@@ -19,17 +19,16 @@ interface SidebarProps {
 // ================================
 // COMPONENTE SIDEBAR
 // ================================
-function Sidebar({ 
-  sidebarOpen, 
-  setSidebarOpen, 
+function Sidebar({
+  sidebarOpen,
+  setSidebarOpen,
   isLoggedIn,
   onLogin,
   onLogout,
   onDashboard,
   onChangePassword,
-  onNewDenuncia
+  onNewDenuncia,
 }: SidebarProps) {
-  
   // Fecha o menu lateral
   const closeSidebar = () => {
     setSidebarOpen(false);
@@ -38,47 +37,83 @@ function Sidebar({
   return (
     <>
       {/* Overlay escuro quando sidebar está aberto */}
-      {sidebarOpen && <div className="sidebar-overlay" onClick={closeSidebar}></div>}
-      
+      {sidebarOpen && (
+        <div className='sidebar-overlay' onClick={closeSidebar}></div>
+      )}
+
       {/* Menu lateral */}
       <nav className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         {/* Cabeçalho do menu */}
-        <div className="sidebar-header">
-          <h2 className="sidebar-title">Menu</h2>
-          <button className="sidebar-close" onClick={closeSidebar} aria-label="Fechar menu">
-            <span className="material-symbols-outlined">close</span>
+        <div className='sidebar-header'>
+          <h2 className='sidebar-title'>Menu</h2>
+          <button
+            className='sidebar-close'
+            onClick={closeSidebar}
+            aria-label='Fechar menu'
+          >
+            <span className='material-symbols-outlined'>close</span>
           </button>
         </div>
 
         {/* Conteúdo do menu */}
-        <div className="sidebar-content">
+        <div className='sidebar-content'>
           {isLoggedIn ? (
             // Menu para usuário logado
-            <div className="menu-section">
-              <h3 className="menu-section-title">Painel do Usuário</h3>
-              <button className="menu-item" onClick={() => { onDashboard(); closeSidebar(); }}>
-                <span className="material-symbols-outlined">dashboard</span>
+            <div className='menu-section'>
+              <h3 className='menu-section-title'>Painel do Usuário</h3>
+              <button
+                className='menu-item'
+                onClick={() => {
+                  onDashboard();
+                  closeSidebar();
+                }}
+              >
+                <span className='material-symbols-outlined'>dashboard</span>
                 Dashboard
               </button>
-              <button className="menu-item" onClick={() => { onNewDenuncia(); closeSidebar(); }}>
-                <span className="material-symbols-outlined">add_circle</span>
+              <button
+                className='menu-item'
+                onClick={() => {
+                  onNewDenuncia();
+                  closeSidebar();
+                }}
+              >
+                <span className='material-symbols-outlined'>add_circle</span>
                 Nova Denúncia
               </button>
-              <button className="menu-item" onClick={() => { onChangePassword(); closeSidebar(); }}>
-                <span className="material-symbols-outlined">lock</span>
+              <button
+                className='menu-item'
+                onClick={() => {
+                  onChangePassword();
+                  closeSidebar();
+                }}
+              >
+                <span className='material-symbols-outlined'>lock</span>
                 Alterar Senha
               </button>
-              <button className="menu-item logout" onClick={() => { onLogout(); closeSidebar(); }}>
-                <span className="material-symbols-outlined">logout</span>
+              <button
+                className='menu-item logout'
+                onClick={() => {
+                  onLogout();
+                  closeSidebar();
+                }}
+              >
+                <span className='material-symbols-outlined'>logout</span>
                 Sair
               </button>
             </div>
           ) : (
             // Menu para usuário não logado
-            <div className="menu-section">
-              <h3 className="menu-section-title">Acesso</h3>
-              <button className="menu-item" onClick={() => { onLogin(); closeSidebar(); }}>
-                <span className="material-symbols-outlined">login</span>
+            <div className='menu-section'>
+              <h3 className='menu-section-title'>Acesso</h3>
+              <button
+                className='menu-item'
+                onClick={() => {
+                  onLogin();
+                  closeSidebar();
+                }}
+              >
+                <span className='material-symbols-outlined'>login</span>
                 Login
               </button>
             </div>

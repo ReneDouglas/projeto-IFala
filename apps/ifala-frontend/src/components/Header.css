@@ -130,17 +130,17 @@
   .header-container {
     padding: 0.5rem 1rem; /* Reduz padding */
   }
-  
+
   /* Logo menor em mobile */
   .header-logo {
     height: 32px; /* Altura reduzida */
   }
-  
+
   /* Título menor em mobile */
   .app-title {
     font-size: 1rem; /* Tamanho reduzido */
   }
-  
+
   /* Subtítulo menor em mobile */
   .app-subtitle {
     font-size: 0.7rem; /* Tamanho reduzido */

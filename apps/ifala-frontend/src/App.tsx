@@ -1,10 +1,10 @@
 // ================================
 // IMPORTAÇÕES E DEPENDÊNCIAS
 // ================================
-import { useState } from 'react';              // Hook para gerenciar estados
-import './App.css';                            // Estilos do componente
-import Header from './components/Header';      // Componente Header
-import Sidebar from './components/Sidebar';   // Componente Sidebar
+import { useState } from 'react'; // Hook para gerenciar estados
+import './App.css'; // Estilos do componente
+import Header from './components/Header'; // Componente Header
+import Sidebar from './components/Sidebar'; // Componente Sidebar
 import ifalaLogo from './assets/IFala-logo.png'; // Logo do IFala
 import ifpiLogo from './assets/Logo-IFPI-Horizontal.png'; // Logo do IFPI
 
@@ -58,7 +58,7 @@ function App() {
   // ================================
   // FUNÇÕES DO MENU LATERAL
   // ================================
-  
+
   // Nota: Funções de toggle e close do sidebar agora estão nos componentes  // Manipula clique no botão home (logo + título)
   const handleHomeClick = () => {
     // Rola suavemente para o topo da página
@@ -108,13 +108,13 @@ function App() {
           COMPONENTES DE NAVEGAÇÃO
           Header e Sidebar reutilizáveis
           ================================ */}
-      <Header 
+      <Header
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         isLoggedIn={isLoggedIn}
         onHomeClick={handleHomeClick}
       />
-      
+
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
