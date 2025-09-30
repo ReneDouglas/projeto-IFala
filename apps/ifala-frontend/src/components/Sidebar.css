@@ -1,0 +1,152 @@
+/* ================================
+   COMPONENTE SIDEBAR - ESTILOS
+   Estilos específicos para o menu lateral reutilizável
+   ================================ */
+
+/* Overlay escuro de fundo */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  opacity: 0;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Menu lateral */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 300px;
+  height: 100%;
+  background: white;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 201;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sidebar aberto */
+.sidebar.open {
+  transform: translateX(0);
+}
+
+/* Cabeçalho do sidebar */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--cinza-claro);
+  background: var(--azul-confianca);
+  color: white;
+}
+
+/* Título do sidebar */
+.sidebar-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Botão de fechar */
+.sidebar-close {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.sidebar-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Conteúdo do sidebar */
+.sidebar-content {
+  flex: 1;
+  padding: 1rem 0;
+  overflow-y: auto;
+}
+
+/* Seção do menu */
+.menu-section {
+  margin-bottom: 2rem;
+}
+
+/* Título da seção */
+.menu-section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--cinza-texto);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.5rem 1rem;
+}
+
+/* Item do menu */
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--cinza-texto);
+  transition: all 0.3s ease;
+}
+
+/* Estado hover dos itens */
+.menu-item:hover {
+  background: var(--azul-suave-claro);
+  color: var(--azul-confianca);
+}
+
+/* Item de logout */
+.menu-item.logout {
+  color: var(--vermelho-erro);
+  margin-top: 1rem;
+  border-top: 1px solid var(--cinza-claro);
+  padding-top: 1rem;
+}
+
+.menu-item.logout:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--vermelho-erro);
+}
+
+/* Ícones dos itens */
+.menu-item .material-symbols-outlined {
+  font-size: 1.25rem;
+}
+
+/* Animação de fade in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ================================
+   RESPONSIVIDADE
+   ================================ */
+@media (max-width: 480px) {
+  .sidebar {
+    width: 280px;
+  }
+}
