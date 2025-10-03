@@ -23,11 +23,17 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(
-            auth -> auth.requestMatchers("/auth/primeiro-acesso", "/auth/login", "/auth/logout")
-                .permitAll().anyRequest().authenticated())
+
+        // Configuração de autorização
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/auth/primeiro-acesso", "/auth/login", "/auth/logout").permitAll()
+            .requestMatchers("/auth/user-info").authenticated().anyRequest().authenticated())
+
+        // Configuração OAuth2 Resource Server (JWT)
         .oauth2ResourceServer(
             oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)))
+
+        // Sessão stateless (sem estado)
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

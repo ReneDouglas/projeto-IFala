@@ -45,7 +45,7 @@ services:
         '-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=*:5005'
     ports:
       - '8080:8080'
-      - '5006:5005'
+      - '5005:5005'
     depends_on:
       postgres:
         condition: service_healthy
@@ -70,7 +70,6 @@ services:
       - 'start-dev'
     ports:
       - '9090:8080'
-      - '5005:5005'
 
 volumes:
   pgdata:
