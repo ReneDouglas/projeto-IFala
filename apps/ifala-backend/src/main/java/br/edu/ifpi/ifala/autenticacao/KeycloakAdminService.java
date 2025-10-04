@@ -12,6 +12,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import br.edu.ifpi.ifala.shared.exception.KeycloakAdminException;
 
 import java.util.List;
 import java.util.Map;
@@ -230,30 +231,6 @@ public class KeycloakAdminService {
       throw new KeycloakAdminException("Erro ao redefinir senha: " + e.getMessage());
     } catch (Exception e) {
       throw new KeycloakAdminException("Erro interno ao redefinir senha: " + e.getMessage());
-    }
-  }
-
-  /**
-   * Exceção personalizada para erros do Keycloak Admin API.
-   */
-  public static class KeycloakAdminException extends Exception {
-    /**
-     * Construtor com mensagem de erro.
-     *
-     * @param message Mensagem de erro
-     */
-    public KeycloakAdminException(String message) {
-      super(message);
-    }
-
-    /**
-     * Construtor com mensagem de erro e causa.
-     *
-     * @param message Mensagem de erro
-     * @param cause Causa da exceção
-     */
-    public KeycloakAdminException(String message, Throwable cause) {
-      super(message, cause);
     }
   }
 }
