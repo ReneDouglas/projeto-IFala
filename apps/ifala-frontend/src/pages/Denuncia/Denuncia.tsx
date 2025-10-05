@@ -6,62 +6,84 @@ import {
   Box,
   TextField,
   FormControlLabel,
-  Checkbox,
-  Button,
+  Radio,
+  RadioGroup,
   Stack,
   Paper,
   FormHelperText,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Alert,
+  Button,
+  type SelectChangeEvent,
 } from '@mui/material';
 import ReCAPTCHA from 'react-google-recaptcha';
+import '../../styles/theme.css';
 
 export function Denuncia() {
-  // Estado para os dados do formulário
-  const [identificado, setIdentificado] = useState(false);
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [relato, setRelato] = useState('');
-
-  // Estado para o reCAPTCHA
+  const [tipoDenuncia, setTipoDenuncia] = useState('anonima');
+  const [formData, setFormData] = useState({
+    nome: '',
+    email: '',
+    grau: '',
+    categoria: '',
+    relato: '',
+  });
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-
-  // Estado para controlar os erros de validação
   const [errors, setErrors] = useState({
     nome: false,
     email: false,
+    grau: false,
+    categoria: false,
     relato: false,
     recaptcha: false,
   });
-
   const navigate = useNavigate();
+
+  const handleChange = (
+    event:
+      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      | SelectChangeEvent,
+  ) => {
+    const { name, value } = event.target;
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
+  };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-
-    // ----- LÓGICA DE VALIDAÇÃO -----
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const newErrors = {
-      // Valida o nome SOMENTE SE o usuário escolheu se identificar
-      nome: identificado && nome.trim() === '',
-      // Valida o email SOMENTE SE o usuário escolheu se identificar
-      email: identificado && email.trim() === '',
-      // Valida o relato sempre
-      relato: relato.trim() === '',
-      // Valida o reCAPTCHA sempre
+      nome: tipoDenuncia === 'identificada' && formData.nome.trim() === '',
+      email:
+        tipoDenuncia === 'identificada' && !emailRegex.test(formData.email),
+      grau: tipoDenuncia === 'identificada' && formData.grau.trim() === '',
+      categoria: formData.categoria.trim() === '',
+      relato: formData.relato.trim().length < 50,
       recaptcha: !recaptchaToken,
     };
 
     setErrors(newErrors);
-
-    // Verifica se há algum erro no objeto 'newErrors'
     const hasErrors = Object.values(newErrors).some((error) => error === true);
 
     if (hasErrors) {
-      console.log('Formulário com erros, envio bloqueado.');
-      return; // Para a execução se houver erros
+      let errorMessage = 'Por favor, preencha todos os campos obrigatórios.';
+      if (newErrors.relato) {
+        errorMessage =
+          'Por favor, preencha todos os campos obrigatórios e garanta que a descrição tenha no mínimo 50 caracteres.';
+      }
+      if (newErrors.recaptcha) {
+        errorMessage = 'Por favor, complete o desafio "Não sou um robô".';
+      }
+      alert(errorMessage);
+      return;
     }
-    // ----- FIM DA VALIDAÇÃO -----
 
-    // Casi passe por todas as validações, simula o envio
-    const fakeTrackingToken = `IFALA-${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
+    const fakeTrackingToken = `IFALA-${Math.random()
+      .toString(36)
+      .substring(2, 11)
+      .toUpperCase()}`;
     navigate('/denuncia/sucesso', { state: { token: fakeTrackingToken } });
   };
 
@@ -72,85 +94,272 @@ export function Denuncia() {
     }
   };
 
+  const fieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      '&:hover fieldset': {
+        borderColor: 'var(--verde-esperanca)',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: 'var(--verde-esperanca)',
+      },
+    },
+    '& .MuiInputLabel-root.Mui-focused': {
+      color: 'var(--verde-esperanca)',
+    },
+  };
+
+  // ========================================================================
+  // ALTERAÇÃO: Estilo do hover com fundo verde e texto branco
+  // ========================================================================
+  const menuItemStyles = {
+    '&:hover': {
+      backgroundColor: 'var(--verde-esperanca)',
+      color: 'var(--branco)',
+    },
+    '&.Mui-selected': {
+      backgroundColor: 'var(--verde-esperanca-20)',
+      color: 'var(--verde-esperanca)',
+      '&:hover': {
+        backgroundColor: 'var(--verde-esperanca)',
+        color: 'var(--branco)',
+      },
+    },
+  };
+  // ========================================================================
+
   return (
-    <Box sx={{ backgroundColor: '#f4f6f8', minHeight: '100vh', py: 5 }}>
-      <Container maxWidth='md'>
+    <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh' }}>
+      <Container maxWidth='md' sx={{ py: 4 }}>
         <Paper
           component='form'
-          noValidate
-          autoComplete='off'
           onSubmit={handleSubmit}
-          elevation={3}
-          sx={{ p: 4, borderRadius: 3 }}
+          variant='outlined'
+          sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}
         >
-          <Box sx={{ textAlign: 'center', mb: 3 }}>
+          <Box sx={{ mb: 4 }}>
             <Typography
-              variant='h4'
+              variant='h5'
               component='h1'
               gutterBottom
               sx={{ fontWeight: 'bold' }}
             >
-              Canal de Denúncias
+              Nova Denúncia
             </Typography>
             <Typography variant='body1' color='text.secondary'>
-              Este é um espaço seguro e confidencial.
+              Relate ocorrências que acontecem dentro da instituição de forma
+              anônima e segura através do IFala.
             </Typography>
           </Box>
 
           <Stack spacing={3}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={identificado}
-                  onChange={(e) => setIdentificado(e.target.checked)}
+            <FormControl>
+              <Typography
+                component='label'
+                sx={{ fontWeight: 'medium', mb: 1 }}
+              >
+                Deseja se identificar? *
+              </Typography>
+              <RadioGroup
+                value={tipoDenuncia}
+                onChange={(e) => setTipoDenuncia(e.target.value)}
+              >
+                <FormControlLabel
+                  value='anonima'
+                  control={
+                    <Radio
+                      sx={{
+                        '&.Mui-checked': { color: 'var(--verde-esperanca)' },
+                      }}
+                    />
+                  }
+                  label='Não, prefiro permanecer anônimo'
                 />
-              }
-              label='Desejo me identificar (Opcional)'
-            />
+                <FormControlLabel
+                  value='identificada'
+                  control={
+                    <Radio
+                      sx={{
+                        '&.Mui-checked': { color: 'var(--verde-esperanca)' },
+                      }}
+                    />
+                  }
+                  label='Sim, desejo me identificar'
+                />
+              </RadioGroup>
+            </FormControl>
 
-            {identificado && (
-              <>
+            {tipoDenuncia === 'identificada' && (
+              <Stack
+                spacing={3}
+                sx={{
+                  borderLeft: '3px solid',
+                  borderColor: 'var(--verde-esperanca)',
+                  pl: 2,
+                  ml: 1,
+                  py: 2,
+                }}
+              >
+                <Typography variant='h6' sx={{ fontWeight: 'medium' }}>
+                  Dados de Identificação
+                </Typography>
+                <Alert
+                  severity='success'
+                  icon={false}
+                  sx={{
+                    backgroundColor: 'var(--verde-esperanca-10)',
+                    color: 'var(--cinza-escuro)',
+                  }}
+                >
+                  <strong>Confidencialidade Garantida:</strong> Mesmo se
+                  identificando, seus dados serão mantidos em absoluto sigilo.
+                  Apenas a administração autorizada terá acesso às informações,
+                  e você não será exposto em momento algum durante o processo de
+                  investigação.
+                </Alert>
                 <TextField
                   name='nome'
-                  label='Seu nome completo'
+                  label='Nome Completo *'
                   variant='outlined'
                   fullWidth
-                  required
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
+                  value={formData.nome}
+                  onChange={handleChange}
                   error={errors.nome}
                   helperText={errors.nome ? 'O nome é obrigatório.' : ''}
+                  sx={fieldStyles}
                 />
                 <TextField
                   name='email'
-                  label='Seu e-mail para contato'
+                  label='Email *'
                   variant='outlined'
                   fullWidth
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={formData.email}
+                  onChange={handleChange}
                   error={errors.email}
-                  helperText={errors.email ? 'O e-mail é obrigatório.' : ''}
+                  helperText={
+                    errors.email ? 'Por favor, insira um email válido.' : ''
+                  }
+                  sx={fieldStyles}
                 />
-              </>
+                <FormControl fullWidth required error={errors.grau}>
+                  <InputLabel
+                    sx={{
+                      '&.Mui-focused': { color: 'var(--verde-esperanca)' },
+                    }}
+                  >
+                    Grau *
+                  </InputLabel>
+                  <Select
+                    name='grau'
+                    value={formData.grau}
+                    label='Grau *'
+                    onChange={handleChange}
+                    sx={{
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'var(--verde-esperanca)',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'var(--verde-esperanca)',
+                      },
+                    }}
+                  >
+                    <MenuItem value='aluno' sx={menuItemStyles}>
+                      Aluno
+                    </MenuItem>
+                    <MenuItem value='professor' sx={menuItemStyles}>
+                      Professor
+                    </MenuItem>
+                    <MenuItem value='funcionario' sx={menuItemStyles}>
+                      Funcionário
+                    </MenuItem>
+                  </Select>
+                  {errors.grau && (
+                    <FormHelperText>O grau é obrigatório.</FormHelperText>
+                  )}
+                </FormControl>
+              </Stack>
             )}
+
+            <FormControl fullWidth required error={errors.categoria}>
+              <InputLabel
+                sx={{ '&.Mui-focused': { color: 'var(--verde-esperanca)' } }}
+              >
+                Categoria da Denúncia *
+              </InputLabel>
+              <Select
+                name='categoria'
+                value={formData.categoria}
+                label='Categoria da Denúncia *'
+                onChange={handleChange}
+                sx={{
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'var(--verde-esperanca)',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'var(--verde-esperanca)',
+                  },
+                }}
+              >
+                <MenuItem value='bullying_assedio' sx={menuItemStyles}>
+                  Bullying e Assédio
+                </MenuItem>
+                <MenuItem value='uso_substancias' sx={menuItemStyles}>
+                  Uso ou Porte de Substâncias Ilícitas
+                </MenuItem>
+                <MenuItem value='violencia' sx={menuItemStyles}>
+                  Violência Física ou Verbal
+                </MenuItem>
+                <MenuItem value='vandalismo' sx={menuItemStyles}>
+                  Vandalismo e Danos ao Patrimônio
+                </MenuItem>
+                <MenuItem value='fraude_academica' sx={menuItemStyles}>
+                  Questões Acadêmicas (Fraude, Plágio)
+                </MenuItem>
+                <MenuItem value='outros' sx={menuItemStyles}>
+                  Outros
+                </MenuItem>
+              </Select>
+              {errors.categoria && (
+                <FormHelperText>A categoria é obrigatória.</FormHelperText>
+              )}
+            </FormControl>
 
             <TextField
               name='relato'
-              label='Relato da Denúncia'
-              placeholder='Descreva detalhadamente o ocorrido...'
-              variant='outlined'
-              fullWidth
+              label='Descrição Detalhada *'
+              placeholder={`Descreva sua denúncia com o máximo de detalhes possível:
+- O que aconteceu?
+- Quem são os envolvidos?
+- Onde e quando ocorreu?
+- Existem testemunhas?
+- Qualquer informação adicional é valiosa.`}
               multiline
-              rows={10}
+              rows={8}
+              fullWidth
               required
-              value={relato}
-              onChange={(e) => setRelato(e.target.value)}
+              value={formData.relato}
+              onChange={handleChange}
               error={errors.relato}
               helperText={
-                errors.relato ? 'O relato da denúncia é obrigatório.' : ''
+                errors.relato
+                  ? 'A descrição é obrigatória e deve ter no mínimo 50 caracteres.'
+                  : `Mínimo: 50 caracteres (atual: ${formData.relato.length})`
               }
+              sx={fieldStyles}
             />
+
+            <Alert
+              severity='info'
+              icon={false}
+              sx={{
+                backgroundColor: 'var(--verde-esperanca-10)',
+                color: 'var(--cinza-escuro)',
+                borderLeft: '4px solid var(--verde-esperanca)',
+              }}
+            >
+              <strong>Sua Segurança é Nossa Prioridade:</strong> Esta denúncia
+              será totalmente anônima. Não coletamos endereços IP, dados
+              pessoais ou qualquer informação que possa identificá-lo.
+            </Alert>
 
             <Box
               sx={{
@@ -166,33 +375,32 @@ export function Denuncia() {
               />
               {errors.recaptcha && (
                 <FormHelperText error sx={{ mt: 1 }}>
-                  Por favor, complete o desafio "Não sou um robô".
+                  Por favor, complete o desafio.
                 </FormHelperText>
               )}
             </Box>
 
-            <Stack direction='row' spacing={2}>
-              <Button
-                variant='outlined'
-                color='primary'
-                size='large'
-                fullWidth
-                sx={{ py: 1.5 }}
-                onClick={() => navigate(-1)}
-              >
-                Voltar
-              </Button>
-              <Button
-                variant='contained'
-                color='primary'
-                size='large'
-                type='submit'
-                fullWidth
-                sx={{ py: 1.5, fontWeight: 'bold' }}
-              >
-                Enviar Denúncia
-              </Button>
-            </Stack>
+            <Button
+              variant='contained'
+              size='large'
+              type='submit'
+              fullWidth
+              sx={{
+                py: 1.5,
+                fontWeight: 'bold',
+                textTransform: 'none',
+                fontSize: '1rem',
+                borderRadius: 2,
+                backgroundColor: 'var(--verde-esperanca)',
+                '&:hover': {
+                  backgroundColor: '#257247',
+                },
+              }}
+            >
+              {tipoDenuncia === 'anonima'
+                ? 'Enviar Denúncia de Forma Anônima'
+                : 'Enviar Denúncia Identificada'}
+            </Button>
           </Stack>
         </Paper>
       </Container>

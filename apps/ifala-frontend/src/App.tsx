@@ -1,17 +1,22 @@
+// src/App.tsx
+
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Home } from './pages/Home/Home';
 import { Denuncia } from './pages/Denuncia/Denuncia';
 import { DenunciaSucesso } from './pages/DenunciaSucesso/DenunciaSucesso';
+import { MainLayout } from './components/MainLayout'; // Importa o layout principal
 
 export function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path='/' element={<Home />} />
-
-        {/* Rotas da funcionalidade de Denúncia */}
-        <Route path='/denuncia' element={<Denuncia />} />
-        <Route path='/denuncia/sucesso' element={<DenunciaSucesso />} />
+        {/* Rota "pai" que renderiza o Layout Principal */}
+        <Route element={<MainLayout />}>
+          {/* Rotas "filhas" que serão renderizadas dentro do <Outlet> do Layout */}
+          <Route path='/' element={<Home />} />
+          <Route path='/denuncia' element={<Denuncia />} />
+          <Route path='/denuncia/sucesso' element={<DenunciaSucesso />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

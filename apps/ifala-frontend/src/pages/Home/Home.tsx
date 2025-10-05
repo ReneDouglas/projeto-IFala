@@ -4,8 +4,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // <-- IMPORTADO PARA NAVEGAÇÃO
 import '../../App.css'; // Estilos do componente (caminho ajustado)
-import Header from '../../components/Header'; // Componente Header (caminho ajustado)
-import Sidebar from '../../components/Sidebar'; // Componente Sidebar (caminho ajustado)
 import ifalaLogo from '../../assets/IFala-logo.png'; // Logo do IFala (caminho ajustado)
 import ifpiLogo from '../../assets/Logo-IFPI-Horizontal.png'; // Logo do IFPI (caminho ajustado)
 
@@ -18,8 +16,6 @@ export function Home() {
   // ================================
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [token, setToken] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Hook do React Router para controlar a navegação
   const navigate = useNavigate();
@@ -45,50 +41,11 @@ export function Home() {
     }
   };
 
-  const handleHomeClick = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleLogin = () => {
-    console.log('Redirecionando para login');
-  };
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-  };
-  const handleDashboard = () => {
-    console.log('Redirecionando para dashboard');
-  };
-  const handleChangePassword = () => {
-    console.log('Redirecionando para alterar senha');
-  };
-
-  // MUDANÇA AQUI: Também atualizado para usar a navegação
-  const handleNewDenuncia = () => {
-    navigate('/denuncia');
-  };
-
   // ================================
   // RENDERIZAÇÃO DO COMPONENTE
   // ================================
   return (
-    <div className='app'>
-      <Header
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        onHomeClick={handleHomeClick}
-      />
-
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        isLoggedIn={isLoggedIn}
-        onLogin={handleLogin}
-        onLogout={handleLogout}
-        onDashboard={handleDashboard}
-        onChangePassword={handleChangePassword}
-        onNewDenuncia={handleNewDenuncia}
-      />
-
+    <>
       <section className='hero'>
         <div className='container'>
           <div className='hero-content'>
@@ -249,6 +206,6 @@ export function Home() {
           </p>
         </div>
       </footer>
-    </div>
+    </>
   );
 }
