@@ -15,20 +15,52 @@ import {
 import ReCAPTCHA from 'react-google-recaptcha';
 
 export function Denuncia() {
+  // Estado para os dados do formulário
   const [identificado, setIdentificado] = useState(false);
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [relato, setRelato] = useState('');
+
+  // Estado para o reCAPTCHA
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-  const [recaptchaError, setRecaptchaError] = useState(false);
+
+  // Estado para controlar os erros de validação
+  const [errors, setErrors] = useState({
+    nome: false,
+    email: false,
+    relato: false,
+    recaptcha: false,
+  });
+
   const navigate = useNavigate();
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!recaptchaToken) {
-      setRecaptchaError(true);
-      return;
-    }
+    // ----- LÓGICA DE VALIDAÇÃO -----
+    const newErrors = {
+      // Valida o nome SOMENTE SE o usuário escolheu se identificar
+      nome: identificado && nome.trim() === '',
+      // Valida o email SOMENTE SE o usuário escolheu se identificar
+      email: identificado && email.trim() === '',
+      // Valida o relato sempre
+      relato: relato.trim() === '',
+      // Valida o reCAPTCHA sempre
+      recaptcha: !recaptchaToken,
+    };
 
-    setRecaptchaError(false);
+    setErrors(newErrors);
+
+    // Verifica se há algum erro no objeto 'newErrors'
+    const hasErrors = Object.values(newErrors).some((error) => error === true);
+
+    if (hasErrors) {
+      console.log('Formulário com erros, envio bloqueado.');
+      return; // Para a execução se houver erros
+    }
+    // ----- FIM DA VALIDAÇÃO -----
+
+    // Casi passe por todas as validações, simula o envio
     const fakeTrackingToken = `IFALA-${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
     navigate('/denuncia/sucesso', { state: { token: fakeTrackingToken } });
   };
@@ -36,7 +68,7 @@ export function Denuncia() {
   const handleRecaptchaChange = (token: string | null) => {
     setRecaptchaToken(token);
     if (token) {
-      setRecaptchaError(false);
+      setErrors((prevErrors) => ({ ...prevErrors, recaptcha: false }));
     }
   };
 
@@ -61,9 +93,7 @@ export function Denuncia() {
               Canal de Denúncias
             </Typography>
             <Typography variant='body1' color='text.secondary'>
-              Este é um espaço seguro e confidencial para relatar quaisquer
-              irregularidades. Sua identidade, caso fornecida, será mantida em
-              sigilo.
+              Este é um espaço seguro e confidencial.
             </Typography>
           </Box>
 
@@ -77,6 +107,7 @@ export function Denuncia() {
               }
               label='Desejo me identificar (Opcional)'
             />
+
             {identificado && (
               <>
                 <TextField
@@ -84,15 +115,26 @@ export function Denuncia() {
                   label='Seu nome completo'
                   variant='outlined'
                   fullWidth
+                  required
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  error={errors.nome}
+                  helperText={errors.nome ? 'O nome é obrigatório.' : ''}
                 />
                 <TextField
                   name='email'
                   label='Seu e-mail para contato'
                   variant='outlined'
                   fullWidth
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  error={errors.email}
+                  helperText={errors.email ? 'O e-mail é obrigatório.' : ''}
                 />
               </>
             )}
+
             <TextField
               name='relato'
               label='Relato da Denúncia'
@@ -102,7 +144,14 @@ export function Denuncia() {
               multiline
               rows={10}
               required
+              value={relato}
+              onChange={(e) => setRelato(e.target.value)}
+              error={errors.relato}
+              helperText={
+                errors.relato ? 'O relato da denúncia é obrigatório.' : ''
+              }
             />
+
             <Box
               sx={{
                 display: 'flex',
@@ -115,7 +164,7 @@ export function Denuncia() {
                 sitekey='6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
                 onChange={handleRecaptchaChange}
               />
-              {recaptchaError && (
+              {errors.recaptcha && (
                 <FormHelperText error sx={{ mt: 1 }}>
                   Por favor, complete o desafio "Não sou um robô".
                 </FormHelperText>
