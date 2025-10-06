@@ -255,3 +255,7 @@
 .shadow-lg {
   box-shadow: var(--sombra-forte);
 }
+
+.MuiRadio-root.Mui-checked {
+  color: var(--verde-esperanca) !important;
+}
