@@ -15,8 +15,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import br.edu.ifpi.ifala.autenticacao.dto.TokenResponseDTO;
-import br.edu.ifpi.ifala.shared.exception.KeycloakAdminException;
-import br.edu.ifpi.ifala.shared.exception.AuthException;
+import br.edu.ifpi.ifala.shared.exceptions.AuthException;
+import br.edu.ifpi.ifala.shared.exceptions.KeycloakAdminException;
 
 
 

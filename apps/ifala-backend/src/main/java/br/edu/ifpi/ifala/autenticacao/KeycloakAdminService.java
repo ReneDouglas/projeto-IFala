@@ -12,8 +12,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import br.edu.ifpi.ifala.shared.exception.KeycloakAdminException;
-
+import br.edu.ifpi.ifala.shared.exceptions.KeycloakAdminException;
 import java.util.List;
 import java.util.Map;
 

@@ -8,11 +8,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import br.edu.ifpi.ifala.autenticacao.dto.TokenResponseDTO;
+import br.edu.ifpi.ifala.shared.exceptions.AuthException;
 import br.edu.ifpi.ifala.autenticacao.dto.AuthResponseDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.LogoutRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.PrimeiroAcessoRequestDTO;
-import br.edu.ifpi.ifala.shared.exception.AuthException;
 
 
 /**

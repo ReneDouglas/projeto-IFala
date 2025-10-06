@@ -1,4 +1,4 @@
-package br.edu.ifpi.ifala.shared.exception;
+package br.edu.ifpi.ifala.shared.exceptions;
 
 public class AuthException extends Exception {
   public AuthException(String message) {

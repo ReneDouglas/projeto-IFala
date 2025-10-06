@@ -1,4 +1,4 @@
-package br.edu.ifpi.ifala.shared.exception;
+package br.edu.ifpi.ifala.shared.exceptions;
 
 public class KeycloakAdminException extends Exception {
   /**
