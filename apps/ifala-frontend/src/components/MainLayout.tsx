@@ -1,5 +1,3 @@
-// Salve em: src/components/MainLayout.tsx
-
 import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Header from './Header';

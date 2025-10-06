@@ -22,24 +22,61 @@ import {
 import ReCAPTCHA from 'react-google-recaptcha';
 import '../../styles/theme.css';
 
+const cursosPorNivel = {
+  medio: ['Administração', 'Agropecuária', 'Informática', 'Meio Ambiente'],
+  superior: [
+    'Análise e Desenvolvimento de Sistemas',
+    'Licenciatura em Matemática',
+    'Licenciatura em Física',
+    'Administração',
+    'Gestão Ambiental',
+  ],
+};
+
+const turmasPorNivel = {
+  medio: [
+    '1º ano A',
+    '1º ano B',
+    '2º ano A',
+    '2º ano B',
+    '3º ano A',
+    '3º ano B',
+  ],
+  superior: [
+    'Módulo I',
+    'Módulo II',
+    'Módulo III',
+    'Módulo IV',
+    'Módulo V',
+    'Módulo VI',
+    'Módulo VII',
+    'Módulo VIII',
+  ],
+};
+
 export function Denuncia() {
-  const [tipoDenuncia, setTipoDenuncia] = useState('anonima');
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
     grau: '',
+    curso: '',
+    turma: '',
     categoria: '',
     relato: '',
   });
+  const [tipoDenuncia, setTipoDenuncia] = useState('anonima');
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [errors, setErrors] = useState({
     nome: false,
     email: false,
     grau: false,
+    curso: false,
+    turma: false,
     categoria: false,
     relato: false,
     recaptcha: false,
   });
+
   const navigate = useNavigate();
 
   const handleChange = (
@@ -48,17 +85,31 @@ export function Denuncia() {
       | SelectChangeEvent,
   ) => {
     const { name, value } = event.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
+
+    if (name === 'grau') {
+      setFormData((prev) => ({ ...prev, grau: value, curso: '', turma: '' }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     const newErrors = {
       nome: tipoDenuncia === 'identificada' && formData.nome.trim() === '',
       email:
         tipoDenuncia === 'identificada' && !emailRegex.test(formData.email),
       grau: tipoDenuncia === 'identificada' && formData.grau.trim() === '',
+      curso:
+        tipoDenuncia === 'identificada' &&
+        formData.grau.trim() !== '' &&
+        formData.curso.trim() === '',
+      turma:
+        tipoDenuncia === 'identificada' &&
+        formData.grau.trim() !== '' &&
+        formData.turma.trim() === '',
       categoria: formData.categoria.trim() === '',
       relato: formData.relato.trim().length < 50,
       recaptcha: !recaptchaToken,
@@ -108,9 +159,6 @@ export function Denuncia() {
     },
   };
 
-  // ========================================================================
-  // ALTERAÇÃO: Estilo do hover com fundo verde e texto branco
-  // ========================================================================
   const menuItemStyles = {
     '&:hover': {
       backgroundColor: 'var(--verde-esperanca)',
@@ -125,7 +173,6 @@ export function Denuncia() {
       },
     },
   };
-  // ========================================================================
 
   return (
     <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh' }}>
@@ -240,13 +287,14 @@ export function Denuncia() {
                   }
                   sx={fieldStyles}
                 />
+
                 <FormControl fullWidth required error={errors.grau}>
                   <InputLabel
                     sx={{
                       '&.Mui-focused': { color: 'var(--verde-esperanca)' },
                     }}
                   >
-                    Grau *
+                    Grau
                   </InputLabel>
                   <Select
                     name='grau'
@@ -262,20 +310,107 @@ export function Denuncia() {
                       },
                     }}
                   >
-                    <MenuItem value='aluno' sx={menuItemStyles}>
-                      Aluno
+                    <MenuItem value='medio' sx={menuItemStyles}>
+                      Médio
                     </MenuItem>
-                    <MenuItem value='professor' sx={menuItemStyles}>
-                      Professor
-                    </MenuItem>
-                    <MenuItem value='funcionario' sx={menuItemStyles}>
-                      Funcionário
+                    <MenuItem value='superior' sx={menuItemStyles}>
+                      Superior
                     </MenuItem>
                   </Select>
                   {errors.grau && (
                     <FormHelperText>O grau é obrigatório.</FormHelperText>
                   )}
                 </FormControl>
+
+                {formData.grau && (
+                  <>
+                    <FormControl fullWidth required error={errors.curso}>
+                      <InputLabel
+                        sx={{
+                          '&.Mui-focused': {
+                            color: 'var(--verde-esperanca)',
+                          },
+                        }}
+                      >
+                        Curso
+                      </InputLabel>
+                      <Select
+                        name='curso'
+                        value={formData.curso}
+                        label='Curso *'
+                        onChange={handleChange}
+                        sx={{
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'var(--verde-esperanca)',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'var(--verde-esperanca)',
+                          },
+                        }}
+                      >
+                        {(
+                          cursosPorNivel[
+                            formData.grau as 'medio' | 'superior'
+                          ] || []
+                        ).map((curso) => (
+                          <MenuItem
+                            key={curso}
+                            value={curso}
+                            sx={menuItemStyles}
+                          >
+                            {curso}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {errors.curso && (
+                        <FormHelperText>O curso é obrigatório.</FormHelperText>
+                      )}
+                    </FormControl>
+
+                    <FormControl fullWidth required error={errors.turma}>
+                      <InputLabel
+                        sx={{
+                          '&.Mui-focused': {
+                            color: 'var(--verde-esperanca)',
+                          },
+                        }}
+                      >
+                        Turma
+                      </InputLabel>
+                      <Select
+                        name='turma'
+                        value={formData.turma}
+                        label='Turma *'
+                        onChange={handleChange}
+                        sx={{
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'var(--verde-esperanca)',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'var(--verde-esperanca)',
+                          },
+                        }}
+                      >
+                        {(
+                          turmasPorNivel[
+                            formData.grau as 'medio' | 'superior'
+                          ] || []
+                        ).map((turma) => (
+                          <MenuItem
+                            key={turma}
+                            value={turma}
+                            sx={menuItemStyles}
+                          >
+                            {turma}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {errors.turma && (
+                        <FormHelperText>A turma é obrigatória.</FormHelperText>
+                      )}
+                    </FormControl>
+                  </>
+                )}
               </Stack>
             )}
 
@@ -283,7 +418,7 @@ export function Denuncia() {
               <InputLabel
                 sx={{ '&.Mui-focused': { color: 'var(--verde-esperanca)' } }}
               >
-                Categoria da Denúncia *
+                Categoria da Denúncia
               </InputLabel>
               <Select
                 name='categoria'
@@ -325,7 +460,7 @@ export function Denuncia() {
 
             <TextField
               name='relato'
-              label='Descrição Detalhada *'
+              label='Descrição Detalhada '
               placeholder={`Descreva sua denúncia com o máximo de detalhes possível:
 - O que aconteceu?
 - Quem são os envolvidos?

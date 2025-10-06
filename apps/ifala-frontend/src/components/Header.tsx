@@ -1,5 +1,3 @@
-// src/components/Header.tsx
-
 import './Header.css';
 import { useNavigate } from 'react-router-dom';
 import ifalaLogo from '../assets/IFala-logo.png';
