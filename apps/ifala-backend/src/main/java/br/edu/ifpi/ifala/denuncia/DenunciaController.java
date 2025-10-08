@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
+import jakarta.validation.Valid;
 
 /**
  * Classe Controller responsável por manipular operações relacionadas a
@@ -44,7 +45,7 @@ public class DenunciaController {
 
   @PostMapping
   public ResponseEntity<Denuncia> criarDenuncia(
-      @RequestBody Denuncia novaDenuncia,
+      @Valid @RequestBody Denuncia novaDenuncia,
       UriComponentsBuilder uriBuilder) {
 
     Denuncia denunciaSalva = denunciaService.criarDenuncia(novaDenuncia);
