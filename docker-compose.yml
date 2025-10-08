@@ -17,6 +17,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
   ifala-frontend:
     build:
       context: ./apps/ifala-frontend
@@ -29,9 +30,8 @@ services:
     volumes:
       - ./apps/ifala-frontend:/app
       - /app/node_modules
+
   ifala-backend:
-    # working_dir: /app
-    # image: bellsoft/liberica-runtime-container:jre-21-crac-slim-glibc
     build:
       context: ./apps/ifala-backend
       dockerfile: Dockerfile
@@ -46,12 +46,31 @@ services:
     ports:
       - '8080:8080'
       - '5005:5005'
-    #volumes:
-    # - ./apps/ifala-backend/target/ifala-backend-0.0.1-SNAPSHOT.jar:/app/ifala-api.jar
-    # entrypoint: ['java', '-jar', '/app/ifala-api.jar']
     depends_on:
       postgres:
         condition: service_healthy
+      keycloak:
+        condition: service_started
+
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:25.0.5
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: senha
+      KC_HTTP_HOST: 0.0.0.0
+      KC_HOSTNAME_URL: http://localhost:9090
+      KC_HOSTNAME_ADMIN_URL: http://localhost:9090
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    command:
+      - 'start-dev'
+    ports:
+      - '9090:8080'
 
 volumes:
   pgdata:
+  keycloak_data:

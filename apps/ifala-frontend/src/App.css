@@ -301,10 +301,10 @@
   display: grid; /* Layout grid */
   grid-template-columns: repeat(
     auto-fit,
-    minmax(300px, 1fr)
+    minmax(360px, 1fr)
   ); /* Colunas responsivas */
   gap: 2rem; /* Espaçamento entre cards */
-  max-width: 800px; /* Largura máxima */
+  max-width: 820px; /* Largura máxima */
   margin: 0 auto; /* Centralizado */
 }
 
