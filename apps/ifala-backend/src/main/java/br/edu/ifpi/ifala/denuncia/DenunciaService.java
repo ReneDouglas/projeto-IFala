@@ -3,6 +3,8 @@ package br.edu.ifpi.ifala.denuncia;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
 
+import org.owasp.html.PolicyFactory;
+import org.owasp.html.Sanitizers;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -27,6 +29,8 @@ import java.util.UUID;
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
  */
+
+@Transactional
 public class DenunciaService {
   private final DenunciaRepository denunciaRepository;
 
@@ -34,12 +38,15 @@ public class DenunciaService {
     this.denunciaRepository = denunciaRepository;
   }
 
-  @Transactional
   public Denuncia criarDenuncia(Denuncia novaDenuncia) {
+
+    PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
+    String descricaoSanitizada = policy.sanitize(novaDenuncia.getDescricao());
+    novaDenuncia.setDescricao(descricaoSanitizada);
+
     return denunciaRepository.save(novaDenuncia);
   }
 
-  @Transactional()
   public Optional<Denuncia> consultarPorTokenAcompanhamento(UUID tokenAcompanhamento) {
     return denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
         .filter(denuncia -> denuncia.getStatus() != Status.RESOLVIDO &&
@@ -54,7 +61,7 @@ public class DenunciaService {
    * predicate é uma condição usada em consultas para filtrar resultados
    */
 
-  @Transactional()
+  @Transactional(readOnly = true) // apenas leitura
   public Page<Denuncia> listarTodas(Status status, Categorias categoria, Pageable pageable) {
     Specification<Denuncia> spec = (root, query, criteriaBuilder) -> {
       List<Predicate> predicates = new ArrayList<>();
@@ -65,6 +72,7 @@ public class DenunciaService {
       if (categoria != null) {
         predicates.add(criteriaBuilder.equal(root.get("categoria"), categoria));
       }
+      query.distinct(true);
 
       return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     };
@@ -72,7 +80,6 @@ public class DenunciaService {
     return denunciaRepository.findAll(spec, pageable);
   }
 
-  @Transactional
   public Optional<Denuncia> atualizarDenuncia(Long id, Denuncia dadosParaAtualizar) {
     Optional<Denuncia> denunciaExistente = denunciaRepository.findById(id);
 
@@ -98,7 +105,6 @@ public class DenunciaService {
     return Optional.of(denunciaRepository.save(denuncia));
   }
 
-  @Transactional
   public boolean deletarDenuncia(Long id) {
     Optional<Denuncia> denuncia = denunciaRepository.findById(id);
     if (denuncia.isPresent()) {
