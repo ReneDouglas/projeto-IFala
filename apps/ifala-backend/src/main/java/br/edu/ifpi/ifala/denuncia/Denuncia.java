@@ -12,12 +12,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import org.springframework.cglib.core.Local;
 
 /**
  * Classe que representa uma denúncia no sistema. Esta entidade armazena
@@ -36,14 +39,20 @@ public class Denuncia {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @NotBlank(message = "A descrição não pode ser vazia")
+  @Size(min = 10, max = 5000, message = "A descrição deve ter entre 10 e 5000 caracteres")
   private String descricao;
 
   @Enumerated
+  @NotNull(message = "A categoria não pode ser nula")
   private Categorias categoria;
 
   @Enumerated
+  @NotNull(message = "O status não pode ser nulo")
+  @Column(name = "status_denuncia_enum")
   private Status status;
 
+  @Column(name = "motivo_rejeicao")
   private String motivoRejeicao;
 
   @Column(name = "token_acompanhamento", unique = true, updatable = false, nullable = false)
