@@ -1,5 +1,8 @@
 package br.edu.ifpi.ifala.shared.exceptions;
 
+/**
+ * Exceção personalizada para erros administrativos do Keycloak.
+ */
 public class KeycloakAdminException extends Exception {
   /**
    * Construtor com mensagem de erro.

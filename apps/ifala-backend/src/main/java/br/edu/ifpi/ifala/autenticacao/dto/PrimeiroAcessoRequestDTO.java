@@ -3,7 +3,7 @@ package br.edu.ifpi.ifala.autenticacao.dto;
 /**
  * DTO para requisições de primeiro acesso (username e senha temporária).
  */
-public class PrimeiroAcessoRequestDTO {
+public class PrimeiroAcessoRequestDto {
   private String username;
   private String password;
 

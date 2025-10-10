@@ -1,0 +1,416 @@
+{
+  "realm" : "IFala",
+  "users" : [ {
+    "id" : "2577fb35-d1de-45ba-a297-0b62fd7ae1e2",
+    "username" : "edilucia",
+    "firstName" : "Edilucia",
+    "lastName" : "Mendes",
+    "email" : "ediluciamendesbarbosa@gmail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760036607695,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "1003b332-80a7-4ddb-8c17-cb07681eebe9",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760036617279,
+      "secretData" : "{\"value\":\"qlRJcsWKNOMKFYPQAL8FXKvGxMFztpsWllsSU0+v++g=\",\"salt\":\"moZLu5zYlfjhoEeHH6RFCg==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_gestorInstitucional" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "ee38f4a9-df92-444e-ac3f-3bbfcec822c3",
+    "username" : "elissandra",
+    "firstName" : "Elissandra ",
+    "lastName" : "Vieira",
+    "email" : "elissandrav563@gmail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760037070627,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "e0f24546-73f8-457a-a2a3-a3eae836e6f9",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760037078490,
+      "secretData" : "{\"value\":\"mmchJ+HPgyQoPruyi33FTqF6UElN22Lp95CAJtRTUGk=\",\"salt\":\"4nQR4d5LyeuNUihyWPGeBA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_gestorInstitucional" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "a1e303d2-69d7-4ccf-929a-5c0383dec095",
+    "username" : "guilherme",
+    "firstName" : "Gulherme",
+    "lastName" : "Silva",
+    "email" : "coradodasilva33@gmail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760036567915,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "2d8e80a8-03cc-4f39-aff0-603c2b8b7abb",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760036577360,
+      "secretData" : "{\"value\":\"WKR+yoIf2OR0oul5Yk84uvQFEnR8aLWZ/FR2obSjjSE=\",\"salt\":\"fZvdMFO1W0L4+Md7kXA2tA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_gestorInstitucional" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "363b911d-6892-4426-a5e3-54fbc3faca57",
+    "username" : "jhon",
+    "firstName" : "Jhonatas",
+    "lastName" : "Ribeiro",
+    "email" : "jhon.gomes.r@gmail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760035620680,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "612442ad-bc76-495c-a082-fe3acc2579c5",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760036808197,
+      "secretData" : "{\"value\":\"2h7gjWPUKMVveR7tCYdSEGvEwM+hJ87ismVzK5r+AI8=\",\"salt\":\"scFpw+sFcxvhsZrReP7T8Q==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_gestorInstitucional" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "4c5b81bd-10cc-48fd-81fd-a331c2ddfcf9",
+    "username" : "joao",
+    "firstName" : "João",
+    "lastName" : "André",
+    "email" : "joaoandresantana38@gmail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760037184703,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "c1d83f6c-db9c-4115-a709-fd29d990633a",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760037193728,
+      "secretData" : "{\"value\":\"Hp9T8Unctj/ySfU6aF22OzSsdPJ7BXBcFrm+L2hWI1o=\",\"salt\":\"iitXe0iapL83vUuuJr21ww==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_gestorInstitucional" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "e00afb17-c6a4-4027-9991-84bc94da78f9",
+    "username" : "joniel",
+    "firstName" : "Joniel",
+    "lastName" : "Mendes",
+    "email" : "jonielmendes237@gmail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760037227947,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "8e27294a-a20e-4af8-9c6d-3ac91c38473b",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760037270166,
+      "secretData" : "{\"value\":\"8O+N7M4XDbCM/wqSXEBiJIVGJulknhCQC6X3JuszkyU=\",\"salt\":\"No2isJUO7GpycKP7IRg/aQ==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_gestorInstitucional" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "3b3ab1a9-6af6-4d4d-849a-858daa280b99",
+    "username" : "jordean",
+    "firstName" : "jordean",
+    "lastName" : "Lisboa",
+    "email" : "cacor.2019121tads0028@aluno.ifpi.edu.br",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760036682030,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "9fbd5e81-54da-4e8e-b89b-dfc3192a56be",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760036691186,
+      "secretData" : "{\"value\":\"USv8KyI/j25+lEvEEqYZNkw51D3y8kU1eJnQiTSSXhc=\",\"salt\":\"CBSrTgYVBAH78TWoZ43Zww==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_gestorInstitucional" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "9bfd4b71-5a88-4707-a321-bda8f8228fdf",
+    "username" : "keyllane",
+    "firstName" : "Keyllane",
+    "lastName" : "Guedes",
+    "email" : "keyllaneguede@gmail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760035553236,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "75432254-e8f2-4326-ba78-952bd494162d",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760035564382,
+      "secretData" : "{\"value\":\"50q3UHA5JRtCjl4mxb4dD+PBOO88SR1eu9dvmh1feXI=\",\"salt\":\"PX9SVNyHHxQgMwsir0HPxw==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_gestorInstitucional" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "f7b85762-70ad-4e52-8505-0b10bba3d636",
+    "username" : "luana",
+    "firstName" : "Luana",
+    "lastName" : "Figueiredo",
+    "email" : "cacor.2020121tads0005@aluno.ifpi.edu.br",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760036873267,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "242ceda6-6ab5-4e8e-a5c4-020d927693fd",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760036882010,
+      "secretData" : "{\"value\":\"uzkO4kua66k1JNcOSgYjwxMIxh4kREbXUTgIzVRcAyI=\",\"salt\":\"XcP5Tyr+ubDWRjR6D9Meeg==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_gestorInstitucional" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "8aec2948-58bb-47bd-9f69-4ee9a852e1d7",
+    "username" : "luis",
+    "firstName" : "Luis",
+    "lastName" : "Pinheiro",
+    "email" : "luisthedevmagician@gmail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760035507793,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "f267a75e-d7e3-4725-873d-e074bae1414e",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760035517801,
+      "secretData" : "{\"value\":\"bnjt/uNe6UNfmkJHTJUh0pKGP1ssiyi78DaewQYi/VU=\",\"salt\":\"3uJ123mGVqDeLhKsX/ve7w==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_gestorInstitucional" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "04ca2b33-5b99-4724-ad02-c906986a6689",
+    "username" : "matheus",
+    "firstName" : "Matheus",
+    "lastName" : "Catalao",
+    "email" : "matheuscatalao99@gmail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760036993284,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "4111f9dd-2223-4fc8-8c0b-54b0192c4443",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760037001774,
+      "secretData" : "{\"value\":\"5LCEUbtdd7ixJ07GmOWabllcFEFKlk6V6ggVsQGQ/ZI=\",\"salt\":\"zVcprkXQqlwA10U1UVgklA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_admin" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "6d352be6-6a14-4e29-a0aa-b89252ae9149",
+    "username" : "pedro",
+    "firstName" : "Pedro",
+    "lastName" : "Maia",
+    "email" : "pm9203872@gmail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760036780981,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "d5c0330b-1e47-44f6-9d16-0fc08f79a251",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760036791355,
+      "secretData" : "{\"value\":\"KJ4B0trNj+J1c4Nxo7g0u85kV1ev5/kUkZxeJp8G1ik=\",\"salt\":\"YkoN4VJv11VGxmtXSLg9GA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "64a5d0b1-8bbe-4111-b814-a74624cd09f0",
+    "username" : "phaola",
+    "firstName" : "Phaola",
+    "lastName" : "Paraguai",
+    "email" : "paixaophaola@gmail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760033642487,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "95f5f9b0-5f7b-4e61-bb7f-008e9e8ecaac",
+      "type" : "password",
+      "createdDate" : 1760039096463,
+      "secretData" : "{\"value\":\"A0pnv4+x/iH+6MtxSABRdt9+USKr+Jp1LNrEqtjhX0M=\",\"salt\":\"dMu72WJ/iIDgVNeUzmzPrA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_admin" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "82305fd9-eb16-4ebd-861a-f080ba871aba",
+    "username" : "rafhael",
+    "firstName" : "Rafhael ",
+    "lastName" : "Hanry",
+    "email" : "cacor.2021121tads0038@aluno.ifpi.edu.br",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760037130689,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "b62fe471-d45d-4317-bc4e-42037dd78642",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760037141867,
+      "secretData" : "{\"value\":\"IrW940w5ettj8fcVkAglX1Ar3lse80LDteWspVXQ+74=\",\"salt\":\"bFmGiJA5PN+8XhhtruKVZg==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_gestorInstitucional" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "34803685-fc46-49fe-b56d-71465eb7e853",
+    "username" : "rene",
+    "firstName" : "Rene",
+    "lastName" : "Morais",
+    "email" : "rene.morais@ifpi.edu.br",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760035432330,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "e1e27bbb-2933-4c45-a63a-c9f75bd73d3f",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760035442420,
+      "secretData" : "{\"value\":\"i7vAn8nXhyYE5n9WUF6QfQapWVvT2IaXArgBk/Zhoxw=\",\"salt\":\"tlhC/kcrDmVcr9en+4Za3g==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_admin" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "8835555f-99c8-487c-ae72-48d7b3892230",
+    "username" : "thiago",
+    "firstName" : "Thiago",
+    "lastName" : "Morais",
+    "email" : "thiagomoraisjacobina@gmail.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1760036927661,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "44fe0d8a-70f8-422c-a062-1b6a0860d8ce",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1760036938561,
+      "secretData" : "{\"value\":\"6zSqpHZ3IME5PiRFJKu6wcA+Cb8BtU4TOJupZ224oRk=\",\"salt\":\"z3yV87T40NS+UG8zlwhhsg==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ "UPDATE_PASSWORD" ],
+    "realmRoles" : [ "default-roles-ifala" ],
+    "clientRoles" : {
+      "app_ifala" : [ "role_gestorInstitucional" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  } ]
+}

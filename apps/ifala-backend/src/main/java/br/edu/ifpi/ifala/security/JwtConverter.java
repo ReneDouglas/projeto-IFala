@@ -1,16 +1,20 @@
 package br.edu.ifpi.ifala.security;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Component;
 
+/**
+ * Converter implementation to transform a Jwt into a JwtAuthenticationToken.
+ */
 @Component
 public class JwtConverter implements Converter<Jwt, JwtAuthenticationToken> {
 
@@ -20,18 +24,28 @@ public class JwtConverter implements Converter<Jwt, JwtAuthenticationToken> {
     return new JwtAuthenticationToken(jwt, authorities);
   }
 
+  // ...existing code...
   private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
-    Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
-    if (resourceAccess == null)
+    Object resourceAccessObj = jwt.getClaim("resource_access");
+    if (!(resourceAccessObj instanceof Map)) {
       return Collections.emptyList();
+    }
 
-    Map<String, Object> appRoles = (Map<String, Object>) resourceAccess.get("app_ifala");
-    if (appRoles == null)
+    Map<?, ?> resourceAccess = (Map<?, ?>) resourceAccessObj;
+    Object appRolesObj = resourceAccess.get("app_ifala");
+    if (!(appRolesObj instanceof Map)) {
       return Collections.emptyList();
+    }
 
-    List<String> roles = (List<String>) appRoles.get("roles");
-    if (roles == null)
+    Map<?, ?> appRoles = (Map<?, ?>) appRolesObj;
+    Object rolesObj = appRoles.get("roles");
+    if (!(rolesObj instanceof List)) {
       return Collections.emptyList();
+    }
+
+    List<?> rolesRaw = (List<?>) rolesObj;
+    List<String> roles = rolesRaw.stream().filter(String.class::isInstance).map(String.class::cast)
+        .collect(Collectors.toList());
 
     return roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
   }

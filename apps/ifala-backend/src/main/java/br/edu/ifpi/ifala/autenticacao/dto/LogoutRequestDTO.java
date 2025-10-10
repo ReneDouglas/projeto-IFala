@@ -3,7 +3,7 @@ package br.edu.ifpi.ifala.autenticacao.dto;
 /**
  * DTO para requisições de logout.
  */
-public class LogoutRequestDTO {
+public class LogoutRequestDto {
   private String refreshToken;
 
   public String getRefreshToken() {

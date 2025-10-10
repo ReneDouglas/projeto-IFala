@@ -3,7 +3,7 @@ package br.edu.ifpi.ifala.autenticacao.dto;
 /**
  * DTO para requisições de login (email e senha).
  */
-public class LoginRequestDTO {
+public class LoginRequestDto {
   private String username;
   private String password;
 

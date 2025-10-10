@@ -1,7 +1,9 @@
 package br.edu.ifpi.ifala.autenticacao;
 
+import br.edu.ifpi.ifala.autenticacao.dto.TokenResponseDto;
+import br.edu.ifpi.ifala.shared.exceptions.AuthException;
+import br.edu.ifpi.ifala.shared.exceptions.KeycloakAdminException;
 import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -14,15 +16,13 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import br.edu.ifpi.ifala.autenticacao.dto.TokenResponseDTO;
-import br.edu.ifpi.ifala.shared.exceptions.AuthException;
-import br.edu.ifpi.ifala.shared.exceptions.KeycloakAdminException;
+// ...existing code...
 
 
 
 /**
- * Serviço de autenticação que integra com Keycloak.
- * 
+ * /** Serviço de autenticação que integra com Keycloak.
+ *
  * @author Sistema AvaliaIF
  */
 @Service
@@ -52,15 +52,15 @@ public class AuthService {
   }
 
   /**
-   * Autentica um usuário no Keycloak.
+   * Serviço de autenticação que integra com Keycloak.
    *
-   * @param username
-   * @param password
+   * @param username Nome de usuário para autenticação
+   * @param password Senha do usuário para autenticação
    * @return TokenResponse com access_token e refresh_token se autenticação bem-sucedida, null caso
    *         contrário
    * @throws AuthException se falhar na autenticação
    */
-  public TokenResponseDTO authenticateUser(String username, String password) throws AuthException {
+  public TokenResponseDto authenticateUser(String username, String password) throws AuthException {
     try {
       final String tokenEndpoint =
           keycloakServerUrl + "/realms/" + realm + "/protocol/openid-connect/token";
@@ -87,7 +87,7 @@ public class AuthService {
         String accessToken = (String) tokenResponse.get("access_token");
         String refreshToken = (String) tokenResponse.get("refresh_token");
 
-        return new TokenResponseDTO(accessToken, refreshToken);
+        return new TokenResponseDto(accessToken, refreshToken);
       }
 
       return null;
