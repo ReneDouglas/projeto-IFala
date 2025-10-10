@@ -17,8 +17,10 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Classe que representa uma denúncia no sistema. Esta entidade armazena informações sobre
- * denúncias, incluindo sua descrição, categoria, status e histórico de acompanhamentos.
+ * Classe que representa uma denúncia no sistema. Esta entidade armazena
+ * informações sobre
+ * denúncias, incluindo sua descrição, categoria, status e histórico de
+ * acompanhamentos.
  *
  * @author Renê Morais
  */
@@ -55,7 +57,8 @@ public class Denuncia {
   private LocalDateTime alteradoEm;
 
   /**
-   * Construtor padrão que inicializa uma nova denúncia. Define um token de acompanhamento único,
+   * Construtor padrão que inicializa uma nova denúncia. Define um token de
+   * acompanhamento único,
    * status inicial como RECEBIDO e a data/hora de criação.
    */
   public Denuncia() {

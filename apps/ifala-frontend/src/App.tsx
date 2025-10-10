@@ -13,7 +13,7 @@ export function App() {
         <Routes>
           {/* Rota da página de login - sem o MainLayout */}
           <Route path='/login' element={<Login />} />
-          
+
           {/* Rota "pai" que renderiza o Layout Principal */}
           <Route element={<MainLayout />}>
             {/* Rotas "filhas" que serão renderizadas dentro do <Outlet> do Layout */}
