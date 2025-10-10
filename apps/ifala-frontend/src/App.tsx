@@ -3,6 +3,7 @@ import { Home } from './pages/Home/Home';
 import { Denuncia } from './pages/Denuncia/Denuncia';
 import { DenunciaSucesso } from './pages/DenunciaSucesso/DenunciaSucesso';
 import { MainLayout } from './components/MainLayout'; // Importa o layout principal
+import { ResetPassword } from './pages/ResetPassword/ResetPassword';
 
 export function App() {
   return (
@@ -14,6 +15,7 @@ export function App() {
           <Route path='/' element={<Home />} />
           <Route path='/denuncia' element={<Denuncia />} />
           <Route path='/denuncia/sucesso' element={<DenunciaSucesso />} />
+          <Route path='/reset-password' element={<ResetPassword />} />
         </Route>
       </Routes>
     </BrowserRouter>
