@@ -6,7 +6,7 @@ const simulateApiCall = (currentPage: number, searchParams: SearchParams): Promi
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       try {
-        // Simular erro aleatório (10% de chance)
+        // Simular erro aleatório 
         if (Math.random() < 0.1) {
           throw new Error('Erro de conexão com o servidor');
         }
@@ -148,7 +148,7 @@ export const useDenuncias = (currentPage: number, searchParams: SearchParams) =>
       setLoading(true);
       setError(null);
       
-      console.log('🔄 Carregando denúncias:', { currentPage, searchParams });
+      console.log('Carregando denúncias:', { currentPage, searchParams });
       
       const response = await simulateApiCall(currentPage, searchParams);
       
@@ -156,7 +156,7 @@ export const useDenuncias = (currentPage: number, searchParams: SearchParams) =>
       setTotalPages(response.totalPages);
       setTotalElements(response.totalElements);
       
-      console.log('✅ Denúncias carregadas:', response.content.length, 'itens');
+      console.log('Denúncias carregadas:', response.content.length, 'itens');
       
     } catch (error) {
       console.error('Erro ao carregar denúncias:', error);

@@ -168,7 +168,6 @@ export function DenunciasList() {
             {/* Conteúdo Principal */}
             {!loading && !error && (
               <>
-                {/* CORREÇÃO: Header com informações de paginação */}
                 <div className="denuncias-header">
                   <div className="header-content">
                     <h2 className="section-title">
@@ -221,7 +220,7 @@ export function DenunciasList() {
                   </div>
                 </div>
 
-                {/* CORREÇÃO: Grid de Denúncias com paginação de 9 itens */}
+                {/* Lista de Denúncias ou Estado de Nenhum Resultado */}
                 <div className="denuncias-grid">
                   {denuncias.length > 0 ? (
                     denuncias.map((denuncia) => (
@@ -258,7 +257,7 @@ export function DenunciasList() {
                   )}
                 </div>
 
-                {/* CORREÇÃO: Paginação só aparece se tiver mais de 9 itens */}
+                {/* Paginação */}
                 {totalPages > 1 && (
                   <Pagination
                     currentPage={currentPage}

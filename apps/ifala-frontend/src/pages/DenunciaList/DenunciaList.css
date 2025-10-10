@@ -238,7 +238,7 @@
   white-space: nowrap;
 }
 
-/* CORREÇÃO: Informações de paginação no header */
+/* Informações de paginação no header */
 .pagination-info {
   background: #f1f5f9;
   padding: 0.5rem 1rem;
@@ -309,7 +309,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   CORREÇÃO: Grid de Denúncias 3x3 Fixo para 9 cards
+   Grid de Denúncias 3x3 Fixo para 9 cards
    -------------------------------------------------------------------------- */
 .denuncias-grid {
   display: grid;
@@ -647,17 +647,14 @@
 }
 
 /* --------------------------------------------------------------------------
-   CORREÇÃO: Responsividade Mantendo Grid 3x3 Quando Possível
+   Responsividade
    -------------------------------------------------------------------------- */
-
-/* Desktop Grande - Mantém 3 colunas */
 @media (min-width: 1201px) {
   .denuncias-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-/* Desktop Médio - Mantém 3 colunas */
 @media (max-width: 1200px) and (min-width: 993px) {
   .denuncias-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -665,7 +662,6 @@
   }
 }
 
-/* Tablet - 2 colunas */
 @media (max-width: 992px) and (min-width: 769px) {
   .denuncias-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -673,7 +669,6 @@
   }
 }
 
-/* Mobile Large - 1 coluna */
 @media (max-width: 768px) {
   .hero-section {
     padding: 60px 0 40px;
@@ -732,7 +727,7 @@
   }
 }
 
-/* Mobile Small - 1 coluna */
+
 @media (max-width: 480px) {
   .hero-title {
     font-size: 2rem;
