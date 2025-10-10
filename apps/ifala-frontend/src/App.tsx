@@ -2,20 +2,27 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Home } from './pages/Home/Home';
 import { Denuncia } from './pages/Denuncia/Denuncia';
 import { DenunciaSucesso } from './pages/DenunciaSucesso/DenunciaSucesso';
+import { Login } from './pages/Login/Login';
 import { MainLayout } from './components/MainLayout'; // Importa o layout principal
+import { AuthProvider } from './contexts/AuthContext'; // Importa o contexto de autenticação
 
 export function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Rota "pai" que renderiza o Layout Principal */}
-        <Route element={<MainLayout />}>
-          {/* Rotas "filhas" que serão renderizadas dentro do <Outlet> do Layout */}
-          <Route path='/' element={<Home />} />
-          <Route path='/denuncia' element={<Denuncia />} />
-          <Route path='/denuncia/sucesso' element={<DenunciaSucesso />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Rota da página de login - sem o MainLayout */}
+          <Route path='/login' element={<Login />} />
+          
+          {/* Rota "pai" que renderiza o Layout Principal */}
+          <Route element={<MainLayout />}>
+            {/* Rotas "filhas" que serão renderizadas dentro do <Outlet> do Layout */}
+            <Route path='/' element={<Home />} />
+            <Route path='/denuncia' element={<Denuncia />} />
+            <Route path='/denuncia/sucesso' element={<DenunciaSucesso />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
