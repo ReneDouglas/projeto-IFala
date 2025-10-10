@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import org.springframework.cglib.core.Local;
 
 /**
  * Classe que representa uma denúncia no sistema. Esta entidade armazena informações sobre

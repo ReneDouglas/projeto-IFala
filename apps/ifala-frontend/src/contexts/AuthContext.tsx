@@ -1,24 +1,6 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-
-// Tipos para o contexto de autenticação
-interface User {
-  usuario: string;
-  nome: string;
-  perfil: string;
-  loggedIn: boolean;
-}
-
-interface AuthContextType {
-  user: User | null;
-  isLoggedIn: boolean;
-  login: (userData: User) => void;
-  logout: () => void;
-  checkAuthStatus: () => void;
-}
-
-// Criar o contexto
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { AuthContext, type User } from './AuthContextTypes';
 
 // Provider do contexto de autenticação
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -77,11 +59,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Hook para usar o contexto de autenticação
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
-  }
-  return context;
-}
