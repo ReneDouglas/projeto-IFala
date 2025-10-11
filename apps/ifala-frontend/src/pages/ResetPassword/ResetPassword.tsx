@@ -7,8 +7,10 @@ import {
   TextField,
   Button,
   Stack,
+  IconButton,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import '../Login/Login.css';
 
 export function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -46,57 +48,243 @@ export function ResetPassword() {
   };
 
   return (
-    <Container component='main' maxWidth='sm' sx={{ mt: 8 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
-        <Typography
-          component='h1'
-          variant='h4'
-          sx={{ fontWeight: 'bold', mb: 1 }}
+    <div
+      className='hero'
+      style={{ minHeight: '100vh', display: 'flex', alignItems: 'center' }}
+    >
+      <Container maxWidth='sm'>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 3,
+          }}
         >
-          Redefinir Senha
-        </Typography>
-        <Typography color='text.secondary' sx={{ mb: 3 }}>
-          Digite sua nova senha abaixo.
-        </Typography>
-
-        <Box component='form' onSubmit={handleSubmit} noValidate>
-          <Stack spacing={2}>
-            <TextField
-              required
-              fullWidth
-              name='password'
-              label='Nova Senha'
-              type='password'
-              id='password'
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <TextField
-              required
-              fullWidth
-              name='confirmPassword'
-              label='Confirme a Nova Senha'
-              type='password'
-              id='confirmPassword'
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            {error && (
-              <Typography color='error' variant='body2' sx={{ mt: 1 }}>
-                {error}
-              </Typography>
-            )}
-            <Button
-              type='submit'
-              fullWidth
-              variant='contained'
-              sx={{ mt: 3, mb: 2, py: 1.5, fontWeight: 'bold' }}
+          {/* Formulário de reset password */}
+          <Paper
+            elevation={10}
+            sx={{
+              p: 6,
+              py: 8,
+              width: '100%',
+              borderRadius: '20px',
+              backdropFilter: 'blur(10px)',
+              backgroundColor: 'rgba(255, 255, 255, 0.98)',
+              minHeight: '500px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              position: 'relative',
+            }}
+          >
+            {/* Botão de voltar dentro do formulário */}
+            <IconButton
+              onClick={() => navigate('/login')}
+              sx={{
+                position: 'absolute',
+                top: 26,
+                left: 16,
+                backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                color: 'var(--azul-confianca)',
+                width: '55px',
+                height: '55px',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                },
+                transition: 'all 0.3s ease',
+                zIndex: 1,
+              }}
+              aria-label='Voltar para a página de login'
             >
-              Redefinir Senha
-            </Button>
-          </Stack>
+              <span
+                className='material-symbols-outlined'
+                style={{ fontSize: '35px', fontWeight: 'bold' }}
+              >
+                arrow_back
+              </span>
+            </IconButton>
+
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              {/* Logo IFala */}
+              <Box sx={{ mb: 3 }}>
+                <img
+                  src='/src/assets/IFala-logo.png'
+                  alt='IFala Logo'
+                  style={{
+                    width: '140px',
+                    height: 'auto',
+                    filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1))',
+                  }}
+                />
+                <Typography
+                  variant='h4'
+                  component='h1'
+                  sx={{
+                    color: 'var(--azul-confianca)',
+                    fontWeight: 800,
+                    mb: 1,
+                  }}
+                >
+                  Redefinir Senha
+                </Typography>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    color: 'var(--cinza-medio)',
+                    mb: 2,
+                  }}
+                >
+                  Digite sua nova senha abaixo
+                </Typography>
+              </Box>
+
+              {/* Mensagem de erro */}
+              {error && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    color='error'
+                    variant='body2'
+                    sx={{
+                      backgroundColor: 'rgba(211, 47, 47, 0.1)',
+                      border: '1px solid rgba(211, 47, 47, 0.3)',
+                      borderRadius: '8px',
+                      p: 2,
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    {error}
+                  </Typography>
+                </Box>
+              )}
+
+              {/* Formulário */}
+              <Box
+                component='form'
+                onSubmit={handleSubmit}
+                sx={{ textAlign: 'left' }}
+              >
+                <Stack spacing={3}>
+                  {/* Campo Nova Senha */}
+                  <TextField
+                    fullWidth
+                    name='password'
+                    label='Nova Senha'
+                    type='password'
+                    placeholder='Digite sua nova senha'
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        '& fieldset': {
+                          borderColor: 'rgba(0, 0, 0, 0.2)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'var(--verde-esperanca)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: 'var(--azul-confianca)',
+                        },
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': {
+                        color: 'var(--azul-confianca)',
+                      },
+                    }}
+                  />
+
+                  {/* Campo Confirmar Senha */}
+                  <TextField
+                    fullWidth
+                    name='confirmPassword'
+                    label='Confirme a Nova Senha'
+                    type='password'
+                    placeholder='Confirme sua nova senha'
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        '& fieldset': {
+                          borderColor: 'rgba(0, 0, 0, 0.2)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'var(--verde-esperanca)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: 'var(--azul-confianca)',
+                        },
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': {
+                        color: 'var(--azul-confianca)',
+                      },
+                    }}
+                  />
+
+                  {/* Botão Redefinir */}
+                  <Button
+                    type='submit'
+                    fullWidth
+                    variant='contained'
+                    size='large'
+                    sx={{
+                      borderRadius: '12px',
+                      py: 2,
+                      fontSize: '1.1rem',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      background:
+                        'linear-gradient(135deg, var(--verde-esperanca) 0%, var(--azul-confianca) 100%)',
+                      '&:hover': {
+                        background:
+                          'linear-gradient(135deg, var(--azul-confianca) 0%, var(--verde-esperanca) 100%)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2)',
+                      },
+                      transition: 'all 0.3s ease',
+                      mt: 4,
+                    }}
+                  >
+                    Redefinir Senha
+                  </Button>
+                </Stack>
+              </Box>
+            </Box>
+          </Paper>
+
+          {/* Informações de segurança */}
+          <Paper
+            sx={{
+              p: 2,
+              width: '100%',
+              borderRadius: '12px',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+            }}
+          >
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'rgba(255, 255, 255, 0.9)',
+                textAlign: 'center',
+                display: 'block',
+                lineHeight: 1.4,
+              }}
+            >
+              Esta área utiliza conexão segura HTTPS.
+              <br />
+              Suas informações estão protegidas e criptografadas.
+            </Typography>
+          </Paper>
         </Box>
-      </Paper>
-    </Container>
+      </Container>
+    </div>
   );
 }
