@@ -409,14 +409,33 @@ export function Login() {
                 }}
               >
                 <Link
-                  href='#'
+                  component='button'
+                  type='button'
                   underline='hover'
+                  onClick={() => navigate('/reset-password')}
                   sx={{
                     color: 'var(--azul-confianca)',
                     fontWeight: 500,
                     fontSize: '1rem',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: 'none',
+                    outline: 'none',
+                    padding: 0,
+                    margin: 0,
+                    textDecoration: 'none',
                     '&:hover': {
                       color: 'var(--verde-esperanca)',
+                    },
+                    '&:focus': {
+                      outline: '2px solid var(--azul-confianca)',
+                      outlineOffset: '2px',
+                      borderRadius: '4px',
+                    },
+                    '&:active': {
+                      transform: 'none',
+                      boxShadow: 'none',
                     },
                   }}
                 >
