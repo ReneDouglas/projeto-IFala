@@ -12,8 +12,9 @@ export function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Rota da página de login - sem o MainLayout */}
+          {/* Rotas de autenticação - sem o MainLayout */}
           <Route path='/login' element={<Login />} />
+          <Route path='/reset-password' element={<ResetPassword />} />
 
           {/* Rota "pai" que renderiza o Layout Principal */}
           <Route element={<MainLayout />}>
@@ -21,7 +22,6 @@ export function App() {
             <Route path='/' element={<Home />} />
             <Route path='/denuncia' element={<Denuncia />} />
             <Route path='/denuncia/sucesso' element={<DenunciaSucesso />} />
-            <Route path='/reset-password' element={<ResetPassword />} />
           </Route>
         </Routes>
       </BrowserRouter>

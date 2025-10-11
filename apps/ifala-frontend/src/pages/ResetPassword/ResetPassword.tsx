@@ -10,7 +10,7 @@ import {
   IconButton,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import '../Login/Login.css';
+import '../../App.css';
 
 export function ResetPassword() {
   const [password, setPassword] = useState('');
