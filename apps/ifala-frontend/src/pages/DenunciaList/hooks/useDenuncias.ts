@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Denuncia, DenunciasResponse, SearchParams } from '../types/denunciaTypes';
+import type {
+  Denuncia,
+  DenunciasResponse,
+  SearchParams,
+} from '../types/denunciaTypes';
 
 /**
  * Simula uma chamada de API para obter denúncias.
@@ -7,7 +11,10 @@ import type { Denuncia, DenunciasResponse, SearchParams } from '../types/denunci
  * @param searchParams Parâmetros de busca e filtros
  * @returns Promise resolvendo um objeto DenunciasResponse
  */
-const simulateApiCall = (currentPage: number, searchParams: SearchParams): Promise<DenunciasResponse> => {
+const simulateApiCall = (
+  currentPage: number,
+  searchParams: SearchParams,
+): Promise<DenunciasResponse> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       try {
@@ -27,7 +34,7 @@ const simulateApiCall = (currentPage: number, searchParams: SearchParams): Promi
           totalElements,
           size: 9,
           first: currentPage === 0,
-          last: currentPage === totalPages - 1
+          last: currentPage === totalPages - 1,
         });
       } catch (error) {
         reject(error);
@@ -42,7 +49,10 @@ const simulateApiCall = (currentPage: number, searchParams: SearchParams): Promi
  * @param searchParams Filtros aplicados
  * @returns Array de denúncias (Denuncia[])
  */
-const generateDynamicDenuncias = (currentPage: number, searchParams: SearchParams): Denuncia[] => {
+const generateDynamicDenuncias = (
+  currentPage: number,
+  searchParams: SearchParams,
+): Denuncia[] => {
   const denuncias: Denuncia[] = [];
   const startId = currentPage * 9 + 1;
 
@@ -65,9 +75,13 @@ const generateDynamicDenuncias = (currentPage: number, searchParams: SearchParam
       descricao,
       categoria,
       status,
-      dataCriacao: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
+      dataCriacao: new Date(
+        Date.now() - daysAgo * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       hasUnreadMessages,
-      ultimaAtualizacao: new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString()
+      ultimaAtualizacao: new Date(
+        Date.now() - hoursAgo * 60 * 60 * 1000,
+      ).toISOString(),
     });
   }
 
@@ -86,7 +100,13 @@ const getFilteredCategoria = (filtroCategoria: string): string => {
 };
 
 const getFilteredStatus = (filtroStatus: string): string => {
-  const statusList = ['RECEPTADO', 'EM_ANALISE', 'AGUARDANDO_INFORMACOES', 'RESOLVIDO', 'REJEITADO'];
+  const statusList = [
+    'RECEPTADO',
+    'EM_ANALISE',
+    'AGUARDANDO_INFORMACOES',
+    'RESOLVIDO',
+    'REJEITADO',
+  ];
   if (filtroStatus && statusList.includes(filtroStatus)) {
     return filtroStatus;
   }
@@ -104,7 +124,7 @@ const getFilteredTitulo = (search: string, id: number): string => {
     'Assédio Moral - Professor',
     'Danos ao Patrimônio',
     'Conflito entre Turmas',
-    'Uso de Substâncias Ilícitas'
+    'Uso de Substâncias Ilícitas',
   ];
 
   let titulo = titulos[Math.floor(Math.random() * titulos.length)];
@@ -124,7 +144,7 @@ const getFilteredDescricao = (search: string): string => {
     'Caso isolado, mas que merece investigação para prevenir futuras ocorrências.',
     'Relato detalhado com testemunhas e evidências que comprovam os fatos.',
     'Situação complexa envolvendo múltiplas partes e requiring análise cuidadosa.',
-    'Denúncia anônima com informações sobre violação do código de conduta.'
+    'Denúncia anônima com informações sobre violação do código de conduta.',
   ];
 
   let descricao = descricoes[Math.floor(Math.random() * descricoes.length)];
@@ -153,7 +173,10 @@ const calculateTotalElements = (searchParams: SearchParams): number => {
  * Hook personalizado para carregar, gerenciar e filtrar denúncias.
  * Inclui estado de carregamento, erro, paginação e função de refetch.
  */
-export const useDenuncias = (currentPage: number, searchParams: SearchParams) => {
+export const useDenuncias = (
+  currentPage: number,
+  searchParams: SearchParams,
+) => {
   const [denuncias, setDenuncias] = useState<Denuncia[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -180,7 +203,11 @@ export const useDenuncias = (currentPage: number, searchParams: SearchParams) =>
       console.log('Denúncias carregadas:', response.content.length, 'itens');
     } catch (error) {
       console.error('Erro ao carregar denúncias:', error);
-      setError(error instanceof Error ? error.message : 'Erro ao carregar denúncias. Tente novamente.');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Erro ao carregar denúncias. Tente novamente.',
+      );
       setDenuncias([]);
       setTotalPages(0);
       setTotalElements(0);
@@ -203,6 +230,6 @@ export const useDenuncias = (currentPage: number, searchParams: SearchParams) =>
     error,
     totalPages,
     totalElements,
-    refetch: loadDenuncias // Permite recarregar manualmente de fora do hook
+    refetch: loadDenuncias, // Permite recarregar manualmente de fora do hook
   };
 };

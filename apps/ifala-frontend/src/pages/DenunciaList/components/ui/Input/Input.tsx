@@ -21,22 +21,20 @@ export const Input = ({
   icon,
   type = 'text',
   disabled = false,
-  required = false
+  required = false,
 }: InputProps) => {
   return (
-    <div className="input-group">
-      <label className="input-label">
+    <div className='input-group'>
+      <label className='input-label'>
         {label}
-        {required && <span className="required-asterisk">*</span>}
+        {required && <span className='required-asterisk'>*</span>}
       </label>
-      
-      <div className="input-container">
+
+      <div className='input-container'>
         {icon && (
-          <span className="input-icon material-symbols-outlined">
-            {icon}
-          </span>
+          <span className='input-icon material-symbols-outlined'>{icon}</span>
         )}
-        
+
         <input
           type={type}
           value={value}
@@ -47,19 +45,17 @@ export const Input = ({
             disabled ? 'disabled' : ''
           }`}
         />
-        
+
         {value && !error && !disabled && (
-          <span className="input-success material-symbols-outlined">
+          <span className='input-success material-symbols-outlined'>
             check_circle
           </span>
         )}
       </div>
-      
-      {error && <span className="error-message">{error}</span>}
-      
-      {!error && value && (
-        <span className="success-message">Campo válido</span>
-      )}
+
+      {error && <span className='error-message'>{error}</span>}
+
+      {!error && value && <span className='success-message'>Campo válido</span>}
     </div>
   );
 };

@@ -6,28 +6,30 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) => {
+export const Pagination = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: PaginationProps) => {
   if (totalPages <= 1) return null;
 
   return (
-    <div className="pagination">
+    <div className='pagination'>
       <button
-        className="pagination-btn border-primary text-primary"
+        className='pagination-btn border-primary text-primary'
         disabled={currentPage === 0}
         onClick={() => onPageChange(currentPage - 1)}
       >
-        <span className="material-symbols-outlined">chevron_left</span>
+        <span className='material-symbols-outlined'>chevron_left</span>
         Anterior
       </button>
 
-      <div className="pagination-pages">
+      <div className='pagination-pages'>
         {Array.from({ length: totalPages }, (_, i) => (
           <button
             key={i}
             className={`pagination-page border-primary ${
-              currentPage === i 
-                ? 'bg-primary text-white' 
-                : 'text-primary'
+              currentPage === i ? 'bg-primary text-white' : 'text-primary'
             }`}
             onClick={() => onPageChange(i)}
           >
@@ -37,12 +39,12 @@ export const Pagination = ({ currentPage, totalPages, onPageChange }: Pagination
       </div>
 
       <button
-        className="pagination-btn border-primary text-primary"
+        className='pagination-btn border-primary text-primary'
         disabled={currentPage === totalPages - 1}
         onClick={() => onPageChange(currentPage + 1)}
       >
         Próxima
-        <span className="material-symbols-outlined">chevron_right</span>
+        <span className='material-symbols-outlined'>chevron_right</span>
       </button>
     </div>
   );

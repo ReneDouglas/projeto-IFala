@@ -12,21 +12,20 @@ interface FiltersProps {
   onRefresh: () => void;
 }
 
-export const Filters = ({ 
-  searchParams, 
-  loading, 
+export const Filters = ({
+  searchParams,
+  loading,
   fieldErrors,
-  onFilterChange, 
-  onClearFilters, 
-  onRefresh 
+  onFilterChange,
+  onClearFilters,
+  onRefresh,
 }: FiltersProps) => {
-  
   const categoriaOptions = [
     { value: '', label: 'Todas as categorias' },
     { value: 'ASSEDIO', label: 'Assédio' },
     { value: 'VIOLENCIA', label: 'Violência' },
     { value: 'DISCRIMINACAO', label: 'Discriminação' },
-    { value: 'OUTROS', label: 'Outros' }
+    { value: 'OUTROS', label: 'Outros' },
   ];
 
   const statusOptions = [
@@ -35,101 +34,103 @@ export const Filters = ({
     { value: 'EM_ANALISE', label: 'Em Análise' },
     { value: 'AGUARDANDO_INFORMACOES', label: 'Aguardando Informações' },
     { value: 'RESOLVIDO', label: 'Resolvido' },
-    { value: 'REJEITADO', label: 'Rejeitado' }
+    { value: 'REJEITADO', label: 'Rejeitado' },
   ];
 
   const ordenacaoOptions = [
     { value: 'dataCriacao,desc', label: 'Mais recentes' },
     { value: 'dataCriacao,asc', label: 'Mais antigas' },
     { value: 'titulo,asc', label: 'Título (A-Z)' },
-    { value: 'titulo,desc', label: 'Título (Z-A)' }
+    { value: 'titulo,desc', label: 'Título (Z-A)' },
   ];
 
   return (
-    <section className="filters-section">
-      <div className="filters-card bg-white shadow-md">
-        <div className="filters-header">
-          <h3 className="filters-title text-secondary">
-            <span className="material-symbols-outlined filter-icon">filter_list</span>
+    <section className='filters-section'>
+      <div className='filters-card bg-white shadow-md'>
+        <div className='filters-header'>
+          <h3 className='filters-title text-secondary'>
+            <span className='material-symbols-outlined filter-icon'>
+              filter_list
+            </span>
             Filtros e Busca Avançada
           </h3>
-          <div className="filters-indicator">
+          <div className='filters-indicator'>
             {loading && (
-              <div className="loading-indicator">
-                <div className="loading-spinner"></div>
+              <div className='loading-indicator'>
+                <div className='loading-spinner'></div>
                 <span>Buscando...</span>
               </div>
             )}
           </div>
         </div>
-        
-        <div className="filters-form">
+
+        <div className='filters-form'>
           {/* Busca por texto com validação em tempo real */}
           <Input
-            label="Buscar denúncias"
+            label='Buscar denúncias'
             value={searchParams.search}
             onChange={(value) => onFilterChange('search', value)}
-            placeholder="Buscar por token, título ou descrição..."
+            placeholder='Buscar por token, título ou descrição...'
             error={fieldErrors.search}
-            icon="search"
+            icon='search'
           />
 
-          <div className="filters-row">
+          <div className='filters-row'>
             {/* Filtro por categoria */}
             <Select
-              label="Categoria"
+              label='Categoria'
               value={searchParams.categoria}
               onChange={(value) => onFilterChange('categoria', value)}
               options={categoriaOptions}
               error={fieldErrors.categoria}
-              icon="category"
+              icon='category'
             />
 
             {/* Filtro por status */}
             <Select
-              label="Status"
+              label='Status'
               value={searchParams.status}
               onChange={(value) => onFilterChange('status', value)}
               options={statusOptions}
               error={fieldErrors.status}
-              icon="pending"
+              icon='pending'
             />
 
             {/* Ordenação */}
             <Select
-              label="Ordenar por"
+              label='Ordenar por'
               value={searchParams.ordenacao}
               onChange={(value) => onFilterChange('ordenacao', value)}
               options={ordenacaoOptions}
               error={fieldErrors.ordenacao}
-              icon="sort"
+              icon='sort'
             />
           </div>
 
           {/* Botões de ação com estados melhorados */}
-          <div className="filters-actions">
+          <div className='filters-actions'>
             <button
               onClick={onClearFilters}
-              className="btn-clear-filters"
+              className='btn-clear-filters'
               disabled={loading}
             >
-              <span className="material-symbols-outlined">clear_all</span>
+              <span className='material-symbols-outlined'>clear_all</span>
               {loading ? 'Limpando...' : 'Limpar Filtros'}
             </button>
-            
+
             <button
               onClick={onRefresh}
-              className="btn-apply-filters"
+              className='btn-apply-filters'
               disabled={loading}
             >
               {loading ? (
                 <>
-                  <div className="button-spinner"></div>
+                  <div className='button-spinner'></div>
                   Carregando...
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined">refresh</span>
+                  <span className='material-symbols-outlined'>refresh</span>
                   Atualizar Dados
                 </>
               )}
@@ -137,43 +138,55 @@ export const Filters = ({
           </div>
 
           {/* Resumo de filtros ativos */}
-          {(searchParams.search || searchParams.categoria || searchParams.status) && (
-            <div className="active-filters-summary">
-              <div className="summary-header">
-                <span className="material-symbols-outlined">tune</span>
+          {(searchParams.search ||
+            searchParams.categoria ||
+            searchParams.status) && (
+            <div className='active-filters-summary'>
+              <div className='summary-header'>
+                <span className='material-symbols-outlined'>tune</span>
                 Filtros Ativos:
               </div>
-              <div className="filter-chips">
+              <div className='filter-chips'>
                 {searchParams.search && (
-                  <span className="filter-chip search-chip">
+                  <span className='filter-chip search-chip'>
                     Busca: "{searchParams.search}"
-                    <button 
+                    <button
                       onClick={() => onFilterChange('search', '')}
-                      className="chip-close"
+                      className='chip-close'
                     >
-                      <span className="material-symbols-outlined">close</span>
+                      <span className='material-symbols-outlined'>close</span>
                     </button>
                   </span>
                 )}
                 {searchParams.categoria && (
-                  <span className="filter-chip category-chip">
-                    Categoria: {categoriaOptions.find(opt => opt.value === searchParams.categoria)?.label}
-                    <button 
+                  <span className='filter-chip category-chip'>
+                    Categoria:{' '}
+                    {
+                      categoriaOptions.find(
+                        (opt) => opt.value === searchParams.categoria,
+                      )?.label
+                    }
+                    <button
                       onClick={() => onFilterChange('categoria', '')}
-                      className="chip-close"
+                      className='chip-close'
                     >
-                      <span className="material-symbols-outlined">close</span>
+                      <span className='material-symbols-outlined'>close</span>
                     </button>
                   </span>
                 )}
                 {searchParams.status && (
-                  <span className="filter-chip status-chip">
-                    Status: {statusOptions.find(opt => opt.value === searchParams.status)?.label}
-                    <button 
+                  <span className='filter-chip status-chip'>
+                    Status:{' '}
+                    {
+                      statusOptions.find(
+                        (opt) => opt.value === searchParams.status,
+                      )?.label
+                    }
+                    <button
                       onClick={() => onFilterChange('status', '')}
-                      className="chip-close"
+                      className='chip-close'
                     >
-                      <span className="material-symbols-outlined">close</span>
+                      <span className='material-symbols-outlined'>close</span>
                     </button>
                   </span>
                 )}

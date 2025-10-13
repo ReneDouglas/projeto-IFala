@@ -26,22 +26,20 @@ export const Select = ({
   placeholder = 'Selecione uma opção',
   disabled = false,
   required = false,
-  icon
+  icon,
 }: SelectProps) => {
   return (
-    <div className="select-group">
-      <label className="select-label">
+    <div className='select-group'>
+      <label className='select-label'>
         {label}
-        {required && <span className="required-asterisk">*</span>}
+        {required && <span className='required-asterisk'>*</span>}
       </label>
-      
-      <div className="select-container">
+
+      <div className='select-container'>
         {icon && (
-          <span className="select-icon material-symbols-outlined">
-            {icon}
-          </span>
+          <span className='select-icon material-symbols-outlined'>{icon}</span>
         )}
-        
+
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -50,26 +48,26 @@ export const Select = ({
             !value ? 'placeholder' : ''
           }`}
         >
-          <option value="">{placeholder}</option>
+          <option value=''>{placeholder}</option>
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
           ))}
         </select>
-        
-        <span className="select-arrow material-symbols-outlined">
+
+        <span className='select-arrow material-symbols-outlined'>
           expand_more
         </span>
-        
+
         {value && !error && !disabled && (
-          <span className="select-success material-symbols-outlined">
+          <span className='select-success material-symbols-outlined'>
             check_circle
           </span>
         )}
       </div>
-      
-      {error && <span className="error-message">{error}</span>}
+
+      {error && <span className='error-message'>{error}</span>}
     </div>
   );
 };

@@ -21,7 +21,7 @@ export interface DenunciasResponse {
   content: Denuncia[];
   totalPages: number;
   totalElements: number;
-  size: number;           
+  size: number;
   first: boolean;
   last: boolean;
 }

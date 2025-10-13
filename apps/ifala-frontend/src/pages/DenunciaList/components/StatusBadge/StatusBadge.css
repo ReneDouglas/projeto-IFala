@@ -8,21 +8,21 @@
 }
 
 .status-resolvido {
-  background: #4CAF50;
+  background: #4caf50;
   color: #f8f8f8;
-  border: 1px solid #4CAF50;
+  border: 1px solid #4caf50;
 }
 
 .status-rejeitado {
-  background: #F44336;
+  background: #f44336;
   color: #fffefc;
-  border: 1px solid #F44336;
+  border: 1px solid #f44336;
 }
 
 .status-aguardando {
-  background: #FF9800;
+  background: #ff9800;
   color: #fefdfd;
-  border: 1px solid #FF9800;
+  border: 1px solid #ff9800;
 }
 
 .status-analise {
@@ -32,13 +32,13 @@
 }
 
 .status-receptado {
-  background: #2E7D32;
+  background: #2e7d32;
   color: #f8f8f8;
-  border: 1px solid #2E7D32;
+  border: 1px solid #2e7d32;
 }
 
 .status-default {
-  background: #9E9E9E;
+  background: #9e9e9e;
   color: #f8f8f8;
-  border: 1px solid #9E9E9E;
+  border: 1px solid #9e9e9e;
 }
