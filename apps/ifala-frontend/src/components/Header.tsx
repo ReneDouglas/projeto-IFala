@@ -45,7 +45,7 @@ function Header({ setSidebarOpen, variant = 'home' }: HeaderProps) {
         </div>
 
         {/* --- LADO DIREITO DO HEADER --- */}
-        <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {/* Mostra o menu hamburger APENAS se for a página inicial */}
           {variant === 'home' && (
             <button

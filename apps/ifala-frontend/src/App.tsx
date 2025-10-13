@@ -2,24 +2,31 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Home } from './pages/Home/Home';
 import { Denuncia } from './pages/Denuncia/Denuncia';
 import { DenunciaSucesso } from './pages/DenunciaSucesso/DenunciaSucesso';
-import { Acompanhamento } from './pages/Acompanhamento/Acompanhamento';
-import { MainLayout } from './components/MainLayout'; // Importa o layout principal
+import { Login } from './pages/Login/Login';
 import { ResetPassword } from './pages/ResetPassword/ResetPassword';
+import { MainLayout } from './components/MainLayout'; // Importa o layout principal
+import { AuthProvider } from './contexts/AuthContext'; // Importa o contexto de autenticação
+import { Acompanhamento } from './pages/Acompanhamento/Acompanhamento';
 
 export function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Rota "pai" que renderiza o Layout Principal */}
-        <Route element={<MainLayout />}>
-          {/* Rotas "filhas" que serão renderizadas dentro do <Outlet> do Layout */}
-          <Route path='/' element={<Home />} />
-          <Route path='/denuncia' element={<Denuncia />} />
-          <Route path='/denuncia/sucesso' element={<DenunciaSucesso />} />
-          <Route path='/reset-password' element={<ResetPassword />} />
-          <Route path='/acompanhamento' element={<Acompanhamento />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Rota da página de login - sem o MainLayout */}
+          <Route path='/login' element={<Login />} />
+
+          {/* Rota "pai" que renderiza o Layout Principal */}
+          <Route element={<MainLayout />}>
+            {/* Rotas "filhas" que serão renderizadas dentro do <Outlet> do Layout */}
+            <Route path='/' element={<Home />} />
+            <Route path='/denuncia' element={<Denuncia />} />
+            <Route path='/denuncia/sucesso' element={<DenunciaSucesso />} />
+            <Route path='/reset-password' element={<ResetPassword />} />
+            <Route path='/acompanhamento' element={<Acompanhamento />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
