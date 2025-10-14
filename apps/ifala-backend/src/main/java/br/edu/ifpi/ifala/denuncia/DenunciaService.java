@@ -1,5 +1,11 @@
 package br.edu.ifpi.ifala.denuncia;
 
+import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
+import br.edu.ifpi.ifala.acompanhamento.AcompanhamentoRepository;
+import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.AtualizarDenunciaDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.CriarDenunciaDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
 
@@ -11,16 +17,15 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Classe de serviço responsável por manipular operações relacionadas a
@@ -30,27 +35,57 @@ import java.util.UUID;
  * @author Jhonatas G Ribeiro
  */
 
+@Service
 @Transactional
 public class DenunciaService {
   private final DenunciaRepository denunciaRepository;
+  private final AcompanhamentoRepository acompanhamentoRepository;
 
-  public DenunciaService(DenunciaRepository denunciaRepository) {
+  // A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO
+  // private final RecaptchaService recaptchaService;
+
+  // public DenunciaService(DenunciaRepository denunciaRepository,
+  // AcompanhamentoRepository acompanhamentoRepository,
+  // RecaptchaService recaptchaService) {
+  // this.denunciaRepository = denunciaRepository;
+  // this.acompanhamentoRepository = acompanhamentoRepository;
+  // this.recaptchaService = recaptchaService;
+  // }
+
+  public DenunciaService(DenunciaRepository denunciaRepository, AcompanhamentoRepository acompanhamentoRepository) {
     this.denunciaRepository = denunciaRepository;
+    this.acompanhamentoRepository = acompanhamentoRepository;
   }
 
-  public Denuncia criarDenuncia(Denuncia novaDenuncia) {
+  public DenunciaResponseDto criarDenuncia(CriarDenunciaDto dto) {
+
+    // Validação do reCAPTCHA - A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER
+    // FUNCIONANDO EM PRODUÇÃO
+
+    // boolean isRecaptchaValid =
+    // recaptchaService.validarToken(dto.getRecaptchaToken()).block();
+
+    // if (!isRecaptchaValid) {
+    // throw new RuntimeException("Falha na validação do ReCaptcha.");
+    // }
+
+    Denuncia novaDenuncia = new Denuncia();
+    novaDenuncia.setDescricao(dto.getDescricao());
+    novaDenuncia.setCategoria(dto.getCategoria());
 
     PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
     String descricaoSanitizada = policy.sanitize(novaDenuncia.getDescricao());
     novaDenuncia.setDescricao(descricaoSanitizada);
 
-    return denunciaRepository.save(novaDenuncia);
+    Denuncia denunciaSalva = denunciaRepository.save(novaDenuncia);
+    return mapToDenunciaResponseDto(denunciaSalva);
   }
 
-  public Optional<Denuncia> consultarPorTokenAcompanhamento(UUID tokenAcompanhamento) {
+  @Transactional(readOnly = true)
+  public Optional<DenunciaResponseDto> consultarPorTokenAcompanhamento(UUID tokenAcompanhamento) {
     return denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
-        .filter(denuncia -> denuncia.getStatus() != Status.RESOLVIDO &&
-            denuncia.getStatus() != Status.REJEITADO);
+        .filter(denuncia -> denuncia.getStatus() != Status.RESOLVIDO && denuncia.getStatus() != Status.REJEITADO)
+        .map(this::mapToDenunciaResponseDto);
   }
 
   /*
@@ -62,7 +97,7 @@ public class DenunciaService {
    */
 
   @Transactional(readOnly = true) // apenas leitura
-  public Page<Denuncia> listarTodas(Status status, Categorias categoria, Pageable pageable) {
+  public Page<DenunciaResponseDto> listarTodas(Status status, Categorias categoria, Pageable pageable) {
     Specification<Denuncia> spec = (root, query, criteriaBuilder) -> {
       List<Predicate> predicates = new ArrayList<>();
 
@@ -77,32 +112,24 @@ public class DenunciaService {
       return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     };
 
-    return denunciaRepository.findAll(spec, pageable);
+    return denunciaRepository.findAll(spec, pageable).map(this::mapToDenunciaResponseDto);
   }
 
-  public Optional<Denuncia> atualizarDenuncia(Long id, Denuncia dadosParaAtualizar) {
-    Optional<Denuncia> denunciaExistente = denunciaRepository.findById(id);
+  public Optional<DenunciaResponseDto> atualizarDenuncia(Long id, AtualizarDenunciaDto dto, String adminName) {
+    return denunciaRepository.findById(id).map(denuncia -> {
+      if (denuncia.getStatus() == Status.RESOLVIDO || denuncia.getStatus() == Status.REJEITADO) {
+        throw new IllegalStateException("Denúncia já está em estado final e não pode ser alterada.");
+      }
 
-    if (denunciaExistente.isEmpty()) {
-      return Optional.empty();
-    }
+      denuncia.setStatus(dto.getStatus());
+      denuncia.setMotivoRejeicao(dto.getMotivoRejeicao());
+      denuncia.setAlteradoEm(LocalDateTime.now());
+      denuncia.setAlteradoPor(adminName);
 
-    Denuncia denuncia = denunciaExistente.get();
+      Denuncia denunciaAtualizada = denunciaRepository.save(denuncia);
 
-    if (denuncia.getStatus() == Status.RESOLVIDO || denuncia.getStatus() == Status.REJEITADO) {
-      throw new IllegalStateException("Denúncia já está em estado final e não pode ser alterada.");
-    }
-
-    if (dadosParaAtualizar.getStatus() != null) {
-      denuncia.setStatus(dadosParaAtualizar.getStatus());
-    }
-    if (dadosParaAtualizar.getMotivoRejeicao() != null) {
-      denuncia.setMotivoRejeicao(dadosParaAtualizar.getMotivoRejeicao());
-    }
-
-    denuncia.setAlteradoEm(LocalDateTime.now());
-
-    return Optional.of(denunciaRepository.save(denuncia));
+      return mapToDenunciaResponseDto(denunciaAtualizada);
+    });
   }
 
   public boolean deletarDenuncia(Long id) {
@@ -114,4 +141,74 @@ public class DenunciaService {
     return false;
   }
 
+  @Transactional(readOnly = true)
+  public List<AcompanhamentoDto> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
+    Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
+        .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
+
+    return denuncia.getAcompanhamentos().stream()
+        .map(this::mapToAcompanhamentoResponseDto)
+        .collect(Collectors.toList());
+  }
+
+  @Transactional(readOnly = true)
+  public List<AcompanhamentoDto> listarAcompanhamentosPorId(Long id) {
+    Denuncia denuncia = denunciaRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada com o ID informado."));
+
+    return denuncia.getAcompanhamentos().stream()
+        .map(this::mapToAcompanhamentoResponseDto)
+        .collect(Collectors.toList());
+  }
+
+  public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento,
+      AcompanhamentoDto dto) {
+    Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
+        .filter(d -> d.getStatus() != Status.RESOLVIDO && d.getStatus() != Status.REJEITADO)
+        .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada ou finalizada."));
+
+    Acompanhamento novoAcompanhamento = new Acompanhamento();
+    PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
+    String mensagemSanitizada = policy.sanitize(dto.getMensagem());
+    novoAcompanhamento.setMensagem(mensagemSanitizada);
+    novoAcompanhamento.setAutor("DENUNCIANTE");
+    novoAcompanhamento.setDenuncia(denuncia);
+
+    Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
+    return mapToAcompanhamentoResponseDto(salvo);
+  }
+
+  public AcompanhamentoDto adicionarAcompanhamentoAdmin(Long id, AcompanhamentoDto dto, String nomeAdmin) {
+    Denuncia denuncia = denunciaRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada."));
+
+    Acompanhamento novoAcompanhamento = new Acompanhamento();
+    PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
+    String mensagemSanitizada = policy.sanitize(dto.getMensagem());
+    novoAcompanhamento.setMensagem(mensagemSanitizada);
+    novoAcompanhamento.setAutor(nomeAdmin);
+    novoAcompanhamento.setDenuncia(denuncia);
+
+    Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
+    return mapToAcompanhamentoResponseDto(salvo);
+  }
+
+  private DenunciaResponseDto mapToDenunciaResponseDto(Denuncia denuncia) {
+    DenunciaResponseDto dto = new DenunciaResponseDto();
+
+    dto.setTokenAcompanhamento(denuncia.getTokenAcompanhamento());
+    dto.setStatus(denuncia.getStatus());
+    dto.setCategoria(denuncia.getCategoria());
+    dto.setCriadoEm(denuncia.getCriadoEm());
+
+    return dto;
+  }
+
+  private AcompanhamentoDto mapToAcompanhamentoResponseDto(Acompanhamento acompanhamento) {
+    AcompanhamentoDto dto = new AcompanhamentoDto();
+    dto.setAutor(acompanhamento.getAutor());
+    dto.setMensagem(acompanhamento.getMensagem());
+    dto.setDataEnvio(acompanhamento.getDataEnvio());
+    return dto;
+  }
 }
