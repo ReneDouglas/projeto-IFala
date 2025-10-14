@@ -6,6 +6,7 @@ import { Login } from './pages/Login/Login';
 import { ResetPassword } from './pages/ResetPassword/ResetPassword';
 import { MainLayout } from './components/MainLayout'; // Importa o layout principal
 import { AuthProvider } from './contexts/AuthContext'; // Importa o contexto de autenticação
+import { Acompanhamento } from './pages/Acompanhamento/Acompanhamento';
 
 export function App() {
   return (
@@ -22,6 +23,7 @@ export function App() {
             <Route path='/' element={<Home />} />
             <Route path='/denuncia' element={<Denuncia />} />
             <Route path='/denuncia/sucesso' element={<DenunciaSucesso />} />
+            <Route path='/acompanhamento' element={<Acompanhamento />} />
           </Route>
         </Routes>
       </BrowserRouter>
