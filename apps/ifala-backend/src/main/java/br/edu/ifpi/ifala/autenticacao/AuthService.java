@@ -17,7 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import br.edu.ifpi.ifala.autenticacao.dto.TokenResponseDTO;
 import br.edu.ifpi.ifala.shared.exceptions.AuthException;
 import br.edu.ifpi.ifala.shared.exceptions.KeycloakAdminException;
-
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -25,6 +25,7 @@ import br.edu.ifpi.ifala.shared.exceptions.KeycloakAdminException;
  * 
  * @author Sistema AvaliaIF
  */
+@Slf4j
 @Service
 public class AuthService {
 

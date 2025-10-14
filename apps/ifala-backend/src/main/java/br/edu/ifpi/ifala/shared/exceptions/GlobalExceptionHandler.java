@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Map;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
  * anotação @RestControllerAdvice do Spring para interceptar e tratar exceções lançadas pelos
  * controladores REST.
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

@@ -15,12 +15,14 @@ import org.springframework.web.client.RestTemplate;
 import br.edu.ifpi.ifala.shared.exceptions.KeycloakAdminException;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Serviço para integração com Keycloak Admin API.
  * 
  * @author Sistema AvaliaIF
  */
+@Slf4j
 @Service
 public class KeycloakAdminService {
 

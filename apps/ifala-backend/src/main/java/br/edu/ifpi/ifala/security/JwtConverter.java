@@ -10,7 +10,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 public class JwtConverter implements Converter<Jwt, JwtAuthenticationToken> {
 

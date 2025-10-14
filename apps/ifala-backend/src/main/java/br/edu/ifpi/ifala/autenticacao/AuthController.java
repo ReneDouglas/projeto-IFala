@@ -13,13 +13,14 @@ import br.edu.ifpi.ifala.autenticacao.dto.AuthResponseDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.LogoutRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.PrimeiroAcessoRequestDTO;
-
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Controller responsável pelos endpoints de autenticação.
  * 
  * @author Sistema AvaliaIF
  */
+@Slf4j
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
