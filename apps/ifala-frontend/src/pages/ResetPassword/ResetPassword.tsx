@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import '../../App.css';
 
 export function ResetPassword() {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,6 +24,12 @@ export function ResetPassword() {
     setError('');
 
     // --- VALIDAÇÕES ESPECIFICADAS ---
+    // Validação 0: Email deve ser válido
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      setError('Por favor, insira um email válido.');
+      return;
+    }
     // Validação 1: Senhas não coincidem
     if (password !== confirmPassword) {
       setError('As senhas não coincidem.');
@@ -42,7 +49,7 @@ export function ResetPassword() {
     }
 
     // caso todas as validações passem
-    console.log('Simulando redefinição de senha com a nova senha:', password);
+    console.log('Simulando redefinição de senha para o email:', email, 'com nova senha:', password);
     alert('Senha redefinida com sucesso!');
     navigate('/'); // Simula o retorno para a página inicial
   };
@@ -137,7 +144,7 @@ export function ResetPassword() {
                     mb: 2,
                   }}
                 >
-                  Digite sua nova senha abaixo
+                  Digite seu email e defina uma nova senha
                 </Typography>
               </Box>
 
@@ -167,6 +174,36 @@ export function ResetPassword() {
                 sx={{ textAlign: 'left' }}
               >
                 <Stack spacing={3}>
+                  {/* Campo Email */}
+                  <TextField
+                    fullWidth
+                    name='email'
+                    label='Email'
+                    type='email'
+                    placeholder='Digite seu email'
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        '& fieldset': {
+                          borderColor: 'rgba(0, 0, 0, 0.2)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'var(--verde-esperanca)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: 'var(--azul-confianca)',
+                        },
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': {
+                        color: 'var(--azul-confianca)',
+                      },
+                    }}
+                  />
+
                   {/* Campo Nova Senha */}
                   <TextField
                     fullWidth
