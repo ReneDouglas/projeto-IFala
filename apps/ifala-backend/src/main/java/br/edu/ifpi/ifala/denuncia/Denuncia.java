@@ -12,7 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.transaction.Transactional;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -40,7 +40,7 @@ public class Denuncia {
   private Long id;
 
   @NotBlank(message = "A descrição não pode ser vazia")
-  @Size(min = 10, max = 5000, message = "A descrição deve ter entre 10 e 5000 caracteres")
+  @Size(min = 50, max = 5000, message = "A descrição deve ter entre 10 e 5000 caracteres")
   private String descricao;
 
   @Enumerated
@@ -69,6 +69,9 @@ public class Denuncia {
 
   private String alteradoPor;
   private LocalDateTime alteradoEm;
+
+  @Transient // para não ser persistido no banco de dados
+  private String recaptchaToken;
 
   /**
    * Construtor padrão que inicializa uma nova denúncia. Define um token de
