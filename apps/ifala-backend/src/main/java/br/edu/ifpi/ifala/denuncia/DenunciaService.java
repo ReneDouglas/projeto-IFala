@@ -126,6 +126,10 @@ public class DenunciaService {
       denuncia.setAlteradoEm(LocalDateTime.now());
       denuncia.setAlteradoPor(adminName);
 
+      PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
+      String motivoRejeicaoSanitizado = policy.sanitize(dto.getMotivoRejeicao());
+      denuncia.setMotivoRejeicao(motivoRejeicaoSanitizado);
+
       Denuncia denunciaAtualizada = denunciaRepository.save(denuncia);
 
       return mapToDenunciaResponseDto(denunciaAtualizada);
@@ -174,6 +178,9 @@ public class DenunciaService {
     novoAcompanhamento.setAutor("DENUNCIANTE");
     novoAcompanhamento.setDenuncia(denuncia);
 
+    String autorSanitizado = policy.sanitize(dto.getAutor());
+    novoAcompanhamento.setAutor(autorSanitizado);
+
     Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
     return mapToAcompanhamentoResponseDto(salvo);
   }
@@ -188,6 +195,9 @@ public class DenunciaService {
     novoAcompanhamento.setMensagem(mensagemSanitizada);
     novoAcompanhamento.setAutor(nomeAdmin);
     novoAcompanhamento.setDenuncia(denuncia);
+
+    String autorSanitizado = policy.sanitize(nomeAdmin);
+    novoAcompanhamento.setAutor(autorSanitizado);
 
     Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
     return mapToAcompanhamentoResponseDto(salvo);
