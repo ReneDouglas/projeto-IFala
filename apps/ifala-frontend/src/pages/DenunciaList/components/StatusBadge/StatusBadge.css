@@ -1,0 +1,44 @@
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-resolvido {
+  background: #4caf50;
+  color: #f8f8f8;
+  border: 1px solid #4caf50;
+}
+
+.status-rejeitado {
+  background: #f44336;
+  color: #fffefc;
+  border: 1px solid #f44336;
+}
+
+.status-aguardando {
+  background: #ff9800;
+  color: #fefdfd;
+  border: 1px solid #ff9800;
+}
+
+.status-analise {
+  background: #eae304;
+  color: #fefdfd;
+  border: 1px solid #eae304;
+}
+
+.status-receptado {
+  background: #2e7d32;
+  color: #f8f8f8;
+  border: 1px solid #2e7d32;
+}
+
+.status-default {
+  background: #9e9e9e;
+  color: #f8f8f8;
+  border: 1px solid #9e9e9e;
+}
