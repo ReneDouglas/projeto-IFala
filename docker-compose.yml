@@ -7,6 +7,12 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: ifala
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    command:
+      - 'postgres'
+      - '-c'
+      - 'shared_preload_libraries=pg_stat_statements'
     ports:
       - '5432:5432'
     volumes:
@@ -71,6 +77,50 @@ services:
     ports:
       - '9090:8080'
 
+  pmm-server:
+    image: percona/pmm-server:2
+    container_name: pmm-server
+    restart: unless-stopped
+    ports:
+      - '8081:80'
+      - '8444:443'
+    volumes:
+      - pmm-data:/srv
+
+  pmm-client:
+    image: percona/pmm-client:2
+    container_name: pmm-client
+    restart: unless-stopped
+    depends_on:
+      pmm-server:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      PMM_AGENT_SERVER_ADDRESS: pmm-server
+      PMM_AGENT_SERVER_USERNAME: admin
+      PMM_AGENT_SERVER_PASSWORD: admin
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    command: >-
+      /bin/bash -c " pmm-agent setup \
+        --config-file=/usr/local/percona/pmm-agent.yaml \
+        --server-address=${PMM_AGENT_SERVER_ADDRESS}:443 \
+        --server-username=${PMM_AGENT_SERVER_USERNAME} \
+        --server-password=${PMM_AGENT_SERVER_PASSWORD} \
+        --server-insecure-tls \
+        --force &&
+      pmm-admin add postgresql \
+        --username=${DB_USER} \
+        --password=${DB_PASSWORD} \
+        --host=${DB_HOST} \
+        --port=${DB_PORT} \
+        ifala-db &&
+      tail -f /dev/null "
+
 volumes:
   pgdata:
   keycloak_data:
+  pmm-data:
