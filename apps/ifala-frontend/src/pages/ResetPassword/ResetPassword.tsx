@@ -49,7 +49,12 @@ export function ResetPassword() {
     }
 
     // caso todas as validações passem
-    console.log('Simulando redefinição de senha para o email:', email, 'com nova senha:', password);
+    console.log(
+      'Simulando redefinição de senha para o email:',
+      email,
+      'com nova senha:',
+      password,
+    );
     alert('Senha redefinida com sucesso!');
     navigate('/'); // Simula o retorno para a página inicial
   };
