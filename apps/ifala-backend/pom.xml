@@ -74,7 +74,14 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
-		
+
+    <!-- Lombok -->
+    <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
 		<!-- Flyway Migration -->
 		<dependency>
 			<groupId>org.flywaydb</groupId>
