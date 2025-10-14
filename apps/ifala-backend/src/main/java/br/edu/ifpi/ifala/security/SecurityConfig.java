@@ -23,15 +23,16 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(
-            auth -> auth.requestMatchers("/auth/primeiro-acesso", "/auth/login", "/auth/logout")
-                .permitAll().anyRequest().authenticated())
-        .oauth2ResourceServer(
-            oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)))
-        .sessionManagement(
-            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        .authorizeHttpRequests(auth -> auth
+            // requisição para endpoints públicos
+            .requestMatchers("/auth/primeiro-acesso", "/auth/login", "/auth/logout", "/api/v1/public/**")
+            .permitAll()
+            // requisição para endpoints privados de admin
+            .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+            .anyRequest().authenticated())
+        .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)))
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
     return http.build();
   }
-
 }
