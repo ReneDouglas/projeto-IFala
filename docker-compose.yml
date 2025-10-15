@@ -120,6 +120,17 @@ services:
         ifala-db &&
       tail -f /dev/null "
 
+      # Adicionado para a Task 51 - Serviço de Monitoramento Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - '9091:9090'
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
 volumes:
   pgdata:
   keycloak_data:
