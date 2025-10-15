@@ -20,14 +20,8 @@ public class RecaptchaService {
   private final WebClient webClient;
   private final RecaptchaConfig recaptchaConfig;
 
-  /**
-   * É preciso criar um Bean para o WebClient se for usá-lo desta forma (no construtor), através de
-   * uma classe @Component ou @Configuration. Irei desabilitar, pois está causando erro. Recomendo
-   * utilizar RestClient.
-   */
-  public RecaptchaService(
-      /* WebClient.Builder webClientBuilder, */RecaptchaConfig recaptchaConfig) {
-    this.webClient = WebClient.builder().baseUrl(recaptchaConfig.getUrl()).build();
+  public RecaptchaService(WebClient.Builder webClientBuilder, RecaptchaConfig recaptchaConfig) {
+    this.webClient = webClientBuilder.baseUrl(recaptchaConfig.getUrl()).build();
     this.recaptchaConfig = recaptchaConfig;
   }
 
