@@ -2,7 +2,6 @@ package br.edu.ifpi.ifala.denuncia;
 
 
 import org.springframework.stereotype.Service;
-import lombok.extern.slf4j.Slf4j;
 import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
 import br.edu.ifpi.ifala.acompanhamento.AcompanhamentoRepository;
 import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDto;
@@ -11,7 +10,6 @@ import br.edu.ifpi.ifala.denuncia.denunciaDTO.CriarDenunciaDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
-
 import org.owasp.html.PolicyFactory;
 import org.owasp.html.Sanitizers;
 import org.springframework.data.domain.Page;
@@ -19,16 +17,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 
 /**
@@ -38,10 +37,13 @@ import java.util.stream.Collectors;
  * @author Jhonatas G Ribeiro
  */
 
-@Slf4j
+
 @Service
 @Transactional
 public class DenunciaService {
+
+  private static final Logger log = LoggerFactory.getLogger(DenunciaService.class);
+
   private final DenunciaRepository denunciaRepository;
   private final AcompanhamentoRepository acompanhamentoRepository;
 

@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Map;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.FieldError;
 
 import java.util.HashMap;
@@ -15,15 +14,19 @@ import java.util.Map;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Classe responsável por manipular exceções globalmente na aplicação. Utiliza a
  * anotação @RestControllerAdvice do Spring para interceptar e tratar exceções lançadas pelos
  * controladores REST.
  */
-@Slf4j
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+  private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
   @ExceptionHandler(AuthException.class)
   public ResponseEntity<Map<String, String>> handleAuthException(AuthException ex) {

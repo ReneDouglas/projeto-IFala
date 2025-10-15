@@ -145,6 +145,6 @@ services:
 volumes:
   pgdata:
   keycloak_data:
-  pmm-data:
+  # pmm-data:
   grafana-data: {}
-  #pmm-data:
+  # pmm-data:

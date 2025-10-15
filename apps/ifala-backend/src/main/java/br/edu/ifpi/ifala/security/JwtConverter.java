@@ -5,16 +5,16 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Component
 public class JwtConverter implements Converter<Jwt, JwtAuthenticationToken> {
+
+  private static final Logger log = LoggerFactory.getLogger(JwtConverter.class);
 
   @Override
   public JwtAuthenticationToken convert(Jwt jwt) {
