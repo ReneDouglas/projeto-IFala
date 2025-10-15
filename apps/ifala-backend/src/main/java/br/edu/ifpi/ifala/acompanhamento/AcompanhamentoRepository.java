@@ -13,6 +13,11 @@ public interface AcompanhamentoRepository extends JpaRepository<Acompanhamento, 
   // data de envio em ordem crescente
   List<Acompanhamento> findByDenunciaIdOrderByDataEnvioAsc(Long denunciaId);
 
+  /**
+   * 
+   * O método abaixo não foi construído corretamente e está causando erro
+   * 
+   */
   // retorna todos os acompanhamentos de uma denúncia específica via token,
   // ordenados pela data de envio em ordem decrescente
   List<Acompanhamento> findByDenunciaTokenAcompanhamentoOrderByDataEnvioDesc(
