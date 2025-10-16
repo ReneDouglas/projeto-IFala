@@ -1,18 +1,22 @@
 package br.edu.ifpi.ifala.autenticacao.dto;
 
-/**
- * DTO para requisições de login (email e senha).
- */
-public class LoginRequestDTO {
-  private String username;
+public class LoginRequestDto {
+  private String email;
   private String password;
 
-  public String getUsername() {
-    return username;
+  public LoginRequestDto() {}
+
+  public LoginRequestDto(String email, String password) {
+    this.email = email;
+    this.password = password;
   }
 
-  public void setUsername(String username) {
-    this.username = username;
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
   }
 
   public String getPassword() {

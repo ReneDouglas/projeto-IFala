@@ -1,131 +1,94 @@
 package br.edu.ifpi.ifala.autenticacao;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import br.edu.ifpi.ifala.security.JwtUtil;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDto;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDto;
+import br.edu.ifpi.ifala.autenticacao.dto.ChangePasswordRequestDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import br.edu.ifpi.ifala.autenticacao.dto.TokenResponseDTO;
-import br.edu.ifpi.ifala.shared.exceptions.AuthException;
-import br.edu.ifpi.ifala.autenticacao.dto.AuthResponseDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.LogoutRequestDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.PrimeiroAcessoRequestDTO;
 
-
-/**
- * Controller responsável pelos endpoints de autenticação.
- * 
- * @author Sistema AvaliaIF
- */
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
-  @Autowired
-  private AuthService authService;
+  private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final JwtUtil jwtUtil;
+  private final PasswordResetService passwordResetService;
 
-  /**
-   * Endpoint para primeiro acesso de usuários. Valida credenciais temporárias antes de enviar email
-   * para redefinição de senha definitiva.
-   * 
-   * @param request Credenciais temporárias do usuário (username + senha temporária)
-   * @return Resposta da validação e envio do email
-   */
-  @PostMapping("primeiro-acesso")
-  public ResponseEntity<AuthResponseDTO> primeiroAcesso(
-      @RequestBody PrimeiroAcessoRequestDTO request) {
-    try {
-      // 1. Tenta validar credenciais temporárias
-      TokenResponseDTO tokenResponse =
-          authService.authenticateUser(request.getUsername(), request.getPassword());
-
-      if (tokenResponse == null) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-            new AuthResponseDTO(null, null, false, null, "Credenciais temporárias inválidas."));
-      }
-
-      // 2. Se credenciais temporárias válidas, envia email para definir senha definitiva
-      authService.sendPasswordResetEmail(request.getUsername());
-
-      return ResponseEntity.ok(new AuthResponseDTO(null, null, true, null,
-          "Credenciais temporárias validadas. Email enviado para definição de senha definitiva."));
-
-    } catch (AuthException e) {
-      // Verifica se é erro de "conta não totalmente configurada" - isso é esperado no primeiro
-      // acesso
-      if (e.getMessage().contains("Account is not fully set up")) {
-        try {
-          // Credenciais válidas mas conta precisa ser configurada - envia email
-          authService.sendPasswordResetEmail(request.getUsername());
-          return ResponseEntity.ok(new AuthResponseDTO(null, null, true, null,
-              "Credenciais temporárias validadas. Email enviado para definição de senha definitiva."));
-        } catch (AuthException emailError) {
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-              .body(new AuthResponseDTO(null, null, false, null, emailError.getMessage()));
-        }
-      }
-
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(new AuthResponseDTO(null, null, false, null, e.getMessage()));
-    } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new AuthResponseDTO(null,
-          null, false, null, "Erro interno do servidor: " + e.getMessage()));
-    }
+  public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder,
+      JwtUtil jwtUtil, PasswordResetService passwordResetService) {
+    this.userRepository = userRepository;
+    this.passwordEncoder = passwordEncoder;
+    this.jwtUtil = jwtUtil;
+    this.passwordResetService = passwordResetService;
   }
 
-  /**
-   * Endpoint para autenticação de usuários.
-   * 
-   * @param request Credenciais de login
-   * @return Resposta da autenticação com tokens
-   */
   @PostMapping("/login")
-  public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO request) {
-    try {
-      // 1. Autentica no Keycloak e obtém os tokens
-      TokenResponseDTO tokenResponse =
-          authService.authenticateUser(request.getUsername(), request.getPassword());
+  public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto req) {
+    // Busca o usuário pelo e-mail
+    var userOpt = userRepository.findByEmail(req.getEmail());
+    if (userOpt.isEmpty())
+      return ResponseEntity.status(401).build();
 
-      if (tokenResponse != null) {
-        // 2. URL de redirecionamento padrão - frontend determina dashboard específico
-        String redirectUrl = "/dashboard";
-
-        // 3. Retorna ambos os tokens e a URL de redirecionamento
-        return ResponseEntity
-            .ok(new AuthResponseDTO(tokenResponse.getAccessToken(), tokenResponse.getRefreshToken(),
-                true, redirectUrl, "Login bem-sucedido. Redirecionando para: " + redirectUrl));
-      } else {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(new AuthResponseDTO(null, null, false, null, "Credenciais inválidas."));
-      }
-    } catch (AuthException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(new AuthResponseDTO(null, null, false, null, e.getMessage()));
-    } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new AuthResponseDTO(null,
-          null, false, null, "Erro interno do servidor: " + e.getMessage()));
+    var user = userOpt.get();
+    // Verifica a senha atual
+    if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
+      return ResponseEntity.status(401).build();
     }
+
+    // isMustChangePassword() é um getter gerado pelo @Data/Lombok na classe User
+    if (user.isMustChangePassword()) {
+      // Envia email de redefinição de senha no primeiro acesso
+      passwordResetService.sendPasswordReset(user);
+      // Não emite JWT ainda, instrui frontend a forçar mudança
+      return ResponseEntity.ok(new LoginResponseDto(null, true, null));
+    }
+
+    String token = jwtUtil.generateToken(user.getUsername());
+    String redirect = determineRedirect(user);
+    return ResponseEntity.ok(new LoginResponseDto(token, false, redirect));
   }
 
-  /**
-   * Endpoint para logout de usuários.
-   * 
-   * @param request Token de refresh para invalidar sessão
-   * @return Resposta do logout
-   */
-  @PostMapping("/logout")
-  public ResponseEntity<AuthResponseDTO> logout(@RequestBody LogoutRequestDTO request) {
-    try {
-      authService.performKeycloakLogout(request.getRefreshToken());
-      return ResponseEntity
-          .ok(new AuthResponseDTO(null, null, true, "/login", "Logout global bem-sucedido."));
+  @PostMapping("/redefinir-senha")
+  public ResponseEntity<LoginResponseDto> changePassword(
+      @RequestBody ChangePasswordRequestDto req) {
 
-    } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponseDTO(null, null,
-          false, null, "Erro ao encerrar sessão no servidor: " + e.getMessage()));
+    var userOpt = userRepository.findByEmail(req.getEmail());
+    if (userOpt.isEmpty())
+      return ResponseEntity.status(404).build();
+
+    var user = userOpt.get();
+    // Verifica a senha atual
+    if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
+      return ResponseEntity.status(401).build();
     }
+
+    // Atualiza a senha e o flag de mudança
+    // setPassword() e setMustChangePassword() são setters gerados pelo @Data/Lombok
+    user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+    user.setMustChangePassword(false);
+    userRepository.save(user);
+
+    String token = jwtUtil.generateToken(user.getUsername());
+    String redirect = determineRedirect(user);
+
+    return ResponseEntity.ok(new LoginResponseDto(token, false, redirect));
+  }
+
+  // Seção determineRedirect
+  private String determineRedirect(Usuario user) {
+    // getRoles() é um getter gerado pelo @Data/Lombok na classe User
+    return user.getRoles().stream().map(Enum::name).map(String::toLowerCase)
+        .filter(r -> r.equals("admin") || r.equals("gestor_institucional")).findFirst()
+        .map(r -> switch (r) {
+          case "admin" -> "/admin/dashboard";
+          case "gestor_institucional" -> "/gestor/home";
+          default -> "/";
+        }).orElse("/");
   }
 }
