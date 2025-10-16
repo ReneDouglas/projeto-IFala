@@ -17,7 +17,8 @@ import org.springframework.web.client.RestTemplate;
 import br.edu.ifpi.ifala.autenticacao.dto.TokenResponseDTO;
 import br.edu.ifpi.ifala.shared.exceptions.AuthException;
 import br.edu.ifpi.ifala.shared.exceptions.KeycloakAdminException;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -25,8 +26,11 @@ import br.edu.ifpi.ifala.shared.exceptions.KeycloakAdminException;
  * 
  * @author Sistema AvaliaIF
  */
+
 @Service
 public class AuthService {
+
+  private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
   @Value("${keycloak.auth-server-url}")
   private String keycloakServerUrl;

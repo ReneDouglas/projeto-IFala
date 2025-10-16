@@ -13,16 +13,20 @@ import br.edu.ifpi.ifala.autenticacao.dto.AuthResponseDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.LogoutRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.PrimeiroAcessoRequestDTO;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Controller responsável pelos endpoints de autenticação.
  * 
  * @author Sistema AvaliaIF
  */
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+
+  private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
   @Autowired
   private AuthService authService;

@@ -15,14 +15,20 @@ import org.springframework.web.client.RestTemplate;
 import br.edu.ifpi.ifala.shared.exceptions.KeycloakAdminException;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Serviço para integração com Keycloak Admin API.
  * 
  * @author Sistema AvaliaIF
  */
+
 @Service
 public class KeycloakAdminService {
+
+  private static final Logger log = LoggerFactory.getLogger(KeycloakAdminService.class);
 
   @Value("${keycloak.auth-server-url}")
   private String keycloakServerUrl;

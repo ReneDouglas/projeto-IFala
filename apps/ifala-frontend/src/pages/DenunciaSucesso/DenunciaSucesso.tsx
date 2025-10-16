@@ -24,7 +24,7 @@ export function DenunciaSucesso() {
     if (!token) {
       navigate('/');
     }
-  }, [token]);
+  }, [token, navigate]);
 
   const copyToken = async () => {
     if (!token) return;
