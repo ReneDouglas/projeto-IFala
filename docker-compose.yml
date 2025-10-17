@@ -144,8 +144,20 @@ services:
       - ./monitoring/grafana/dashboards/:/var/lib/grafana/dashboards/
       - grafana-data:/var/lib/grafana
 
+  # Serviço de Logs Grafana Loki
+  loki:
+    image: grafana/loki:2.9.5
+    container_name: loki
+    ports:
+      - '3100:3100'
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+
 volumes:
   pgdata:
   keycloak_data:
   grafana-data: {}
+  loki-data: {}
   # pmm-data:
