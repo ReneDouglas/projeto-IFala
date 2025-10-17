@@ -25,12 +25,13 @@ public class SecurityConfig {
     http.csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
             // endpoints públicos permitidos para todos
-            .requestMatchers("/actuator/**", "/auth/primeiro-acesso", "/auth/login", "/auth/logout",
-                "/api/v1/public/**")
+            .requestMatchers("/api/v1/public/**", "/actuator/**", "/auth/primeiro-acesso", "/auth/login",
+                "/auth/logout",
+                "/auth/recuperar-senha")
             .permitAll()
 
             // endpoints de admin restritos à ROLE "ADMIN"
-            .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+            // .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
             // qualquer outra requisição diferenteexige autenticação
             .anyRequest().authenticated())
