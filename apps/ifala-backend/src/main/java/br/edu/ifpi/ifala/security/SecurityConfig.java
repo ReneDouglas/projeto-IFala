@@ -9,17 +9,12 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
-  private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
   private final JwtConverter jwtConverter;
 
@@ -29,17 +24,19 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(auth -> auth
-        // endpoints públicos permitidos para todos
-        .requestMatchers("/api/v1/public/**", "/actuator/**", "/auth/primeiro-acesso",
-            "/auth/login", "/auth/logout", "/auth/recuperar-senha")
-        .permitAll()
 
-        // endpoints de admin restritos à ROLE "ADMIN"
-        // .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+    http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/api/v1/public/**",
+        "/api/v1/admin/**", "/actuator/**")).authorizeHttpRequests(auth -> auth
+            // endpoints públicos permitidos para todos
+            .requestMatchers("/api/v1/public/**", "/actuator/**", "/auth/primeiro-acesso",
+                "/auth/login", "/auth/logout", "/auth/recuperar-senha")
+            .permitAll()
 
-        // qualquer outra requisição diferenteexige autenticação
-        .anyRequest().authenticated())
+            // endpoints de admin restritos à ROLE "ADMIN"
+            // .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+
+            // qualquer outra requisição diferente exige autenticação
+            .anyRequest().authenticated())
 
         .oauth2ResourceServer(
             oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)))
