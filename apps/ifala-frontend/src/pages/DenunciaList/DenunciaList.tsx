@@ -15,13 +15,10 @@ export function DenunciasList() {
     ordenacao: 'dataCriacao,desc',
   });
 
-  const {
-    denuncias,
-    loading,
-    error,
-    totalPages,
-    refetch,
-  } = useDenuncias(currentPage, searchParams);
+  const { denuncias, loading, error, totalPages, refetch } = useDenuncias(
+    currentPage,
+    searchParams,
+  );
 
   const [showWelcome, setShowWelcome] = useState(true);
 

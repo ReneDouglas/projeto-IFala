@@ -55,9 +55,7 @@ export const DenunciaCard = ({
   };
 
   return (
-    <div
-      className={`denuncia-card ${getPriorityColor(denuncia.status)}`}
-    >
+    <div className={`denuncia-card ${getPriorityColor(denuncia.status)}`}>
       {/* Header com contador e token */}
       <div className='denuncia-header'>
         <div className='header-left'>
@@ -96,9 +94,7 @@ export const DenunciaCard = ({
             </span>
           </div>
           <div className='metadata-item data'>
-            <span className='material-symbols-outlined icon'>
-              update
-            </span>
+            <span className='material-symbols-outlined icon'>update</span>
             <span className='metadata-text'>
               Atualizado em: {formatDate(denuncia.ultimaAtualizacao)}
             </span>
