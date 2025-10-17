@@ -4,14 +4,15 @@ import './DenunciaCard.css';
 
 interface DenunciaCardProps {
   denuncia: Denuncia;
+  contador: number;
   onViewDetails: (token: string) => void;
-  onViewMessages: (token: string) => void;
+  onViewMessages?: (token: string) => void;
 }
 
 export const DenunciaCard = ({
   denuncia,
+  contador,
   onViewDetails,
-  onViewMessages,
 }: DenunciaCardProps) => {
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('pt-BR', {
@@ -22,6 +23,13 @@ export const DenunciaCard = ({
       minute: '2-digit',
     });
 
+  // Função para formatar o token (últimos 4 dígitos com asteriscos)
+  const formatToken = (token: string) => {
+    if (token.length <= 4) return token;
+    return `*******${token.slice(-4)}`;
+  };
+
+  // Função para obter o ícone da categoria
   const getCategoriaIcon = (categoria: string) => {
     const icons: { [key: string]: string } = {
       ASSEDIO: 'warning',
@@ -31,6 +39,9 @@ export const DenunciaCard = ({
     };
     return icons[categoria] || 'help';
   };
+
+  // Lógica básica para verificar se há mensagens não lidas (para testes)
+  const hasUnreadMessages = denuncia.hasUnreadMessages || Math.random() > 0.5;
 
   const getPriorityColor = (status: string) => {
     const priorities: { [key: string]: string } = {
@@ -45,16 +56,18 @@ export const DenunciaCard = ({
 
   return (
     <div
-      className={`denuncia-card bg-white ${getPriorityColor(denuncia.status)}`}
+      className={`denuncia-card ${getPriorityColor(denuncia.status)}`}
     >
-      {/* Header com token e status */}
+      {/* Header com contador e token */}
       <div className='denuncia-header'>
         <div className='header-left'>
           <div className='denuncia-token'>
             <span className='material-symbols-outlined token-icon'>
               fingerprint
             </span>
-            <span className='token-value'>{denuncia.token}</span>
+            <span className='token-value'>
+              Denúncia {contador}: {formatToken(denuncia.token)}
+            </span>
           </div>
         </div>
         <StatusBadge status={denuncia.status} />
@@ -62,15 +75,7 @@ export const DenunciaCard = ({
 
       {/* Conteúdo principal */}
       <div className='denuncia-content'>
-        <h4 className='denuncia-titulo'>{denuncia.titulo}</h4>
-
-        <p className='denuncia-descricao'>
-          {denuncia.descricao.length > 120
-            ? `${denuncia.descricao.substring(0, 120)}...`
-            : denuncia.descricao}
-        </p>
-
-        {/* Metadados */}
+        {/* Categoria da denúncia com ícone */}
         <div className='denuncia-metadata'>
           <div className='metadata-item categoria'>
             <span
@@ -81,34 +86,39 @@ export const DenunciaCard = ({
             <span className='metadata-text'>{denuncia.categoria}</span>
           </div>
 
+          {/* Datas */}
           <div className='metadata-item data'>
             <span className='material-symbols-outlined icon'>
               calendar_today
             </span>
             <span className='metadata-text'>
-              Criado em {formatDate(denuncia.dataCriacao)}
+              Criado em: {formatDate(denuncia.dataCriacao)}
+            </span>
+          </div>
+          <div className='metadata-item data'>
+            <span className='material-symbols-outlined icon'>
+              update
+            </span>
+            <span className='metadata-text'>
+              Atualizado em: {formatDate(denuncia.ultimaAtualizacao)}
             </span>
           </div>
         </div>
 
-        {/* Notificação de mensagens não lidas */}
-        {denuncia.hasUnreadMessages && (
+        {/* Nova Mensagem (se houver mensagens não lidas) */}
+        {hasUnreadMessages && (
           <div className='unread-messages-alert'>
-            <button
-              className='unread-messages-btn'
-              onClick={() => onViewMessages(denuncia.token)}
-            >
+            <div className='unread-messages-btn'>
               <span className='alert-icon material-symbols-outlined'>
                 mark_email_unread
               </span>
-              <span className='alert-text'>Novas mensagens não lidas</span>
-              <span className='alert-badge'>!</span>
-            </button>
+              <span className='alert-text'>Nova Mensagem</span>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Ações */}
+      {/* Ação - Ver Detalhes */}
       <div className='denuncia-actions'>
         <button
           className='btn-details'
@@ -117,24 +127,6 @@ export const DenunciaCard = ({
           <span className='material-symbols-outlined'>visibility</span>
           Ver Detalhes
         </button>
-
-        <button
-          className='btn-messages'
-          onClick={() => onViewMessages(denuncia.token)}
-        >
-          <span className='material-symbols-outlined'>chat</span>
-          Mensagens
-        </button>
-      </div>
-
-      {/* Footer */}
-      <div className='denuncia-footer'>
-        <div className='footer-content'>
-          <span className='material-symbols-outlined footer-icon'>update</span>
-          <span className='ultima-atualizacao'>
-            Atualizado em {formatDate(denuncia.ultimaAtualizacao)}
-          </span>
-        </div>
       </div>
 
       {/* Efeito de hover */}
