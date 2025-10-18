@@ -155,6 +155,18 @@ services:
       - loki-data:/loki
     command: -config.file=/etc/loki/local-config.yaml
 
+  # Adicionado para a Task 72 - Coletor de Logs Promtail
+  promtail:
+    image: grafana/promtail:2.9.5
+    container_name: promtail
+    volumes:
+      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+
 volumes:
   pgdata:
   keycloak_data:
