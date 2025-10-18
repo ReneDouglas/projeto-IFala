@@ -6,6 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+import org.springframework.lang.NonNull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,18 +18,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtUtil jwtUtil;
   private final UserDetailsService userDetailsService;
+  private final TokenBlacklistService tokenBlacklistService;
 
-  public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+  public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService,
+      TokenBlacklistService tokenBlacklistService) {
     this.jwtUtil = jwtUtil;
     this.userDetailsService = userDetailsService;
+    this.tokenBlacklistService = tokenBlacklistService;
   }
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-      FilterChain filterChain) throws ServletException, IOException {
+  protected void doFilterInternal(@NonNull HttpServletRequest request,
+      @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
+      throws ServletException, IOException {
 
     String token = extractToken(request);
-    if (token != null && jwtUtil.validateToken(token, jwtUtil.extractUsername(token))) {
+    if (token != null && !tokenBlacklistService.isBlacklisted(token)
+        && jwtUtil.validateToken(token, jwtUtil.extractUsername(token))) {
       UserDetails userDetails =
           userDetailsService.loadUserByUsername(jwtUtil.extractUsername(token));
       UsernamePasswordAuthenticationToken authentication =

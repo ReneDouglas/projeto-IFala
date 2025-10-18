@@ -1,11 +1,13 @@
 package br.edu.ifpi.ifala.autenticacao;
 
 import br.edu.ifpi.ifala.security.JwtUtil;
+import br.edu.ifpi.ifala.security.TokenBlacklistService;
 import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDto;
 import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDto;
 import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDto;
 import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDto;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,9 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
-
 import java.util.stream.Collectors;
 
 @RestController
@@ -29,19 +29,19 @@ public class AuthController {
   private final PasswordEncoder passwordEncoder;
   private final JwtUtil jwtUtil;
   private final RedefinirSenhaService passwordResetService;
-  private final br.edu.ifpi.ifala.security.TokenBlacklistService tokenBlacklistService;
   private final JdbcTemplate jdbcTemplate;
+  private final TokenBlacklistService tokenBlacklistService;
+
 
   public AuthController(UsuarioRepository userRepository, PasswordEncoder passwordEncoder,
-      JwtUtil jwtUtil, RedefinirSenhaService passwordResetService,
-      br.edu.ifpi.ifala.security.TokenBlacklistService tokenBlacklistService,
-      JdbcTemplate jdbcTemplate) {
+      JwtUtil jwtUtil, RedefinirSenhaService passwordResetService, JdbcTemplate jdbcTemplate,
+      TokenBlacklistService tokenBlacklistService) {
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.jwtUtil = jwtUtil;
     this.passwordResetService = passwordResetService;
-    this.tokenBlacklistService = tokenBlacklistService;
     this.jdbcTemplate = jdbcTemplate;
+    this.tokenBlacklistService = tokenBlacklistService;
   }
 
 
@@ -126,6 +126,7 @@ public class AuthController {
 
     user.setSenha(passwordEncoder.encode(req.getNewPassword()));
     user.setMustChangePassword(false);
+    // limpa token e expiry após redefinição bem-sucedida
     user.setPasswordResetToken(null);
     user.setPasswordResetExpires(null);
     userRepository.save(user);

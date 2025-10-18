@@ -56,8 +56,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      keycloak:
-        condition: service_started
 
   pmm-server:
     image: percona/pmm-server:2
