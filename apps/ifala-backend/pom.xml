@@ -111,8 +111,7 @@
         <version>0.11.5</version>
         <scope>runtime</scope>
     </dependency>
-
-		
+	
 		<!-- Flyway Migration -->
 		<dependency>
 			<groupId>org.flywaydb</groupId>
@@ -153,9 +152,9 @@
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-webflux -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-webflux</artifactId>
+   <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-webflux</artifactId>
     </dependency>
 
   </dependencies>
@@ -215,5 +214,4 @@
         </plugin>
 		</plugins>
 	</build>
-
 </project>

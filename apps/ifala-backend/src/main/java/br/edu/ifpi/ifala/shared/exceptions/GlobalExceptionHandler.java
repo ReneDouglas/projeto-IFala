@@ -10,12 +10,16 @@ import java.util.Map;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Classe responsável por manipular exceções globalmente na aplicação. Utiliza a
  * anotação @RestControllerAdvice do Spring para interceptar e tratar exceções lançadas pelos
+ * anotação @RestControllerAdvice do Spring para interceptar e tratar exceções lançadas pelos
  * controladores REST.
  */
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
   /**

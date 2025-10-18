@@ -100,6 +100,31 @@ services:
   #       ifala-db &&
   #     tail -f /dev/null "
 
+  # Adicionado para a Task 51 - Serviço de Monitoramento Prometheus
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: prometheus
+    ports:
+      - '9091:9090'
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+  # Adicionado para a Task 51 - Serviço de Visualização Grafana
+  grafana:
+    image: grafana/grafana-oss:10.4.2
+    container_name: grafana
+    ports:
+      - '3000:3000'
+    depends_on:
+      - prometheus
+    volumes:
+      - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/
+      - ./monitoring/grafana/dashboards/:/var/lib/grafana/dashboards/
+      - grafana-data:/var/lib/grafana
+
 volumes:
   pgdata:
-  pmm-data:
+  grafana-data: {}
+  #pmm-data:
