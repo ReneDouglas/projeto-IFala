@@ -56,16 +56,18 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      keycloak:
+        condition: service_started
 
-  # pmm-server:
-  #   image: percona/pmm-server:2
-  #   container_name: pmm-server
-  #   restart: unless-stopped
-  #   ports:
-  #     - '8081:80'
-  #     - '8444:443'
-  #   volumes:
-  #     - pmm-data:/srv
+  pmm-server:
+    image: percona/pmm-server:2
+    container_name: pmm-server
+    restart: unless-stopped
+    ports:
+      - '8081:80'
+      - '8444:443'
+    volumes:
+      - pmm-data:/srv
 
   # pmm-client:
   #   image: percona/pmm-client:2
@@ -102,4 +104,4 @@ services:
 
 volumes:
   pgdata:
-  #pmm-data:
+  pmm-data:

@@ -1,0 +1,395 @@
+.denuncia-card {
+  background: var(--branco);
+  border-radius: 16px;
+  border: 1px solid var(--cinza-claro);
+  padding: 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.denuncia-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--cinza-claro);
+  transition: all 0.3s ease;
+}
+
+/* Cores de prioridade */
+.denuncia-card.high-priority::before {
+  background: #eae304;
+}
+
+.denuncia-card.medium-priority::before {
+  background: #f59e0b;
+}
+
+.denuncia-card.low-priority::before {
+  background: #10b981;
+}
+
+.denuncia-card.resolved::before {
+  background: #4caf50;
+}
+
+.denuncia-card.rejected::before {
+  background: #f44336;
+}
+
+.denuncia-card:hover {
+  border-color: var(--azul-confianca);
+  transform: translateY(-8px);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.denuncia-card:hover::before {
+  width: 6px;
+}
+
+/* Header */
+.denuncia-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.denuncia-token {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  color: var(--azul-confianca);
+  font-size: 0.85rem;
+  background: #f8fafc;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.token-icon {
+  font-size: 1rem !important;
+  color: var(--azul-confianca);
+}
+
+.priority-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cinza-medio);
+  animation: pulse 2s infinite;
+}
+
+.high-priority .priority-indicator {
+  background: #ef4444;
+  animation: pulse 1s infinite;
+}
+
+.medium-priority .priority-indicator {
+  background: #f59e0b;
+}
+
+.low-priority .priority-indicator {
+  background: #10b981;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Conteúdo */
+.denuncia-content {
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.denuncia-titulo {
+  color: var(--cinza-escuro);
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.denuncia-descricao {
+  color: var(--cinza-medio);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.9rem;
+}
+
+/* Metadados */
+.denuncia-metadata {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.metadata-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--cinza-medio);
+  font-size: 0.8rem;
+}
+
+.metadata-item .icon {
+  font-size: 1rem !important;
+  opacity: 0.7;
+}
+
+.metadata-item.categoria .icon.warning {
+  color: #ef4444;
+}
+
+.metadata-item.categoria .icon.security {
+  color: #f59e0b;
+}
+
+.metadata-item.categoria .icon.diversity_3 {
+  color: #10b981;
+}
+
+.metadata-item.categoria .icon.help {
+  color: #6b7280;
+}
+
+.metadata-item.data .icon {
+  color: #6b7280;
+}
+
+/* Alertas de mensagens não lidas */
+.unread-messages-alert {
+  margin-top: 0.75rem;
+}
+
+.unread-messages-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  color: #1e40af;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.unread-messages-btn:hover {
+  background: linear-gradient(135deg, #bfdbfe 0%, #dbeafe 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
+}
+
+.alert-icon {
+  font-size: 1.1rem !important;
+}
+
+.alert-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 20px;
+  height: 20px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-5px);
+  }
+  60% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Ações */
+.denuncia-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.btn-details,
+.btn-messages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  border: 2px solid;
+  cursor: pointer;
+}
+
+.btn-details {
+  background: var(--azul-confianca);
+  border-color: var(--azul-confianca);
+  color: var(--branco);
+}
+
+.btn-details:hover {
+  background: var(--azul-claro);
+  border-color: var(--azul-claro);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+}
+
+.btn-messages {
+  background: var(--branco);
+  border-color: var(--cinza-medio);
+  color: var(--cinza-escuro);
+}
+
+.btn-messages:hover {
+  background: var(--cinza-claro);
+  border-color: var(--cinza-escuro);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Footer */
+.denuncia-footer {
+  border-top: 1px solid var(--cinza-claro);
+  padding-top: 1rem;
+  flex-shrink: 0;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.footer-icon {
+  font-size: 1rem !important;
+  color: var(--cinza-medio);
+  opacity: 0.7;
+}
+
+.ultima-atualizacao {
+  color: var(--cinza-medio);
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+/* Efeito de hover */
+.card-hover-effect {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(30, 58, 138, 0.03),
+    transparent
+  );
+  transition: left 0.6s ease;
+  z-index: -1;
+}
+
+.denuncia-card:hover .card-hover-effect {
+  left: 100%;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .denuncia-card {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+
+  .denuncia-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .denuncia-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-details,
+  .btn-messages {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .denuncia-card {
+    padding: 1rem;
+    margin: 0 -0.5rem;
+    border-radius: 8px;
+    border-left: none;
+    border-right: none;
+  }
+}

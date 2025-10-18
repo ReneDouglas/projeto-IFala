@@ -32,56 +32,8 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http,
       JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
 
-    http.csrf(AbstractHttpConfigurer::disable)
-        // Configura o gerenciamento de sessão para ser STATELESS (sem estado)
-        .sessionManagement(
-            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        // Define as regras de autorização
-        .authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/**").permitAll()
-            .requestMatchers("/admin/**").hasRole("ADMIN") // Requer o papel ADMIN
-            .requestMatchers("/gestor/**").hasAnyRole("GESTOR_INSTITUCIONAL") // Requer o papel
-                                                                              // GESTOR
-            .anyRequest().authenticated()) // Qualquer outra requisição deve ser autenticada
-
-        // Adiciona o filtro JWT antes do filtro padrão de autenticação de usuário/senha
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }
 
-  /**
-   * Bean que define como o JwtAuthenticationFilter deve ser criado. O Spring o injetará nos métodos
-   * que o requerem (como o securityFilterChain). * @param jwtUtil O utilitário para manipulação de
-   * tokens.
-   * 
-   * @param userDetailsService O serviço para carregar detalhes do usuário.
-   * @return Uma nova instância de JwtAuthenticationFilter.
-   */
-  @Bean
-  public JwtAuthenticationFilter jwtAuthenticationFilter(JwtUtil jwtUtil,
-      UserDetailsService userDetailsService) {
-    return new JwtAuthenticationFilter(jwtUtil, userDetailsService);
-  }
-
-  /**
-   * Bean para injetar o PasswordEncoder (BCrypt) no AuthController. * @return Uma instância de
-   * PasswordEncoder.
-   */
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
-
-  /**
-   * Expõe o AuthenticationManager para uso em outros serviços (como o login). * @param
-   * configuration Configuração de autenticação do Spring.
-   * 
-   * @return O AuthenticationManager.
-   * @throws Exception Se houver erro.
-   */
-  @Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
-      throws Exception {
-    return configuration.getAuthenticationManager();
-  }
 }
