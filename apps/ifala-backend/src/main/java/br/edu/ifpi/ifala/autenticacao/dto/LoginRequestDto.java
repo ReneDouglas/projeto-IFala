@@ -1,11 +1,6 @@
 package br.edu.ifpi.ifala.autenticacao.dto;
 
-import java.io.Serializable;
-import java.util.Objects;
-
-public class LoginRequestDto implements Serializable {
-  private static final long serialVersionUID = 1L;
-
+public class LoginRequestDto {
   private String email;
   private String password;
 
