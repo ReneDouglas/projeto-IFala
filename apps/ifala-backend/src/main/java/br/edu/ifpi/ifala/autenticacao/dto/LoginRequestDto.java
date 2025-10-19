@@ -7,6 +7,7 @@ public class LoginRequestDto implements Serializable {
   private static final long serialVersionUID = 1L;
 
   private String email;
+  private String username;
   private String password;
 
   public LoginRequestDto() {}
@@ -22,6 +23,14 @@ public class LoginRequestDto implements Serializable {
 
   public void setEmail(String email) {
     this.email = email;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
   }
 
   public String getPassword() {

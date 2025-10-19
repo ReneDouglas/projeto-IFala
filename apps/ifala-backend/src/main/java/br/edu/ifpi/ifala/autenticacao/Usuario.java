@@ -37,6 +37,9 @@ public class Usuario implements Serializable {
   @Column(name = "nome", nullable = false)
   private String nome;
 
+  @Column(name = "username", unique = true)
+  private String username;
+
   @Email
   @NotBlank
   @Column(name = "email", nullable = false, unique = true)
@@ -78,6 +81,14 @@ public class Usuario implements Serializable {
 
   public void setNome(String nome) {
     this.nome = nome;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
   }
 
   public String getEmail() {

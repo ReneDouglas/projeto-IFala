@@ -47,11 +47,15 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto req) {
-    logger.info("Tentativa de login recebida para o e-mail: {}", req.getEmail());
+    String identifier = req.getEmail() != null ? req.getEmail() : req.getUsername();
+    logger.info("Tentativa de login recebida para: {}", identifier);
 
-    var userOpt = userRepository.findByEmail(req.getEmail());
+    // Tenta buscar por email primeiro, depois por username
+    var userOpt = req.getEmail() != null ? userRepository.findByEmail(req.getEmail())
+        : userRepository.findByUsername(req.getUsername());
+
     if (userOpt.isEmpty()) {
-      logger.warn("Falha de login: Usuário não encontrado para o e-mail: {}", req.getEmail());
+      logger.warn("Falha de login: Usuário não encontrado para: {}", identifier);
       return ResponseEntity.status(401).build();
     }
 
