@@ -1,135 +1,216 @@
 package br.edu.ifpi.ifala.autenticacao;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import br.edu.ifpi.ifala.security.JwtUtil;
+import br.edu.ifpi.ifala.security.TokenBlacklistService;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDto;
+import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDto;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDto;
+import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDto;
+import br.edu.ifpi.ifala.shared.enums.Perfis;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import br.edu.ifpi.ifala.autenticacao.dto.TokenResponseDTO;
-import br.edu.ifpi.ifala.shared.exceptions.AuthException;
-import br.edu.ifpi.ifala.autenticacao.dto.AuthResponseDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.LogoutRequestDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.PrimeiroAcessoRequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-/**
- * Controller responsável pelos endpoints de autenticação.
- * 
- * @author Sistema AvaliaIF
- */
+import org.springframework.jdbc.core.JdbcTemplate;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
+  private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
-  private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+  private final UsuarioRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final JwtUtil jwtUtil;
+  private final RedefinirSenhaService passwordResetService;
+  private final JdbcTemplate jdbcTemplate;
+  private final TokenBlacklistService tokenBlacklistService;
 
-  @Autowired
-  private AuthService authService;
 
-  /**
-   * Endpoint para primeiro acesso de usuários. Valida credenciais temporárias antes de enviar email
-   * para redefinição de senha definitiva.
-   * 
-   * @param request Credenciais temporárias do usuário (username + senha temporária)
-   * @return Resposta da validação e envio do email
-   */
-  @PostMapping("primeiro-acesso")
-  public ResponseEntity<AuthResponseDTO> primeiroAcesso(
-      @RequestBody PrimeiroAcessoRequestDTO request) {
-    try {
-      // 1. Tenta validar credenciais temporárias
-      TokenResponseDTO tokenResponse =
-          authService.authenticateUser(request.getUsername(), request.getPassword());
-
-      if (tokenResponse == null) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-            new AuthResponseDTO(null, null, false, null, "Credenciais temporárias inválidas."));
-      }
-
-      // 2. Se credenciais temporárias válidas, envia email para definir senha definitiva
-      authService.sendPasswordResetEmail(request.getUsername());
-
-      return ResponseEntity.ok(new AuthResponseDTO(null, null, true, null,
-          "Credenciais temporárias validadas. Email enviado para definição de senha definitiva."));
-
-    } catch (AuthException e) {
-      // Verifica se é erro de "conta não totalmente configurada" - isso é esperado no primeiro
-      // acesso
-      if (e.getMessage().contains("Account is not fully set up")) {
-        try {
-          // Credenciais válidas mas conta precisa ser configurada - envia email
-          authService.sendPasswordResetEmail(request.getUsername());
-          return ResponseEntity.ok(new AuthResponseDTO(null, null, true, null,
-              "Credenciais temporárias validadas. Email enviado para definição de senha definitiva."));
-        } catch (AuthException emailError) {
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-              .body(new AuthResponseDTO(null, null, false, null, emailError.getMessage()));
-        }
-      }
-
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(new AuthResponseDTO(null, null, false, null, e.getMessage()));
-    } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new AuthResponseDTO(null,
-          null, false, null, "Erro interno do servidor: " + e.getMessage()));
-    }
+  public AuthController(UsuarioRepository userRepository, PasswordEncoder passwordEncoder,
+      JwtUtil jwtUtil, RedefinirSenhaService passwordResetService, JdbcTemplate jdbcTemplate,
+      TokenBlacklistService tokenBlacklistService) {
+    this.userRepository = userRepository;
+    this.passwordEncoder = passwordEncoder;
+    this.jwtUtil = jwtUtil;
+    this.passwordResetService = passwordResetService;
+    this.jdbcTemplate = jdbcTemplate;
+    this.tokenBlacklistService = tokenBlacklistService;
   }
 
-  /**
-   * Endpoint para autenticação de usuários.
-   * 
-   * @param request Credenciais de login
-   * @return Resposta da autenticação com tokens
-   */
+
   @PostMapping("/login")
-  public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO request) {
-    try {
-      // 1. Autentica no Keycloak e obtém os tokens
-      TokenResponseDTO tokenResponse =
-          authService.authenticateUser(request.getUsername(), request.getPassword());
+  public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto req) {
+    logger.info("Tentativa de login recebida para o e-mail: {}", req.getEmail());
 
-      if (tokenResponse != null) {
-        // 2. URL de redirecionamento padrão - frontend determina dashboard específico
-        String redirectUrl = "/dashboard";
-
-        // 3. Retorna ambos os tokens e a URL de redirecionamento
-        return ResponseEntity
-            .ok(new AuthResponseDTO(tokenResponse.getAccessToken(), tokenResponse.getRefreshToken(),
-                true, redirectUrl, "Login bem-sucedido. Redirecionando para: " + redirectUrl));
-      } else {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(new AuthResponseDTO(null, null, false, null, "Credenciais inválidas."));
-      }
-    } catch (AuthException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(new AuthResponseDTO(null, null, false, null, e.getMessage()));
-    } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new AuthResponseDTO(null,
-          null, false, null, "Erro interno do servidor: " + e.getMessage()));
+    var userOpt = userRepository.findByEmail(req.getEmail());
+    if (userOpt.isEmpty()) {
+      logger.warn("Falha de login: Usuário não encontrado para o e-mail: {}", req.getEmail());
+      return ResponseEntity.status(401).build();
     }
+
+    var user = userOpt.get();
+    logger.debug("Usuário encontrado: {}. Verificando senha...", user.getNome());
+
+    if (!passwordEncoder.matches(req.getPassword(), user.getSenha())) {
+      logger.warn("Falha de login para o usuário {}: Senha incorreta.", user.getEmail());
+      return ResponseEntity.status(401).build();
+    }
+
+    logger.info("Login bem-sucedido para o usuário: {}", user.getEmail());
+
+    if (user.isMustChangePassword()) {
+      logger.info("Usuário {} deve alterar a senha. Enviando e-mail de redefinição.",
+          user.getEmail());
+
+      passwordResetService.sendPasswordReset(user);
+
+      return ResponseEntity.ok(new LoginResponseDto(null, true, null,
+          "É necessário alterar a senha. Um e-mail de redefinição foi enviado."));
+    }
+
+    String token = jwtUtil.generateToken(user.getEmail());
+    String redirect = determineRedirect(user);
+
+    logger.info("Login finalizado para {}. Redirecionamento: {}", user.getEmail(), redirect);
+
+    return ResponseEntity.ok(new LoginResponseDto(token, false, redirect, null));
   }
 
-  /**
-   * Endpoint para logout de usuários.
-   * 
-   * @param request Token de refresh para invalidar sessão
-   * @return Resposta do logout
-   */
-  @PostMapping("/logout")
-  public ResponseEntity<AuthResponseDTO> logout(@RequestBody LogoutRequestDTO request) {
-    try {
-      authService.performKeycloakLogout(request.getRefreshToken());
-      return ResponseEntity
-          .ok(new AuthResponseDTO(null, null, true, "/login", "Logout global bem-sucedido."));
+  @PostMapping("/redefinir-senha")
+  public ResponseEntity<LoginResponseDto> changePassword(@RequestBody MudarSenhaRequestDto req) {
 
+    logger.info("Tentativa de mudança de senha recebida para o e-mail: {}", req.getEmail());
+
+    var userOpt = userRepository.findByEmail(req.getEmail());
+    if (userOpt.isEmpty()) {
+      logger.warn("Falha ao redefinir senha: Usuário não encontrado para o e-mail: {}",
+          req.getEmail());
+      return ResponseEntity.status(404).body(new LoginResponseDto(null, false, null,
+          "Usuário não encontrado para o e-mail informado."));
+    }
+
+    var user = userOpt.get();
+    logger.debug("Usuário {} encontrado. Verificando credenciais para redefinição...",
+        user.getEmail());
+
+    // Se um token foi fornecido, valida o token enviado por e-mail
+    if (req.getToken() != null && !req.getToken().isBlank()) {
+      String token = req.getToken();
+      if (user.getPasswordResetToken() == null || !user.getPasswordResetToken().equals(token)) {
+        logger.warn("Token inválido para usuário {}.", user.getEmail());
+        return ResponseEntity.status(401).body(
+            new LoginResponseDto(null, false, null, "Token inválido para redefinição de senha."));
+      }
+      if (user.getPasswordResetExpires() == null
+          || user.getPasswordResetExpires().isBefore(java.time.Instant.now())) {
+        logger.warn("Token expirado para usuário {}.", user.getEmail());
+        return ResponseEntity.status(401).body(
+            new LoginResponseDto(null, false, null, "Token expirado para redefinição de senha."));
+      }
+      // token válido -> prosseguir com alteração
+    } else {
+      // fallback: checa senha atual
+      if (!passwordEncoder.matches(req.getCurrentPassword(), user.getSenha())) {
+        logger.warn("Falha ao redefinir senha para {}: Senha atual incorreta.", user.getEmail());
+        return ResponseEntity.status(401)
+            .body(new LoginResponseDto(null, false, null, "Senha atual incorreta."));
+      }
+    }
+
+    user.setSenha(passwordEncoder.encode(req.getNewPassword()));
+    user.setMustChangePassword(false);
+    // limpa token e expiry após redefinição bem-sucedida
+    user.setPasswordResetToken(null);
+    user.setPasswordResetExpires(null);
+    userRepository.save(user);
+
+    logger.info("Senha alterada com sucesso para o usuário: {}", user.getEmail());
+
+    String token = jwtUtil.generateToken(user.getEmail());
+    String redirect = determineRedirect(user);
+
+    logger.info("Redefinição de senha finalizada. Novo redirecionamento: {}", redirect);
+
+    return ResponseEntity.ok(new LoginResponseDto(token, false, redirect, null));
+  }
+
+  private String determineRedirect(Usuario user) {
+    String rolesList = user.getRoles().stream().map(Perfis::name).collect(Collectors.joining(", "));
+
+    logger.debug("Perfis do usuário {}: [{}]", user.getEmail(), rolesList);
+
+    String determinedPath = user.getRoles().stream().map(Enum::name).map(String::toLowerCase)
+        .filter(r -> r.equals("admin")).findFirst().map(r -> switch (r) {
+          case "admin" -> "/admin/dashboard";
+          default -> "/";
+        }).orElse("/");
+    logger.info("Redirecionamento determinado para {}: {}", user.getEmail(), determinedPath);
+
+    return determinedPath;
+  }
+
+  @PostMapping("/admin/registrar-usuario")
+  public ResponseEntity<?> registerUser(@Valid @RequestBody RegistroRequestDto registroRequest) {
+    logger.info("Tentativa de registro de usuário: {}", registroRequest.email());
+
+    // 1. Checa por conflito de E-mail
+    if (userRepository.findByEmail(registroRequest.email()).isPresent()) {
+      logger.warn("Falha ao registrar usuário: E-mail já em uso: {}", registroRequest.email());
+      return ResponseEntity.status(409)
+          .body("E-mail já cadastrado. Utilize outro e-mail ou recupere a senha.");
+    }
+
+    Usuario usuario = new Usuario();
+    usuario.setNome(registroRequest.nome());
+    usuario.setEmail(registroRequest.email());
+    usuario.setSenha(passwordEncoder.encode(registroRequest.senha()));
+    usuario.setMustChangePassword(true);
+
+    var roles = registroRequest.roles();
+
+    usuario.setRoles(null);
+    userRepository.save(usuario);
+
+    if (roles != null && !roles.isEmpty()) {
+      final String sql =
+          "INSERT INTO usuarios_perfil (usuarios_id, perfil) VALUES (?, ?::perfis_enum) ON CONFLICT (usuarios_id, perfil) DO NOTHING";
+      for (Perfis perfil : roles) {
+        final String perfilValue = perfil.name().toLowerCase();
+        jdbcTemplate.update(connection -> {
+          var ps = connection.prepareStatement(sql);
+          ps.setLong(1, usuario.getId());
+          ps.setString(2, perfilValue);
+          return ps;
+        });
+      }
+      usuario.setRoles(roles);
+    }
+    logger.info("Usuário registrado com sucesso: {}", usuario.getEmail());
+    return ResponseEntity.status(201).body(usuario);
+  }
+
+  @PostMapping("/sair")
+  public ResponseEntity<?> logout(HttpServletRequest request) {
+    String header = request.getHeader("Authorization");
+    if (header == null || !header.startsWith("Bearer ")) {
+      return ResponseEntity.badRequest().body("Header Authorization ausente ou inválido.");
+    }
+    String token = header.substring(7);
+    try {
+      var claims = jwtUtil.extractClaims(token);
+      java.util.Date exp = claims.getExpiration();
+      java.time.Instant expiresAt = exp == null ? java.time.Instant.now() : exp.toInstant();
+      tokenBlacklistService.blacklistToken(token, expiresAt);
+      return ResponseEntity.ok("Logout realizado com sucesso.");
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponseDTO(null, null,
-          false, null, "Erro ao encerrar sessão no servidor: " + e.getMessage()));
+      return ResponseEntity.status(400).body("Token inválido.");
     }
   }
 }
