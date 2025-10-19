@@ -449,6 +449,13 @@ export function Denuncia() {
                 <MenuItem value='fraude_academica' sx={menuItemStyles}>
                   Questões Acadêmicas (Fraude, Plágio)
                 </MenuItem>
+                <MenuItem
+                  value='Porte de Celular, Tablet ou Outros Dispositivos'
+                  sx={menuItemStyles}
+                >
+                  Porte de Celular, Tablet ou Outros Dispositivos
+                </MenuItem>
+
                 <MenuItem value='outros' sx={menuItemStyles}>
                   Outros
                 </MenuItem>
