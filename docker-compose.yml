@@ -163,6 +163,7 @@ services:
       - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
+      - promtail-positions:/var/lib/promtail
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - loki
@@ -172,4 +173,5 @@ volumes:
   keycloak_data:
   grafana-data: {}
   loki-data: {}
+  promtail-positions: {}
   # pmm-data:

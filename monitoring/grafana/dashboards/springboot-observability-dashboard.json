@@ -221,7 +221,7 @@
           "expr": "sum by(uri) (http_server_requests_seconds_count{job=\"$app_name\", uri!=\"/actuator/prometheus\"})",
           "instant": true,
           "interval": "",
-          "legendFormat": "{{method}} {{uri}}",
+          "legendFormat": "{{uri}}",
           "range": true,
           "refId": "A"
         }
@@ -312,7 +312,7 @@
           "exemplar": true,
           "expr": "sum by(uri)(http_server_requests_seconds_sum{job=\"$app_name\"}) / sum by(uri)(http_server_requests_seconds_count{job=\"$app_name\"})",
           "interval": "",
-          "legendFormat": "{{method}} {{uri}}",
+          "legendFormat": "{{uri}}",
           "range": true,
           "refId": "A"
         }
@@ -673,7 +673,7 @@
           "refId": "A"
         }
       ],
-      "title": "PR 99 Requests Duration",
+      "title": "P99 Requests Duration",
       "type": "timeseries"
     },
     {
@@ -769,7 +769,7 @@
           "refId": "A"
         }
       ],
-      "title": "PR 95 Requests Duration",
+      "title": "P95 Requests Duration",
       "type": "timeseries"
     },
     {
@@ -1057,7 +1057,7 @@
           "refId": "A"
         }
       ],
-      "title": "Log of All Spring Boot Apps",
+      "title": "Log do ifala-backend",
       "type": "logs"
     }
   ],
