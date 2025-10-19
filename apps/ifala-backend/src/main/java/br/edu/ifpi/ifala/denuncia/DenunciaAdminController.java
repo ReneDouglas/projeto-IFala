@@ -5,8 +5,6 @@ import br.edu.ifpi.ifala.denuncia.denunciaDTO.AtualizarDenunciaDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
-import jakarta.validation.Valid;
-import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,6 +13,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -46,16 +46,32 @@ public class DenunciaAdminController {
 
   private final DenunciaService denunciaService;
 
+  /**
+   * Construtor do controller de administração de denúncias.
+   *
+   * @param denunciaService o serviço de denúncias
+   */
   public DenunciaAdminController(DenunciaService denunciaService) {
     this.denunciaService = denunciaService;
   }
 
+  /**
+   * Lista todas as denúncias com filtros opcionais.
+   *
+   * @param status filtro por status da denúncia
+   * @param categoria filtro por categoria da denúncia
+   * @param pageable informações de paginação
+   * @return página de denúncias
+   */
   @GetMapping
   @Operation(summary = "Lista todas as denúncias com filtros",
-      description = "Retorna uma lista paginada de denúncias. Pode ser filtrada por status e/ou categoria.")
+      description = "Retorna uma lista paginada de denúncias. "
+          + "Pode ser filtrada por status e/ou categoria.")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Lista de denúncias retornada com sucesso")})
-
+      @ApiResponse(responseCode = "200", description = "Lista de denúncias retornada com sucesso"),
+      @ApiResponse(responseCode = "401",
+          description = "Acesso não autorizado. O token de autenticação (JWT) é inválido ou não foi fornecido.",
+          content = @Content)})
   public ResponseEntity<Page<DenunciaResponseDto>> listarTodas(
       @Parameter(
           description = "Filtrar denúncias por status (ex: ABERTA, EM_ANDAMENTO)") @RequestParam(
@@ -70,16 +86,27 @@ public class DenunciaAdminController {
     return ResponseEntity.ok(denunciasPage);
   }
 
+  /**
+   * Atualiza o status ou categoria de uma denúncia.
+   *
+   * @param id ID da denúncia a ser atualizada
+   * @param dto dados para atualização
+   * @param authentication contexto de autenticação
+   * @return denúncia atualizada
+   */
   @PatchMapping("/{id}")
   @Operation(summary = "Atualiza o status ou categoria de uma denúncia",
-      description = "Permite que um administrador altere o status ou a categoria de uma denúncia existente.")
+      description = "Permite que um administrador altere o status ou a categoria "
+          + "de uma denúncia existente.")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Denúncia atualizada com sucesso",
           content = @Content(mediaType = "application/json",
               schema = @Schema(implementation = DenunciaResponseDto.class))),
+      @ApiResponse(responseCode = "401",
+          description = "Acesso não autorizado. O token de autenticação (JWT) é inválido ou não foi fornecido.",
+          content = @Content),
       @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
           content = @Content)})
-
   public ResponseEntity<DenunciaResponseDto> atualizarDenuncia(
       @Parameter(description = "ID da denúncia a ser atualizada",
           required = true) @PathVariable Long id,
@@ -90,11 +117,20 @@ public class DenunciaAdminController {
         .orElse(ResponseEntity.notFound().build());
   }
 
+  /**
+   * Exclui uma denúncia.
+   *
+   * @param id ID da denúncia a ser excluída
+   * @return resposta sem conteúdo ou não encontrado
+   */
   @DeleteMapping("/{id}")
   @Operation(summary = "Exclui uma denúncia",
       description = "Remove permanentemente uma denúncia do sistema.")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "204", description = "Denúncia excluída com sucesso",
+          content = @Content),
+      @ApiResponse(responseCode = "401",
+          description = "Acesso não autorizado. O token de autenticação (JWT) é inválido ou não foi fornecido.",
           content = @Content),
       @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
           content = @Content)})
@@ -108,33 +144,53 @@ public class DenunciaAdminController {
     }
   }
 
+  /**
+   * Lista os acompanhamentos de uma denúncia.
+   *
+   * @param id ID da denúncia
+   * @return lista de acompanhamentos
+   */
   @GetMapping("/{id}/acompanhamentos")
   @Operation(summary = "Lista os acompanhamentos de uma denúncia",
       description = "Retorna todo o histórico de acompanhamentos de uma denúncia específica.")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Acompanhamentos listados com sucesso"),
+      @ApiResponse(responseCode = "401",
+          description = "Acesso não autorizado. O token de autenticação (JWT) é inválido ou não foi fornecido.",
+          content = @Content),
       @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
           content = @Content)})
-
   public ResponseEntity<List<AcompanhamentoDto>> listarAcompanhamentos(
       @Parameter(description = "ID da denúncia", required = true) @PathVariable Long id) {
     List<AcompanhamentoDto> acompanhamentos = denunciaService.listarAcompanhamentosPorId(id);
     return ResponseEntity.ok(acompanhamentos);
   }
 
+  /**
+   * Adiciona um novo acompanhamento a uma denúncia.
+   *
+   * @param id ID da denúncia
+   * @param novoAcompanhamento dados do novo acompanhamento
+   * @param authentication contexto de autenticação
+   * @return acompanhamento criado
+   */
   @PostMapping("/{id}/acompanhamentos")
   @Operation(summary = "Adiciona um novo acompanhamento a uma denúncia",
-      description = "Permite que um administrador adicione uma nova mensagem ou atualização ao histórico de uma denúncia.")
+      description = "Permite que um administrador adicione uma nova mensagem "
+          + "ou atualização ao histórico de uma denúncia.")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Acompanhamento adicionado com sucesso",
           content = @Content(mediaType = "application/json",
               schema = @Schema(implementation = AcompanhamentoDto.class))),
+      @ApiResponse(responseCode = "401",
+          description = "Acesso não autorizado. O token de autenticação (JWT) é inválido ou não foi fornecido.",
+          content = @Content),
       @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
           content = @Content)})
   public ResponseEntity<AcompanhamentoDto> adicionarAcompanhamento(
       @Parameter(description = "ID da denúncia", required = true) @PathVariable Long id,
       @Valid @RequestBody AcompanhamentoDto novoAcompanhamento, Authentication authentication) {
-    String nomeAdmin = authentication.getName(); // pega o nome do usuário autenticado
+    String nomeAdmin = authentication.getName();
     AcompanhamentoDto acompanhamentoSalvo =
         denunciaService.adicionarAcompanhamentoAdmin(id, novoAcompanhamento, nomeAdmin);
     return ResponseEntity.status(HttpStatus.CREATED).body(acompanhamentoSalvo);
