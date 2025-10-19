@@ -64,8 +64,8 @@ services:
     ports:
       - '8081:80'
       - '8444:443'
-    volumes:
-      - pmm-data:/srv
+    #volumes:
+    #- pmm-data:/srv
 
   # pmm-client:
   #   image: percona/pmm-client:2
