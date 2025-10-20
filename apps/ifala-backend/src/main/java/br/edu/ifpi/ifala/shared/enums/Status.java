@@ -5,18 +5,21 @@ package br.edu.ifpi.ifala.shared.enums;
  * descrição associada para facilitar a identificação.
  *
  * @author Renê Morais
+ * 
+ * alterado por:
+ * @author luisthedevmagician
  */
 public enum Status {
-  RECEBIDO("Recebido"), EM_ANALISE("Em Análise"), AGUARDANDO(
-      "Aguardando mais informações"), RESOLVIDO("Resolvido"), REJEITADO("Rejeitado");
+  RECEBIDO("Recebido"), EM_ANALISE("Em Análise"), AGUARDANDO("Aguardando Informações"), RESOLVIDO(
+      "Resolvido"), REJEITADO("Rejeitado");
 
-  private String descricao;
+  private final String displayName;
 
-  Status(String descricao) {
-    this.descricao = descricao;
+  Status(String displayName) {
+    this.displayName = displayName;
   }
 
-  public String getDescricao() {
-    return descricao;
+  public String getDisplayName() {
+    return displayName;
   }
 }
