@@ -6,6 +6,9 @@ import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDto;
 import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDto;
 import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDto;
 import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDto;
+import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDto;
+import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDto;
+import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDto;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -17,7 +20,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.stream.Collectors;
 
 @RestController
@@ -29,30 +31,29 @@ public class AuthController {
   private final PasswordEncoder passwordEncoder;
   private final JwtUtil jwtUtil;
   private final RedefinirSenhaService passwordResetService;
-  private final JdbcTemplate jdbcTemplate;
   private final TokenBlacklistService tokenBlacklistService;
+  private final RegistroService autenticacaoService;
 
 
   public AuthController(UsuarioRepository userRepository, PasswordEncoder passwordEncoder,
-      JwtUtil jwtUtil, RedefinirSenhaService passwordResetService, JdbcTemplate jdbcTemplate,
-      TokenBlacklistService tokenBlacklistService) {
+      JwtUtil jwtUtil, RedefinirSenhaService passwordResetService,
+      TokenBlacklistService tokenBlacklistService, RegistroService autenticacaoService) {
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.jwtUtil = jwtUtil;
     this.passwordResetService = passwordResetService;
-    this.jdbcTemplate = jdbcTemplate;
     this.tokenBlacklistService = tokenBlacklistService;
+    this.autenticacaoService = autenticacaoService;
   }
 
 
   @PostMapping("/login")
-  public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto req) {
-    String identifier = req.getEmail() != null ? req.getEmail() : req.getUsername();
+  public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto req) {
+    String identifier = req.email() != null ? req.email() : req.username();
     logger.info("Tentativa de login recebida para: {}", identifier);
 
-    // Tenta buscar por email primeiro, depois por username
-    var userOpt = req.getEmail() != null ? userRepository.findByEmail(req.getEmail())
-        : userRepository.findByUsername(req.getUsername());
+    var userOpt = req.email() != null ? userRepository.findByEmail(req.email())
+        : userRepository.findByUsername(req.username());
 
     if (userOpt.isEmpty()) {
       logger.warn("Falha de login: Usuário não encontrado para: {}", identifier);
@@ -62,7 +63,7 @@ public class AuthController {
     var user = userOpt.get();
     logger.debug("Usuário encontrado: {}. Verificando senha...", user.getNome());
 
-    if (!passwordEncoder.matches(req.getPassword(), user.getSenha())) {
+    if (!passwordEncoder.matches(req.password(), user.getSenha())) {
       logger.warn("Falha de login para o usuário {}: Senha incorreta.", user.getEmail());
       return ResponseEntity.status(401).build();
     }
@@ -75,29 +76,32 @@ public class AuthController {
 
       passwordResetService.sendPasswordReset(user);
 
-      return ResponseEntity.ok(new LoginResponseDto(null, true, null,
+      return ResponseEntity.ok(new LoginResponseDto(null, null, null, null, true, null,
           "É necessário alterar a senha. Um e-mail de redefinição foi enviado."));
     }
 
-    String token = jwtUtil.generateToken(user.getEmail());
+    TokenDataDto tokenData = jwtUtil.generateToken(user.getEmail());
+    TokenDataDto refreshTokenData = jwtUtil.generateToken(user.getEmail());
     String redirect = determineRedirect(user);
 
     logger.info("Login finalizado para {}. Redirecionamento: {}", user.getEmail(), redirect);
 
-    return ResponseEntity.ok(new LoginResponseDto(token, false, redirect, null));
+    return ResponseEntity.ok(new LoginResponseDto(tokenData.token(), tokenData.issuedAt(),
+        tokenData.expirationTime(), refreshTokenData.token(), false, redirect, null));
   }
 
   @PostMapping("/redefinir-senha")
-  public ResponseEntity<LoginResponseDto> changePassword(@RequestBody MudarSenhaRequestDto req) {
+  public ResponseEntity<LoginResponseDto> changePassword(
+      @Valid @RequestBody MudarSenhaRequestDto req) {
 
-    logger.info("Tentativa de mudança de senha recebida para o e-mail: {}", req.getEmail());
+    logger.info("Tentativa de mudança de senha recebida para o e-mail: {}", req.email());
 
-    var userOpt = userRepository.findByEmail(req.getEmail());
+    var userOpt = userRepository.findByEmail(req.email());
     if (userOpt.isEmpty()) {
       logger.warn("Falha ao redefinir senha: Usuário não encontrado para o e-mail: {}",
-          req.getEmail());
-      return ResponseEntity.status(404).body(new LoginResponseDto(null, false, null,
-          "Usuário não encontrado para o e-mail informado."));
+          req.email());
+      return ResponseEntity.status(404).body(new LoginResponseDto(null, null, null, null, false,
+          null, "Usuário não encontrado para o e-mail informado."));
     }
 
     var user = userOpt.get();
@@ -105,30 +109,30 @@ public class AuthController {
         user.getEmail());
 
     // Se um token foi fornecido, valida o token enviado por e-mail
-    if (req.getToken() != null && !req.getToken().isBlank()) {
-      String token = req.getToken();
+    if (req.token() != null && !req.token().isBlank()) {
+      String token = req.token();
       if (user.getPasswordResetToken() == null || !user.getPasswordResetToken().equals(token)) {
         logger.warn("Token inválido para usuário {}.", user.getEmail());
-        return ResponseEntity.status(401).body(
-            new LoginResponseDto(null, false, null, "Token inválido para redefinição de senha."));
+        return ResponseEntity.status(401).body(new LoginResponseDto(null, null, null, null, false,
+            null, "Token inválido para redefinição de senha."));
       }
       if (user.getPasswordResetExpires() == null
           || user.getPasswordResetExpires().isBefore(java.time.Instant.now())) {
         logger.warn("Token expirado para usuário {}.", user.getEmail());
-        return ResponseEntity.status(401).body(
-            new LoginResponseDto(null, false, null, "Token expirado para redefinição de senha."));
+        return ResponseEntity.status(401).body(new LoginResponseDto(null, null, null, null, false,
+            null, "Token expirado para redefinição de senha."));
       }
       // token válido -> prosseguir com alteração
     } else {
       // fallback: checa senha atual
-      if (!passwordEncoder.matches(req.getCurrentPassword(), user.getSenha())) {
+      if (!passwordEncoder.matches(req.currentPassword(), user.getSenha())) {
         logger.warn("Falha ao redefinir senha para {}: Senha atual incorreta.", user.getEmail());
-        return ResponseEntity.status(401)
-            .body(new LoginResponseDto(null, false, null, "Senha atual incorreta."));
+        return ResponseEntity.status(401).body(
+            new LoginResponseDto(null, null, null, null, false, null, "Senha atual incorreta."));
       }
     }
 
-    user.setSenha(passwordEncoder.encode(req.getNewPassword()));
+    user.setSenha(passwordEncoder.encode(req.newPassword()));
     user.setMustChangePassword(false);
     // limpa token e expiry após redefinição bem-sucedida
     user.setPasswordResetToken(null);
@@ -137,12 +141,14 @@ public class AuthController {
 
     logger.info("Senha alterada com sucesso para o usuário: {}", user.getEmail());
 
-    String token = jwtUtil.generateToken(user.getEmail());
+    TokenDataDto tokenData = jwtUtil.generateToken(user.getEmail());
     String redirect = determineRedirect(user);
 
     logger.info("Redefinição de senha finalizada. Novo redirecionamento: {}", redirect);
 
-    return ResponseEntity.ok(new LoginResponseDto(token, false, redirect, null));
+    TokenDataDto refreshTokenData = jwtUtil.generateToken(user.getEmail());
+    return ResponseEntity.ok(new LoginResponseDto(tokenData.token(), tokenData.issuedAt(),
+        tokenData.expirationTime(), refreshTokenData.token(), false, redirect, null));
   }
 
   private String determineRedirect(Usuario user) {
@@ -162,42 +168,73 @@ public class AuthController {
 
   @PostMapping("/admin/registrar-usuario")
   public ResponseEntity<?> registerUser(@Valid @RequestBody RegistroRequestDto registroRequest) {
-    logger.info("Tentativa de registro de usuário: {}", registroRequest.email());
+    try {
+      UsuarioResponseDto usuarioResponse = autenticacaoService.registrarUsuario(registroRequest);
+      return ResponseEntity.status(201).body(usuarioResponse);
+    } catch (IllegalArgumentException e) {
+      logger.warn("Falha ao registrar usuário: {}", e.getMessage());
+      return ResponseEntity.status(409).body(e.getMessage());
+    }
+  }
 
-    // 1. Checa por conflito de E-mail
-    if (userRepository.findByEmail(registroRequest.email()).isPresent()) {
-      logger.warn("Falha ao registrar usuário: E-mail já em uso: {}", registroRequest.email());
-      return ResponseEntity.status(409)
-          .body("E-mail já cadastrado. Utilize outro e-mail ou recupere a senha.");
+  @PostMapping("/refresh")
+  public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequestDto req) {
+    String oldRefreshToken = req.token();
+    logger.info("Tentativa de refresh de token recebida");
+
+    // Verifica se o refresh token está na blacklist
+    if (tokenBlacklistService.isBlacklisted(oldRefreshToken)) {
+      logger.warn("Tentativa de refresh com token na blacklist");
+      return ResponseEntity.status(401).body("Refresh token inválido ou expirado.");
     }
 
-    Usuario usuario = new Usuario();
-    usuario.setNome(registroRequest.nome());
-    usuario.setEmail(registroRequest.email());
-    usuario.setSenha(passwordEncoder.encode(registroRequest.senha()));
-    usuario.setMustChangePassword(true);
+    // Valida se o refresh token pode ser usado para refresh
+    if (!jwtUtil.canRefreshToken(oldRefreshToken)) {
+      logger.warn("Refresh token inválido para refresh");
+      return ResponseEntity.status(401).body("Refresh token inválido.");
+    }
 
-    var roles = registroRequest.roles();
+    try {
+      // Extrai o username do refresh token (mesmo que expirado)
+      String username = jwtUtil.extractUsernameFromExpiredToken(oldRefreshToken);
+      logger.debug("Refresh token para usuário: {}", username);
 
-    usuario.setRoles(null);
-    userRepository.save(usuario);
-
-    if (roles != null && !roles.isEmpty()) {
-      final String sql =
-          "INSERT INTO usuarios_perfil (usuarios_id, perfil) VALUES (?, ?::perfis_enum) ON CONFLICT (usuarios_id, perfil) DO NOTHING";
-      for (Perfis perfil : roles) {
-        final String perfilValue = perfil.name().toLowerCase();
-        jdbcTemplate.update(connection -> {
-          var ps = connection.prepareStatement(sql);
-          ps.setLong(1, usuario.getId());
-          ps.setString(2, perfilValue);
-          return ps;
-        });
+      // Busca o usuário no banco
+      var userOpt = userRepository.findByEmail(username);
+      if (userOpt.isEmpty()) {
+        logger.warn("Usuário não encontrado para refresh: {}", username);
+        return ResponseEntity.status(401).body("Usuário não encontrado.");
       }
-      usuario.setRoles(roles);
+
+      var user = userOpt.get();
+
+      // Gera novo access token
+      TokenDataDto accessTokenData = jwtUtil.generateToken(user.getEmail());
+      TokenDataDto refreshTokenData = jwtUtil.generateToken(user.getEmail());
+      String redirect = determineRedirect(user);
+
+      logger.info("Tokens renovados com sucesso para: {}", user.getEmail());
+
+      // Adiciona o refresh token antigo à blacklist para evitar reuso
+      try {
+        var claims = jwtUtil.extractClaims(oldRefreshToken);
+        java.util.Date exp = claims.getExpiration();
+        java.time.Instant expiresAt = exp == null ? java.time.Instant.now() : exp.toInstant();
+        tokenBlacklistService.blacklistToken(oldRefreshToken, expiresAt);
+      } catch (io.jsonwebtoken.ExpiredJwtException e) {
+        // Token já expirado, mas ainda adiciona à blacklist para segurança
+        tokenBlacklistService.blacklistToken(oldRefreshToken,
+            e.getClaims().getExpiration().toInstant());
+      }
+
+      return ResponseEntity.ok(new LoginResponseDto(accessTokenData.token(),
+          accessTokenData.issuedAt(), accessTokenData.expirationTime(), refreshTokenData.token(),
+          false, redirect, "Tokens renovados com sucesso."));
+
+    } catch (Exception e) {
+      logger.error("Erro ao processar refresh token", e);
+      return ResponseEntity.status(500).body("Erro ao processar refresh token.");
     }
-    logger.info("Usuário registrado com sucesso: {}", usuario.getEmail());
-    return ResponseEntity.status(201).body(usuario);
   }
 
   @PostMapping("/sair")

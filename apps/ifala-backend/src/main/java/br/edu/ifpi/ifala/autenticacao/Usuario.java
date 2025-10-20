@@ -17,8 +17,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
 import java.io.Serializable;
-import java.util.Objects;
+import java.sql.Types;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -64,6 +65,7 @@ public class Usuario implements Serializable {
   @ElementCollection(targetClass = Perfis.class, fetch = FetchType.EAGER)
   @CollectionTable(name = "usuarios_perfil", joinColumns = @JoinColumn(name = "usuarios_id"))
   @Column(name = "perfil", columnDefinition = "perfis_enum")
+  @JdbcTypeCode(Types.OTHER)
   @Convert(converter = PerfilConverter.class)
   private List<Perfis> roles;
 
@@ -151,15 +153,16 @@ public class Usuario implements Serializable {
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if (o == null || getClass() != o.getClass())
+    if (!(o instanceof Usuario))
       return false;
     Usuario usuario = (Usuario) o;
-    return Objects.equals(id, usuario.id) && Objects.equals(email, usuario.email);
+
+    return id != null && id.equals(usuario.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, email);
+    return getClass().hashCode();
   }
 
   @Override

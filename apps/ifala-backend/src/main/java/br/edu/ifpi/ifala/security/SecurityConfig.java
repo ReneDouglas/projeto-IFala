@@ -34,9 +34,14 @@ public class SecurityConfig {
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
+            // Rotas públicas - não requerem autenticação
             .requestMatchers("/api/v1/auth/login", "/actuator/**", "/api/v1/auth/redefinir-senha",
-                "/api/v1/auth/sair")
-            .permitAll().requestMatchers("/api/v1/auth/admin/registrar-usuario").authenticated()
+                "/api/v1/auth/refresh")
+            .permitAll()
+            // Rotas protegidas - requerem autenticação com token válido
+            .requestMatchers("/api/v1/auth/sair", "/api/v1/auth/admin/registrar-usuario")
+            .authenticated()
+            // Todas as outras rotas requerem autenticação
             .anyRequest().authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
