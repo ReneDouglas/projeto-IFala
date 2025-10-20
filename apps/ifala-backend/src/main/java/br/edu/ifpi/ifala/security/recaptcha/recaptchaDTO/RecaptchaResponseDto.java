@@ -1,19 +1,27 @@
 package br.edu.ifpi.ifala.security.recaptcha.recaptchaDTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Representa a resposta do serviço reCAPTCHA do Google.
- * Esta classe é usada para mapear a resposta JSON retornada pela API do
- * reCAPTCHA.
+ * Representa a resposta do serviço reCAPTCHA do Google. Esta classe é usada para mapear a resposta
+ * JSON retornada pela API do reCAPTCHA.
  *
  * @author Jhonatas G Ribeiro
  */
+
+@Schema(name = "Resposta do ReCaptcha",
+    description = "Representa a resposta da validação do token ReCaptcha junto ao serviço do Google.")
 public class RecaptchaResponseDto {
 
+  @Schema(description = "Indica se a validação do token ReCaptcha foi bem-sucedida.",
+      example = "true")
   private boolean success;
-  @JsonProperty("error-codes") // mapeia o campo JSON "error-codes" para a variável errorCodes
 
+  @Schema(
+      description = "Lista de códigos de erro retornados pelo Google em caso de falha na validação.",
+      example = "[\"invalid-input-response\", \"timeout-or-duplicate\"]")
+  @JsonProperty("error-codes") // mapeia o campo JSON "error-codes" para a variável errorCodes
   private String[] errorCodes;
 
   public boolean isSuccess() {
