@@ -1,7 +1,10 @@
 package br.edu.ifpi.ifala.denuncia.denunciaDTO;
 
-import br.edu.ifpi.ifala.shared.enums.Categorias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -15,15 +18,21 @@ import jakarta.validation.constraints.Size;
 @Schema(name = "Criar Denúncia", description = "Dados necessários para registrar uma nova denúncia.")
 public class CriarDenunciaDto {
 
+  private String desejaSeIdentificar;
+  private DadosDeIdentificacaoDto dadosDeIdentificacao;
+
+  @JsonProperty("descricaoDetalhada")
   @NotBlank(message = "A descrição não pode ser vazia")
   @Size(min = 50, max = 5000, message = "A descrição deve ter entre 50 e 5000 caracteres")
   private String descricao;
 
+  @JsonProperty("categoriaDenuncia")
   @NotNull(message = "A categoria não pode ser nula")
-  private Categorias categoria;
+  private String categoria;
 
   // @NotBlank(message = "O token do ReCaptcha é obrigatório.")
   // A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO ---
+  @JsonProperty("g-recaptcha-response")
   private String recaptchaToken;
 
   public String getDescricao() {
