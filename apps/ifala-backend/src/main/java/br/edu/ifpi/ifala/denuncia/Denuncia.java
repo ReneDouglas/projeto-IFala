@@ -6,6 +6,7 @@ import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -43,13 +44,14 @@ public class Denuncia {
   @Size(min = 50, max = 5000, message = "A descrição deve ter entre 10 e 5000 caracteres")
   private String descricao;
 
-  @Enumerated
+  @Enumerated(EnumType.STRING)
+  @Column(name = "categoria")
   @NotNull(message = "A categoria não pode ser nula")
   private Categorias categoria;
 
-  @Enumerated
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status")
   @NotNull(message = "O status não pode ser nulo")
-  @Column(name = "status_denuncia_enum")
   private Status status;
 
   @Column(name = "motivo_rejeicao")
@@ -67,11 +69,33 @@ public class Denuncia {
   @OneToMany(mappedBy = "denuncia")
   private Set<Notificacao> notificacoes = new HashSet<>();
 
+  @Column(name = "alterado_por")
   private String alteradoPor;
+
+  @Column(name = "alterado_em")
   private LocalDateTime alteradoEm;
 
   @Transient // para não ser persistido no banco de dados
   private String recaptchaToken;
+
+  // novos campos para dados do denunciante (opcionais)
+  @Column(name = "deseja_se_identificar")
+  private boolean desejaSeIdentificar;
+
+  @Column(name = "nome_completo")
+  private String nomeCompleto;
+
+  @Column(name = "email")
+  private String email;
+
+  @Column(name = "grau")
+  private String grau;
+
+  @Column(name = "curso")
+  private String curso;
+
+  @Column(name = "turma")
+  private String turma;
 
   /**
    * Construtor padrão que inicializa uma nova denúncia. Define um token de
@@ -81,7 +105,7 @@ public class Denuncia {
 
   public Denuncia() {
     this.tokenAcompanhamento = UUID.randomUUID();
-    this.status = Status.RECEBIDO;
+    this.status = Status.recebido;
     this.criadoEm = LocalDateTime.now();
   }
 
@@ -171,6 +195,54 @@ public class Denuncia {
 
   public void setAlteradoEm(LocalDateTime alteradoEm) {
     this.alteradoEm = alteradoEm;
+  }
+
+  public boolean isDesejaSeIdentificar() {
+    return desejaSeIdentificar;
+  }
+
+  public void setDesejaSeIdentificar(boolean desejaSeIdentificar) {
+    this.desejaSeIdentificar = desejaSeIdentificar;
+  }
+
+  public String getNomeCompleto() {
+    return nomeCompleto;
+  }
+
+  public void setNomeCompleto(String nomeCompleto) {
+    this.nomeCompleto = nomeCompleto;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public String getGrau() {
+    return grau;
+  }
+
+  public void setGrau(String grau) {
+    this.grau = grau;
+  }
+
+  public String getCurso() {
+    return curso;
+  }
+
+  public void setCurso(String curso) {
+    this.curso = curso;
+  }
+
+  public String getTurma() {
+    return turma;
+  }
+
+  public void setTurma(String turma) {
+    this.turma = turma;
   }
 
 }
