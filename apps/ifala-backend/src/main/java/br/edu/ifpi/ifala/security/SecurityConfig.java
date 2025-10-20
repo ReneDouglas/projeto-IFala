@@ -24,6 +24,7 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/**").permitAll()
+            .requestMatchers("/api/v1/public/**").permitAll()
             .requestMatchers("/auth/primeiro-acesso", "/auth/login", "/auth/logout").permitAll()
             .anyRequest().authenticated())
         .oauth2ResourceServer(
