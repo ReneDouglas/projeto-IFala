@@ -6,11 +6,19 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class DenunciaResponseDto {
-
+  private Long id;
   private UUID tokenAcompanhamento;
   private Status status;
   private Categorias categoria;
   private LocalDateTime criadoEm;
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
 
   public UUID getTokenAcompanhamento() {
     return tokenAcompanhamento;
