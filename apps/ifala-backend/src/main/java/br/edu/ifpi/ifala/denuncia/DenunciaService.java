@@ -1,12 +1,12 @@
 package br.edu.ifpi.ifala.denuncia;
 
-
 import org.springframework.stereotype.Service;
 import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
 import br.edu.ifpi.ifala.acompanhamento.AcompanhamentoRepository;
 import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.AtualizarDenunciaDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.CriarDenunciaDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.DadosDeIdentificacaoDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
@@ -15,7 +15,6 @@ import org.owasp.html.Sanitizers;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
@@ -28,15 +27,13 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
 /**
- * Classe de serviço responsável por manipular operações relacionadas a denúncias.
+ * Classe de serviço responsável por manipular operações relacionadas a
+ * denúncias.
  *
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
  */
-
 
 @Service
 @Transactional
@@ -46,6 +43,7 @@ public class DenunciaService {
 
   private final DenunciaRepository denunciaRepository;
   private final AcompanhamentoRepository acompanhamentoRepository;
+  private final PolicyFactory policy;
 
   // A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO
   // private final RecaptchaService recaptchaService;
@@ -62,6 +60,7 @@ public class DenunciaService {
       AcompanhamentoRepository acompanhamentoRepository) {
     this.denunciaRepository = denunciaRepository;
     this.acompanhamentoRepository = acompanhamentoRepository;
+    this.policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
   }
 
   public DenunciaResponseDto criarDenuncia(CriarDenunciaDto dto) {
@@ -77,13 +76,25 @@ public class DenunciaService {
     // }
 
     Denuncia novaDenuncia = new Denuncia();
-    novaDenuncia.setDescricao(dto.getDescricao());
-    novaDenuncia.setCategoria(dto.getCategoria());
-
-    PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
-    String descricaoSanitizada = policy.sanitize(novaDenuncia.getDescricao());
+    String descricaoSanitizada = policy.sanitize(dto.getDescricao());
     novaDenuncia.setDescricao(descricaoSanitizada);
 
+    Categorias categoria = converterStringParaCategoria(dto.getCategoria());
+    novaDenuncia.setCategoria(categoria);
+
+    // se o denunciante deseja se identificar
+    if ("sim".equalsIgnoreCase(dto.getDesejaSeIdentificar()) && dto.getDadosDeIdentificacao() != null) {
+      novaDenuncia.setDesejaSeIdentificar(true);
+      DadosDeIdentificacaoDto idDto = dto.getDadosDeIdentificacao();
+
+      novaDenuncia.setNomeCompleto(policy.sanitize(idDto.getNomeCompleto()));
+      novaDenuncia.setEmail(policy.sanitize(idDto.getEmail()));
+      novaDenuncia.setGrau(policy.sanitize(idDto.getGrau()));
+      novaDenuncia.setCurso(policy.sanitize(idDto.getCurso()));
+      novaDenuncia.setTurma(policy.sanitize(idDto.getTurma()));
+    } else {
+      novaDenuncia.setDesejaSeIdentificar(false);
+    }
     Denuncia denunciaSalva = denunciaRepository.save(novaDenuncia);
     return mapToDenunciaResponseDto(denunciaSalva);
   }
@@ -91,15 +102,18 @@ public class DenunciaService {
   @Transactional(readOnly = true)
   public Optional<DenunciaResponseDto> consultarPorTokenAcompanhamento(UUID tokenAcompanhamento) {
     return denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
-        .filter(denuncia -> denuncia.getStatus() != Status.RESOLVIDO
-            && denuncia.getStatus() != Status.REJEITADO)
+        .filter(denuncia -> denuncia.getStatus() != Status.resolvido
+            && denuncia.getStatus() != Status.rejeitado)
         .map(this::mapToDenunciaResponseDto);
   }
 
   /*
-   * tipo Page é uma interface do Spring Data que encapsula uma página de dados Pageable é uma
-   * interface que define a paginação e ordenação Specification é uma interface do Spring Data JPA
-   * que permite construir consultas dinamicamente predicate é uma condição usada em consultas para
+   * tipo Page é uma interface do Spring Data que encapsula uma página de dados
+   * Pageable é uma
+   * interface que define a paginação e ordenação Specification é uma interface do
+   * Spring Data JPA
+   * que permite construir consultas dinamicamente predicate é uma condição usada
+   * em consultas para
    * filtrar resultados
    */
 
@@ -115,7 +129,10 @@ public class DenunciaService {
       if (categoria != null) {
         predicates.add(criteriaBuilder.equal(root.get("categoria"), categoria));
       }
-      query.distinct(true);
+
+      if (query != null) {
+        query.distinct(true);
+      }
 
       return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     };
@@ -126,22 +143,24 @@ public class DenunciaService {
   public Optional<DenunciaResponseDto> atualizarDenuncia(Long id, AtualizarDenunciaDto dto,
       String adminName) {
     return denunciaRepository.findById(id).map(denuncia -> {
-      if (denuncia.getStatus() == Status.RESOLVIDO || denuncia.getStatus() == Status.REJEITADO) {
+      if (denuncia.getStatus() == Status.resolvido || denuncia.getStatus() == Status.rejeitado) {
         throw new IllegalStateException(
             "Denúncia já está em estado final e não pode ser alterada.");
       }
 
       denuncia.setStatus(dto.getStatus());
-      denuncia.setMotivoRejeicao(dto.getMotivoRejeicao());
       denuncia.setAlteradoEm(LocalDateTime.now());
       denuncia.setAlteradoPor(adminName);
 
-      PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
-      String motivoRejeicaoSanitizado = policy.sanitize(dto.getMotivoRejeicao());
-      denuncia.setMotivoRejeicao(motivoRejeicaoSanitizado);
+      // sanitizar motivoRejeicao
+      if (dto.getMotivoRejeicao() != null) {
+        String motivoRejeicaoSanitizado = policy.sanitize(dto.getMotivoRejeicao());
+        denuncia.setMotivoRejeicao(motivoRejeicaoSanitizado);
+      } else {
+        denuncia.setMotivoRejeicao(null);
+      }
 
       Denuncia denunciaAtualizada = denunciaRepository.save(denuncia);
-
       return mapToDenunciaResponseDto(denunciaAtualizada);
     });
   }
@@ -157,9 +176,8 @@ public class DenunciaService {
 
   @Transactional(readOnly = true)
   public List<AcompanhamentoDto> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
-    Denuncia denuncia =
-        denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
-            () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
+    Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
+        () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
 
     return denuncia.getAcompanhamentos().stream().map(this::mapToAcompanhamentoResponseDto)
         .collect(Collectors.toList());
@@ -177,18 +195,21 @@ public class DenunciaService {
   public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento,
       AcompanhamentoDto dto) {
     Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
-        .filter(d -> d.getStatus() != Status.RESOLVIDO && d.getStatus() != Status.REJEITADO)
+        .filter(d -> d.getStatus() != Status.resolvido && d.getStatus() != Status.rejeitado)
         .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada ou finalizada."));
 
     Acompanhamento novoAcompanhamento = new Acompanhamento();
-    PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
     String mensagemSanitizada = policy.sanitize(dto.getMensagem());
     novoAcompanhamento.setMensagem(mensagemSanitizada);
-    novoAcompanhamento.setAutor("DENUNCIANTE");
     novoAcompanhamento.setDenuncia(denuncia);
 
-    String autorSanitizado = policy.sanitize(dto.getAutor());
-    novoAcompanhamento.setAutor(autorSanitizado);
+    // se deseja se identificar, usa o nome completo; senão, usa "DENUNCIANTE"
+    if (denuncia.isDesejaSeIdentificar() && denuncia.getNomeCompleto() != null
+        && !denuncia.getNomeCompleto().isBlank()) {
+      novoAcompanhamento.setAutor(denuncia.getNomeCompleto());
+    } else {
+      novoAcompanhamento.setAutor("DENUNCIANTE");
+    }
 
     Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
     return mapToAcompanhamentoResponseDto(salvo);
@@ -200,12 +221,11 @@ public class DenunciaService {
         .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada."));
 
     Acompanhamento novoAcompanhamento = new Acompanhamento();
-    PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
     String mensagemSanitizada = policy.sanitize(dto.getMensagem());
     novoAcompanhamento.setMensagem(mensagemSanitizada);
-    novoAcompanhamento.setAutor(nomeAdmin);
     novoAcompanhamento.setDenuncia(denuncia);
 
+    // sanitiza o nome do admin
     String autorSanitizado = policy.sanitize(nomeAdmin);
     novoAcompanhamento.setAutor(autorSanitizado);
 
@@ -216,6 +236,7 @@ public class DenunciaService {
   private DenunciaResponseDto mapToDenunciaResponseDto(Denuncia denuncia) {
     DenunciaResponseDto dto = new DenunciaResponseDto();
 
+    dto.setId(denuncia.getId());
     dto.setTokenAcompanhamento(denuncia.getTokenAcompanhamento());
     dto.setStatus(denuncia.getStatus());
     dto.setCategoria(denuncia.getCategoria());
@@ -230,5 +251,19 @@ public class DenunciaService {
     dto.setMensagem(acompanhamento.getMensagem());
     dto.setDataEnvio(acompanhamento.getDataEnvio());
     return dto;
+  }
+
+  // Converte uma string para o enum Categorias, lançando exceção se inválida
+  private Categorias converterStringParaCategoria(String descricao) {
+    if (descricao == null || descricao.trim().isEmpty()) {
+      throw new IllegalArgumentException("A categoria não pode ser nula ou vazia.");
+    }
+    for (Categorias cat : Categorias.values()) {
+      if (cat.getDescricao().equalsIgnoreCase(descricao.trim())) {
+        return cat;
+      }
+    }
+    log.warn("Tentativa de criar denúncia com categoria inválida: {}", descricao);
+    throw new IllegalArgumentException("Categoria inválida: " + descricao);
   }
 }
