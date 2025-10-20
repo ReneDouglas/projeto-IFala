@@ -1,27 +1,32 @@
 -- Migration to add enum lookup tables and insert enum values
 
 CREATE TABLE IF NOT EXISTS enum_status (
-  value varchar(100) PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
+  value varchar(100) NOT NULL UNIQUE,
   label varchar(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS enum_categorias (
-  value varchar(100) PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
+  value varchar(100) NOT NULL UNIQUE,
   label varchar(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS enum_graus (
-  value varchar(100) PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
+  value varchar(100) NOT NULL UNIQUE,
   label varchar(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS enum_cursos (
-  value varchar(100) PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
+  value varchar(100) NOT NULL UNIQUE,
   label varchar(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS enum_turmas (
-  value varchar(100) PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
+  value varchar(100) NOT NULL UNIQUE,
   label varchar(255) NOT NULL
 );
 

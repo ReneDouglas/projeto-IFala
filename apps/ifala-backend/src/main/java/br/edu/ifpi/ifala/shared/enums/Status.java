@@ -6,7 +6,6 @@ package br.edu.ifpi.ifala.shared.enums;
  *
  * @author Renê Morais
  * 
- * alterado por:
  * @author luisthedevmagician
  */
 public enum Status {
