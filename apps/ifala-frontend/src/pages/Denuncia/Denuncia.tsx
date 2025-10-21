@@ -466,8 +466,7 @@ export function Denuncia() {
                             - Quem são os envolvidos?
                             - Onde e quando ocorreu?
                             - Existem testemunhas?
-                            - Qualquer informação adicional é valiosa.`
-                          }
+                            - Qualquer informação adicional é valiosa.`}
               multiline
               rows={8}
               fullWidth
