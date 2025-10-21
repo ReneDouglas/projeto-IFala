@@ -1,18 +1,18 @@
 package br.edu.ifpi.ifala.shared.enums;
 
 /**
- * Enumeração que representa os perfis de usuários no sistema. Cada perfil possui uma descrição
+ * Enumeração que representa os graus de ensino no sistema. Cada grau possui uma descrição
  * associada para facilitar a identificação.
  *
- * @author Renê Morais
- * 
  * @author luisthedevmagician
  */
-public enum Perfis {
-  ADMIN("Admin"), ANONIMO("Usuário Anônimo");
+
+public enum Grau {
+  MEDIO("Médio"), SUPERIOR("Superior");
+
   private final String displayName;
 
-  Perfis(String displayName) {
+  Grau(String displayName) {
     this.displayName = displayName;
   }
 
