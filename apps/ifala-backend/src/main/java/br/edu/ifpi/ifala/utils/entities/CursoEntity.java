@@ -5,7 +5,10 @@ import jakarta.persistence.Table;
 
 /**
  * Entidade JPA que representa a tabela enum_cursos no banco de dados.
+ * 
+ * @author luisthedevmagician
  */
+
 @Entity
 @Table(name = "enum_cursos")
 public class CursoEntity extends EnumEntity {

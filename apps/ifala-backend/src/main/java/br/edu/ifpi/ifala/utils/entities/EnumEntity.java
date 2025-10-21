@@ -8,7 +8,10 @@ import jakarta.persistence.MappedSuperclass;
 
 /**
  * Classe base para entidades de enumerações. Contém os campos comuns id, value e label.
+ * 
+ * @author luisthedevmagician
  */
+
 @MappedSuperclass
 public abstract class EnumEntity {
 

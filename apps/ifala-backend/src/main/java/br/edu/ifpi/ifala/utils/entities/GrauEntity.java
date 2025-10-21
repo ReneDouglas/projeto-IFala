@@ -5,7 +5,11 @@ import jakarta.persistence.Table;
 
 /**
  * Entidade JPA que representa a tabela enum_graus no banco de dados.
+ * 
+ * @author luisthedevmagician
  */
+
+
 @Entity
 @Table(name = "enum_graus")
 public class GrauEntity extends EnumEntity {

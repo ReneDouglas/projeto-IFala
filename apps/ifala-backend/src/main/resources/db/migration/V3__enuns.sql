@@ -1,4 +1,4 @@
--- Migration to add enum lookup tables and insert enum values
+-- Migração com tabelas que funcionaram como enuns para o sistema de denúncias
 
 CREATE TABLE IF NOT EXISTS enum_status (
   id BIGSERIAL PRIMARY KEY,

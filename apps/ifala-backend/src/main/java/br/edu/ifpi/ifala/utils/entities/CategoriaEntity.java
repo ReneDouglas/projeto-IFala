@@ -5,7 +5,10 @@ import jakarta.persistence.Table;
 
 /**
  * Entidade JPA que representa a tabela enum_categorias no banco de dados.
+ * 
+ * @author luisthedevmagician
  */
+
 @Entity
 @Table(name = "enum_categorias")
 public class CategoriaEntity extends EnumEntity {

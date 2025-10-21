@@ -6,7 +6,10 @@ import org.springframework.stereotype.Repository;
 
 /**
  * Repositório JPA para a entidade CategoriaEntity.
+ * 
+ * @author luisthedevmagician
  */
+
 @Repository
 public interface CategoriaRepository extends JpaRepository<CategoriaEntity, Long> {
 }

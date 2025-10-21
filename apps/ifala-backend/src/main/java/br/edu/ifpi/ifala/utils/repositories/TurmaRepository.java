@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
  * 
  * @author luisthedevmagician
  */
+
 @Repository
 public interface TurmaRepository extends JpaRepository<TurmaEntity, Long> {
 }

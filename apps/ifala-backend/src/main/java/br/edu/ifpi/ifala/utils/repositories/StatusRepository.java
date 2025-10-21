@@ -6,7 +6,10 @@ import org.springframework.stereotype.Repository;
 
 /**
  * Repositório JPA para a entidade StatusEntity.
+ * 
+ * @author luisthedevmagician
  */
+
 @Repository
 public interface StatusRepository extends JpaRepository<StatusEntity, Long> {
 }

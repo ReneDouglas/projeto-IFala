@@ -6,7 +6,11 @@ import org.springframework.stereotype.Repository;
 
 /**
  * Repositório JPA para a entidade GrauEntity.
+ * 
+ * @author luisthedevmagician
  */
+
+
 @Repository
 public interface GrauRepository extends JpaRepository<GrauEntity, Long> {
 }
