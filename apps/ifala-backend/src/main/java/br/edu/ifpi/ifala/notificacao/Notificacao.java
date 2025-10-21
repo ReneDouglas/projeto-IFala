@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -17,7 +18,9 @@ import java.time.LocalDateTime;
  * @author Renê Morais
  */
 @Entity
-public class Notificacao {
+public class Notificacao implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -92,6 +95,34 @@ public class Notificacao {
 
   public void setDataEnvio(LocalDateTime dataEnvio) {
     this.dataEnvio = dataEnvio;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Notificacao)) {
+      return false;
+    }
+    Notificacao other = (Notificacao) o;
+    return id != null && id.equals(other.getId());
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
+
+  @Override
+  public String toString() {
+    // O campo 'denuncia' foi trocado por 'denunciaId' para evitar
+    // um loop infinito de logs (StackOverflowError).
+    Long denunciaId = (denuncia != null) ? denuncia.getId() : null;
+
+    return "Notificacao{" + "id=[" + id + "]" + ", conteudo=[" + conteudo + "]" + ", tipo=[" + tipo
+        + "]" + ", denunciaId=[" + denunciaId + "]" + ", lida=[" + lida + "]" + ", lidaPor=["
+        + lidaPor + "]" + ", dataEnvio=[" + dataEnvio + "]" + "}";
   }
 
 }

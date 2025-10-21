@@ -16,24 +16,24 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 /**
- * Classe que representa uma denúncia no sistema. Esta entidade armazena
- * informações sobre
- * denúncias, incluindo sua descrição, categoria, status e histórico de
- * acompanhamentos.
+ * Classe que representa uma denúncia no sistema. Esta entidade armazena informações sobre
+ * denúncias, incluindo sua descrição, categoria, status e histórico de acompanhamentos.
  *
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
  */
 @Entity
 @Table(name = "denuncias")
-public class Denuncia {
+public class Denuncia implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -74,8 +74,7 @@ public class Denuncia {
   private String recaptchaToken;
 
   /**
-   * Construtor padrão que inicializa uma nova denúncia. Define um token de
-   * acompanhamento único,
+   * Construtor padrão que inicializa uma nova denúncia. Define um token de acompanhamento único,
    * status inicial como RECEBIDO e a data/hora de criação.
    */
 
@@ -172,5 +171,32 @@ public class Denuncia {
   public void setAlteradoEm(LocalDateTime alteradoEm) {
     this.alteradoEm = alteradoEm;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Denuncia)) {
+      return false;
+    }
+    Denuncia other = (Denuncia) o;
+    return id != null && id.equals(other.getId());
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "Denuncia{" + "id=[" + id + "]" + ", descricao=[" + descricao + "]" + ", categoria=["
+        + categoria + "]" + ", status=[" + status + "]" + ", motivoRejeicao=[" + motivoRejeicao
+        + "]" + ", tokenAcompanhamento=[" + tokenAcompanhamento + "]" + ", criadoEm=[" + criadoEm
+        + "]" + ", alteradoPor=[" + alteradoPor + "]" + ", alteradoEm=[" + alteradoEm + "]" + "}";
+  }
+
+
 
 }
