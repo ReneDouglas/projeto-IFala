@@ -462,11 +462,12 @@ export function Denuncia() {
               name='relato'
               label='Descrição Detalhada '
               placeholder={`Descreva sua denúncia com o máximo de detalhes possível:
-- O que aconteceu?
-- Quem são os envolvidos?
-- Onde e quando ocorreu?
-- Existem testemunhas?
-- Qualquer informação adicional é valiosa.`}
+                            - O que aconteceu?
+                            - Quem são os envolvidos?
+                            - Onde e quando ocorreu?
+                            - Existem testemunhas?
+                            - Qualquer informação adicional é valiosa.`
+                          }
               multiline
               rows={8}
               fullWidth
@@ -477,8 +478,13 @@ export function Denuncia() {
               helperText={
                 errors.relato
                   ? 'A descrição é obrigatória e deve ter no mínimo 50 caracteres.'
-                  : `Mínimo: 50 caracteres (atual: ${formData.relato.length})`
+                  : `Mínimo: 50 caracteres | Máximo: 500 caracteres (atual: ${formData.relato.length}/500)`
               }
+              slotProps={{
+                htmlInput: {
+                  maxLength: 500,
+                },
+              }}
               sx={fieldStyles}
             />
 
