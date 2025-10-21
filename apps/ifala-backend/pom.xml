@@ -129,10 +129,10 @@
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-webflux -->
-   <dependency>
+   <!-- <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-webflux</artifactId>
-    </dependency>
+    </dependency> -->
 
 	<dependency>
     <groupId>org.springdoc</groupId>

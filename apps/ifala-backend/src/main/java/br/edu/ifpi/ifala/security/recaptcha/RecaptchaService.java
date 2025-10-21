@@ -3,10 +3,9 @@ package br.edu.ifpi.ifala.security.recaptcha;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestClient;
 
 import br.edu.ifpi.ifala.security.recaptcha.recaptchaDTO.RecaptchaResponseDto;
-import reactor.core.publisher.Mono;
 
 /**
  * Serviço para validação do reCAPTCHA do Google. Esta classe utiliza o WebClient para enviar
@@ -17,21 +16,19 @@ import reactor.core.publisher.Mono;
 @Service
 public class RecaptchaService {
 
-  private final WebClient webClient;
+  private final RestClient restClient;
   private final RecaptchaConfig recaptchaConfig;
 
-  public RecaptchaService(WebClient.Builder webClientBuilder, RecaptchaConfig recaptchaConfig) {
-    this.webClient = webClientBuilder.baseUrl(recaptchaConfig.getUrl()).build();
+  public RecaptchaService(RecaptchaConfig recaptchaConfig) {
+    this.restClient = RestClient.create();
     this.recaptchaConfig = recaptchaConfig;
   }
 
-  public Mono<Boolean> validarToken(String token) {
+  public Boolean validarToken(String token) {
     MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
     formData.add("secret", recaptchaConfig.getSecret());
     formData.add("response", token);
 
-    return this.webClient.post().bodyValue(formData).retrieve()
-        .bodyToMono(RecaptchaResponseDto.class).map(RecaptchaResponseDto::isSuccess)
-        .onErrorReturn(false); // Erro de comunicação retorna falso
+    return false; // A SER IMPLEMENTADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO
   }
 }
