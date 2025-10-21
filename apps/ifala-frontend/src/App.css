@@ -377,11 +377,37 @@
 
 .token-input input {
   width: 100%;
-  padding: 12px;
+  padding: 16px 20px;
   border: 2px solid var(--azul-confianca);
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 14px;
   margin-bottom: 1rem;
+  min-height: 52px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.token-input input::placeholder {
+  color: #999;
+  font-size: 13px;
+  opacity: 1;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* Ajuste para mobile */
+@media (max-width: 768px) {
+  .token-input input {
+    font-size: 14px;
+    padding: 14px 16px;
+    min-height: 48px;
+  }
+
+  .token-input input::placeholder {
+    font-size: 12px;
+  }
 }
 
 /* Security Section */
