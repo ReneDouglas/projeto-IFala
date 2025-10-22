@@ -236,9 +236,7 @@ public class AuthServiceImpl implements AuthService {
     if (userOpt.isEmpty()) {
       logger.warn("Falha ao redefinir senha: Usuário não encontrado para o e-mail: {}",
           req.email());
-      throw new AutenticacaoException("Usuário não encontrado para o e-mail informado.", 404); // 404
-                                                                                               // Not
-                                                                                               // Found
+      throw new AutenticacaoException("Usuário não encontrado para o e-mail informado.", 404);
     }
 
     Usuario user = userOpt.get();
@@ -343,7 +341,6 @@ public class AuthServiceImpl implements AuthService {
       throw new AutenticacaoException("Erro ao processar refresh token.", 500);
     }
   }
-
 
   // LÓGICA DE LOGOUT
 

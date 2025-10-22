@@ -5,16 +5,21 @@ package br.edu.ifpi.ifala.shared.enums;
  * associada para facilitar a identificação.
  *
  * @author Renê Morais
+ * 
+ * @author luisthedevmagician
  */
 public enum Perfis {
-  ADMIN("admin", "Admin"), ANONIMO("anonimo", "Usuário Anônimo");
+  ADMIN("admin", "Admin", "Admin"),
+  ANONIMO("anonimo", "Usuário Anônimo", "Usuário Anônimo");
 
   private final String value;
   private final String descricao;
+  private final String displayName;
 
-  Perfis(String value, String descricao) {
+  Perfis(String value, String descricao, String displayName) {
     this.value = value;
     this.descricao = descricao;
+    this.displayName = displayName;
   }
 
   public String getValue() {
@@ -23,6 +28,10 @@ public enum Perfis {
 
   public String getDescricao() {
     return descricao;
+  }
+
+  public String getDisplayName() {
+    return displayName;
   }
 
   /**

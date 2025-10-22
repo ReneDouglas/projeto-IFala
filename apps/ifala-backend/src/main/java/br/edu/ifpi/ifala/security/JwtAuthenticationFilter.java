@@ -34,6 +34,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   protected void doFilterInternal(@NonNull HttpServletRequest request,
       @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
       throws ServletException, IOException {
+    // Somente pule a autenticação para endpoints públicos de autenticação (login, refresh,
+    // redefinir-senha). Não pule toda a árvore /api/v1/auth — endpoints como /sair e
+    // /admin/registrar-usuario devem passar pelo filtro para que possamos autenticar o usuário.
+    String path = request.getRequestURI();
+    if (path != null && (path.equals("/api/v1/auth/login") || path.equals("/api/v1/auth/refresh")
+        || path.equals("/api/v1/auth/redefinir-senha"))) {
+      // Permite que os controllers públicos de autenticação processem a requisição sem um
+      // token válido (por exemplo, refresh pode aceitar tokens expirados via canRefreshToken).
+      filterChain.doFilter(request, response);
+      return;
+    }
 
     String token = extractToken(request);
     if (token != null) {
@@ -45,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
         response.getWriter().write("{\"error\": \"Token inválido ou revogado.\"}");
-        return; // Bloqueia a requisição
+        return;
       }
 
       try {

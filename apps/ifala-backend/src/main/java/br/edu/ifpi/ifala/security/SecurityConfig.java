@@ -36,10 +36,12 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
             // Rotas públicas - não requerem autenticação
             .requestMatchers("/api/v1/auth/login", "/actuator/**", "/api/v1/auth/redefinir-senha",
-                "/api/v1/auth/refresh")
+                "/api/v1/public/**", "/api/v1/auth/refresh", "/swagger-ui/**", "/v3/api-docs/**",
+                "/swagger-ui.html", "/webjars/**", "/swagger-resources/**")
             .permitAll()
             // Rotas protegidas - requerem autenticação com token válido
-            .requestMatchers("/api/v1/auth/sair", "/api/v1/auth/admin/registrar-usuario")
+            .requestMatchers("/api/v1/auth/sair", "/api/v1/auth/admin/registrar-usuario",
+                "/api/v1/utils/**")
             .authenticated()
             // Todas as outras rotas requerem autenticação
             .anyRequest().authenticated())
