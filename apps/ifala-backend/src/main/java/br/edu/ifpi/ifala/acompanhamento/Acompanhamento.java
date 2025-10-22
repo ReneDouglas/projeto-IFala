@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -15,7 +16,9 @@ import java.time.LocalDateTime;
  * @author Renê Morais
  */
 @Entity
-public class Acompanhamento {
+public class Acompanhamento implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -76,4 +79,34 @@ public class Acompanhamento {
     this.dataEnvio = dataEnvio;
   }
 
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Acompanhamento)) {
+      return false;
+    }
+    Acompanhamento other = (Acompanhamento) o;
+
+    return id != null && id.equals(other.getId());
+  }
+
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
+
+  @Override
+  public String toString() {
+    // O campo 'denuncia' foi trocado por 'denunciaId' para evitar
+    // um loop infinito de logs (StackOverflowError).
+    Long denunciaId = (denuncia != null) ? denuncia.getId() : null;
+
+    return "Acompanhamento{" + "id=[" + id + "]" + ", autor=[" + autor + "]" + ", mensagem=["
+        + mensagem + "]" + ", denunciaId=[" + denunciaId + "]" + ", dataEnvio=[" + dataEnvio + "]"
+        + "}";
+  }
 }

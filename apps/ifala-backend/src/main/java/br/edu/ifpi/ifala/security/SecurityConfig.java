@@ -27,7 +27,7 @@ public class SecurityConfig {
         .requestMatchers("/api/v1/public/**", "/actuator/**", "/auth/primeiro-acesso",
             "/auth/login", "/auth/logout", "/auth/recuperar-senha", "/v3/api-docs/**",
             "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**",
-            "/webjars/**")
+            "/webjars/**", "/api/v1/utils/**")
         .permitAll()
 
         // endpoints de admin restritos à ROLE "ADMIN"

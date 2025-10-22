@@ -6,7 +6,6 @@ import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,24 +16,24 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 /**
- * Classe que representa uma denúncia no sistema. Esta entidade armazena
- * informações sobre
- * denúncias, incluindo sua descrição, categoria, status e histórico de
- * acompanhamentos.
+ * Classe que representa uma denúncia no sistema. Esta entidade armazena informações sobre
+ * denúncias, incluindo sua descrição, categoria, status e histórico de acompanhamentos.
  *
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
  */
 @Entity
 @Table(name = "denuncias")
-public class Denuncia {
+public class Denuncia implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,14 +43,13 @@ public class Denuncia {
   @Size(min = 50, max = 5000, message = "A descrição deve ter entre 10 e 5000 caracteres")
   private String descricao;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "categoria")
+  @Enumerated
   @NotNull(message = "A categoria não pode ser nula")
   private Categorias categoria;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status")
+  @Enumerated
   @NotNull(message = "O status não pode ser nulo")
+  @Column(name = "status_denuncia_enum")
   private Status status;
 
   @Column(name = "motivo_rejeicao")
@@ -69,43 +67,20 @@ public class Denuncia {
   @OneToMany(mappedBy = "denuncia")
   private Set<Notificacao> notificacoes = new HashSet<>();
 
-  @Column(name = "alterado_por")
   private String alteradoPor;
-
-  @Column(name = "alterado_em")
   private LocalDateTime alteradoEm;
 
   @Transient // para não ser persistido no banco de dados
   private String recaptchaToken;
 
-  // novos campos para dados do denunciante (opcionais)
-  @Column(name = "deseja_se_identificar")
-  private boolean desejaSeIdentificar;
-
-  @Column(name = "nome_completo")
-  private String nomeCompleto;
-
-  @Column(name = "email")
-  private String email;
-
-  @Column(name = "grau")
-  private String grau;
-
-  @Column(name = "curso")
-  private String curso;
-
-  @Column(name = "turma")
-  private String turma;
-
   /**
-   * Construtor padrão que inicializa uma nova denúncia. Define um token de
-   * acompanhamento único,
+   * Construtor padrão que inicializa uma nova denúncia. Define um token de acompanhamento único,
    * status inicial como RECEBIDO e a data/hora de criação.
    */
 
   public Denuncia() {
     this.tokenAcompanhamento = UUID.randomUUID();
-    this.status = Status.recebido;
+    this.status = Status.RECEBIDO;
     this.criadoEm = LocalDateTime.now();
   }
 
@@ -197,52 +172,31 @@ public class Denuncia {
     this.alteradoEm = alteradoEm;
   }
 
-  public boolean isDesejaSeIdentificar() {
-    return desejaSeIdentificar;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Denuncia)) {
+      return false;
+    }
+    Denuncia other = (Denuncia) o;
+    return id != null && id.equals(other.getId());
   }
 
-  public void setDesejaSeIdentificar(boolean desejaSeIdentificar) {
-    this.desejaSeIdentificar = desejaSeIdentificar;
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
   }
 
-  public String getNomeCompleto() {
-    return nomeCompleto;
+  @Override
+  public String toString() {
+    return "Denuncia{" + "id=[" + id + "]" + ", descricao=[" + descricao + "]" + ", categoria=["
+        + categoria + "]" + ", status=[" + status + "]" + ", motivoRejeicao=[" + motivoRejeicao
+        + "]" + ", tokenAcompanhamento=[" + tokenAcompanhamento + "]" + ", criadoEm=[" + criadoEm
+        + "]" + ", alteradoPor=[" + alteradoPor + "]" + ", alteradoEm=[" + alteradoEm + "]" + "}";
   }
 
-  public void setNomeCompleto(String nomeCompleto) {
-    this.nomeCompleto = nomeCompleto;
-  }
 
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public String getGrau() {
-    return grau;
-  }
-
-  public void setGrau(String grau) {
-    this.grau = grau;
-  }
-
-  public String getCurso() {
-    return curso;
-  }
-
-  public void setCurso(String curso) {
-    this.curso = curso;
-  }
-
-  public String getTurma() {
-    return turma;
-  }
-
-  public void setTurma(String turma) {
-    this.turma = turma;
-  }
 
 }
