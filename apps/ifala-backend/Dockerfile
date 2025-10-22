@@ -25,4 +25,4 @@ EXPOSE 8080 5005
 # Copia apenas o artefato final do estágio de build
 COPY --from=builder /app/target/ifala-0.0.1-SNAPSHOT.jar ifala-api.jar
 
-ENTRYPOINT ["java", "-jar", "-Xms256m", "-Xmx512m", "ifala-api.jar"]
+ENTRYPOINT ["java", "-Xms256m", "-Xmx512m", "-jar", "ifala-api.jar"]

@@ -8,7 +8,7 @@ import org.springframework.web.client.RestClient;
 import br.edu.ifpi.ifala.security.recaptcha.recaptchaDTO.RecaptchaResponseDto;
 
 /**
- * Serviço para validação do reCAPTCHA do Google. Esta classe utiliza o WebClient para enviar
+ * Serviço para validação do reCAPTCHA do Google. Esta classe utiliza o RestClient para enviar
  * requisições ao serviço reCAPTCHA e validar tokens.
  *
  * @author Jhonatas G Ribeiro
