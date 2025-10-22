@@ -4,10 +4,7 @@ import org.springframework.stereotype.Service;
 import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
 import br.edu.ifpi.ifala.acompanhamento.AcompanhamentoRepository;
 import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDto;
-import br.edu.ifpi.ifala.denuncia.denunciaDTO.AtualizarDenunciaDto;
-import br.edu.ifpi.ifala.denuncia.denunciaDTO.CriarDenunciaDto;
-import br.edu.ifpi.ifala.denuncia.denunciaDTO.DadosDeIdentificacaoDto;
-import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.*;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
 import org.owasp.html.PolicyFactory;
@@ -76,34 +73,39 @@ public class DenunciaService {
     // }
 
     Denuncia novaDenuncia = new Denuncia();
-    String descricaoSanitizada = policy.sanitize(dto.getDescricao());
-    novaDenuncia.setDescricao(descricaoSanitizada);
+    novaDenuncia.setDescricao(policy.sanitize(dto.descricao()));
 
-    Categorias categoria = converterStringParaCategoria(dto.getCategoria());
-    novaDenuncia.setCategoria(categoria);
+    novaDenuncia.setCategoria(dto.categoria());
 
-    // se o denunciante deseja se identificar
-    if ("sim".equalsIgnoreCase(dto.getDesejaSeIdentificar()) && dto.getDadosDeIdentificacao() != null) {
+    if (Boolean.TRUE.equals(dto.desejaSeIdentificar()) && dto.dadosDeIdentificacao() != null) {
+
+      log.info("Processando criação de denúncia identificada.");
       novaDenuncia.setDesejaSeIdentificar(true);
-      DadosDeIdentificacaoDto idDto = dto.getDadosDeIdentificacao();
+      DadosDeIdentificacaoDto idDto = dto.dadosDeIdentificacao();
 
-      novaDenuncia.setNomeCompleto(policy.sanitize(idDto.getNomeCompleto()));
-      novaDenuncia.setEmail(policy.sanitize(idDto.getEmail()));
-      novaDenuncia.setGrau(policy.sanitize(idDto.getGrau()));
-      novaDenuncia.setCurso(policy.sanitize(idDto.getCurso()));
-      novaDenuncia.setTurma(policy.sanitize(idDto.getTurma()));
+      novaDenuncia.setNomeCompleto(policy.sanitize(idDto.nomeCompleto()));
+      novaDenuncia.setEmail(policy.sanitize(idDto.email()));
+      novaDenuncia.setGrau(idDto.grau());
+      novaDenuncia.setCurso(idDto.curso());
+      novaDenuncia.setTurma(idDto.turma());
     } else {
+      log.info("Processando criação de denúncia anônima.");
       novaDenuncia.setDesejaSeIdentificar(false);
     }
     Denuncia denunciaSalva = denunciaRepository.save(novaDenuncia);
+
+    log.info("Denúncia salva com sucesso");
+    log.info("Denúncia criada com ID: {}", denunciaSalva.getId());
+    log.info("Token de acompanhamento gerado: {}", denunciaSalva.getTokenAcompanhamento());
+
     return mapToDenunciaResponseDto(denunciaSalva);
   }
 
   @Transactional(readOnly = true)
   public Optional<DenunciaResponseDto> consultarPorTokenAcompanhamento(UUID tokenAcompanhamento) {
     return denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
-        .filter(denuncia -> denuncia.getStatus() != Status.resolvido
-            && denuncia.getStatus() != Status.rejeitado)
+        .filter(denuncia -> denuncia.getStatus() != Status.RESOLVIDO
+            && denuncia.getStatus() != Status.REJEITADO)
         .map(this::mapToDenunciaResponseDto);
   }
 
@@ -118,7 +120,7 @@ public class DenunciaService {
    */
 
   @Transactional(readOnly = true) // apenas leitura
-  public Page<DenunciaResponseDto> listarTodas(Status status, Categorias categoria,
+  public Page<DenunciaAdminResponseDto> listarTodas(Status status, Categorias categoria,
       Pageable pageable) {
     Specification<Denuncia> spec = (root, query, criteriaBuilder) -> {
       List<Predicate> predicates = new ArrayList<>();
@@ -137,45 +139,52 @@ public class DenunciaService {
       return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     };
 
-    return denunciaRepository.findAll(spec, pageable).map(this::mapToDenunciaResponseDto);
+    return denunciaRepository.findAll(spec, pageable).map(this::mapToDenunciaAdminResponseDto);
   }
 
-  public Optional<DenunciaResponseDto> atualizarDenuncia(Long id, AtualizarDenunciaDto dto,
+  public Optional<DenunciaAdminResponseDto> atualizarDenuncia(Long id, AtualizarDenunciaDto dto,
       String adminName) {
+    log.info("Iniciando atualização da denúncia id {} por admin {}.", id, adminName);
     return denunciaRepository.findById(id).map(denuncia -> {
-      if (denuncia.getStatus() == Status.resolvido || denuncia.getStatus() == Status.rejeitado) {
+      if (denuncia.getStatus() == Status.RESOLVIDO || denuncia.getStatus() == Status.REJEITADO) {
+        log.warn("Tentativa de atualização de denúncia id {} em estado final.", id);
         throw new IllegalStateException(
             "Denúncia já está em estado final e não pode ser alterada.");
       }
 
-      denuncia.setStatus(dto.getStatus());
+      denuncia.setStatus(dto.status());
       denuncia.setAlteradoEm(LocalDateTime.now());
       denuncia.setAlteradoPor(adminName);
 
       // sanitizar motivoRejeicao
-      if (dto.getMotivoRejeicao() != null) {
-        String motivoRejeicaoSanitizado = policy.sanitize(dto.getMotivoRejeicao());
+      if (dto.motivoRejeicao() != null) {
+        String motivoRejeicaoSanitizado = policy.sanitize(dto.motivoRejeicao());
         denuncia.setMotivoRejeicao(motivoRejeicaoSanitizado);
       } else {
         denuncia.setMotivoRejeicao(null);
       }
 
       Denuncia denunciaAtualizada = denunciaRepository.save(denuncia);
-      return mapToDenunciaResponseDto(denunciaAtualizada);
+      log.info("Denúncia id {} atualizada com sucesso para o status {}.", id, dto.status());
+      return mapToDenunciaAdminResponseDto(denunciaAtualizada);
     });
   }
 
   public boolean deletarDenuncia(Long id) {
     Optional<Denuncia> denuncia = denunciaRepository.findById(id);
     if (denuncia.isPresent()) {
+      log.info("Iniciando deleção da denúncia id {}.", id);
       denunciaRepository.delete(denuncia.get());
+      log.info("Denúncia id {} deletada com sucesso.", id);
       return true;
     }
+    log.warn("Tentativa de deleção de denúncia id {} que não existe.", id);
     return false;
   }
 
   @Transactional(readOnly = true)
   public List<AcompanhamentoDto> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
+    log.info("Listando acompanhamentos (público) para o token: {}", tokenAcompanhamento);
     Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
         () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
 
@@ -185,6 +194,7 @@ public class DenunciaService {
 
   @Transactional(readOnly = true)
   public List<AcompanhamentoDto> listarAcompanhamentosPorId(Long id) {
+    log.info("Listando acompanhamentos (admin) para a denúncia ID: {}", id);
     Denuncia denuncia = denunciaRepository.findById(id).orElseThrow(
         () -> new EntityNotFoundException("Denúncia não encontrada com o ID informado."));
 
@@ -194,12 +204,13 @@ public class DenunciaService {
 
   public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento,
       AcompanhamentoDto dto) {
+    log.info("Adicionando acompanhamento (público) para o token: {}", tokenAcompanhamento);
     Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
-        .filter(d -> d.getStatus() != Status.resolvido && d.getStatus() != Status.rejeitado)
+        .filter(d -> d.getStatus() != Status.RESOLVIDO && d.getStatus() != Status.REJEITADO)
         .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada ou finalizada."));
 
     Acompanhamento novoAcompanhamento = new Acompanhamento();
-    String mensagemSanitizada = policy.sanitize(dto.getMensagem());
+    String mensagemSanitizada = policy.sanitize(dto.mensagem());
     novoAcompanhamento.setMensagem(mensagemSanitizada);
     novoAcompanhamento.setDenuncia(denuncia);
 
@@ -212,58 +223,48 @@ public class DenunciaService {
     }
 
     Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
+    log.info("Acompanhamento adicionado com sucesso a denúncia de token: {}", tokenAcompanhamento);
     return mapToAcompanhamentoResponseDto(salvo);
   }
 
   public AcompanhamentoDto adicionarAcompanhamentoAdmin(Long id, AcompanhamentoDto dto,
       String nomeAdmin) {
+    log.info("Adicionando acompanhamento (admin) para a denúncia ID: {}", id);
     Denuncia denuncia = denunciaRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada."));
 
     Acompanhamento novoAcompanhamento = new Acompanhamento();
-    String mensagemSanitizada = policy.sanitize(dto.getMensagem());
-    novoAcompanhamento.setMensagem(mensagemSanitizada);
+    novoAcompanhamento.setMensagem(policy.sanitize(dto.mensagem()));
     novoAcompanhamento.setDenuncia(denuncia);
-
-    // sanitiza o nome do admin
-    String autorSanitizado = policy.sanitize(nomeAdmin);
-    novoAcompanhamento.setAutor(autorSanitizado);
+    novoAcompanhamento.setAutor(policy.sanitize(nomeAdmin));
 
     Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
+    log.info("Acompanhamento adicionado com sucesso à denúncia ID: {}", id);
     return mapToAcompanhamentoResponseDto(salvo);
   }
 
   private DenunciaResponseDto mapToDenunciaResponseDto(Denuncia denuncia) {
-    DenunciaResponseDto dto = new DenunciaResponseDto();
+    return new DenunciaResponseDto(
+        denuncia.getTokenAcompanhamento(),
+        denuncia.getStatus(),
+        denuncia.getCategoria(),
+        denuncia.getCriadoEm());
+  }
 
-    dto.setId(denuncia.getId());
-    dto.setTokenAcompanhamento(denuncia.getTokenAcompanhamento());
-    dto.setStatus(denuncia.getStatus());
-    dto.setCategoria(denuncia.getCategoria());
-    dto.setCriadoEm(denuncia.getCriadoEm());
-
-    return dto;
+  private DenunciaAdminResponseDto mapToDenunciaAdminResponseDto(Denuncia denuncia) {
+    return new DenunciaAdminResponseDto(
+        denuncia.getId(),
+        denuncia.getTokenAcompanhamento(),
+        denuncia.getStatus(),
+        denuncia.getCategoria(),
+        denuncia.getCriadoEm());
   }
 
   private AcompanhamentoDto mapToAcompanhamentoResponseDto(Acompanhamento acompanhamento) {
-    AcompanhamentoDto dto = new AcompanhamentoDto();
-    dto.setAutor(acompanhamento.getAutor());
-    dto.setMensagem(acompanhamento.getMensagem());
-    dto.setDataEnvio(acompanhamento.getDataEnvio());
-    return dto;
+    return new AcompanhamentoDto(
+        acompanhamento.getMensagem(),
+        acompanhamento.getAutor(),
+        acompanhamento.getDataEnvio());
   }
 
-  // Converte uma string para o enum Categorias, lançando exceção se inválida
-  private Categorias converterStringParaCategoria(String descricao) {
-    if (descricao == null || descricao.trim().isEmpty()) {
-      throw new IllegalArgumentException("A categoria não pode ser nula ou vazia.");
-    }
-    for (Categorias cat : Categorias.values()) {
-      if (cat.getDescricao().equalsIgnoreCase(descricao.trim())) {
-        return cat;
-      }
-    }
-    log.warn("Tentativa de criar denúncia com categoria inválida: {}", descricao);
-    throw new IllegalArgumentException("Categoria inválida: " + descricao);
-  }
 }

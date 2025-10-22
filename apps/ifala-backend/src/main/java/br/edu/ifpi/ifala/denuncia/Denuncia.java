@@ -2,8 +2,8 @@ package br.edu.ifpi.ifala.denuncia;
 
 import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
 import br.edu.ifpi.ifala.notificacao.Notificacao;
-import br.edu.ifpi.ifala.shared.enums.Categorias;
-import br.edu.ifpi.ifala.shared.enums.Status;
+import br.edu.ifpi.ifala.shared.enums.*;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
@@ -23,8 +23,10 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Classe que representa uma denúncia no sistema. Esta entidade armazena informações sobre
- * denúncias, incluindo sua descrição, categoria, status e histórico de acompanhamentos.
+ * Classe que representa uma denúncia no sistema. Esta entidade armazena
+ * informações sobre
+ * denúncias, incluindo sua descrição, categoria, status e histórico de
+ * acompanhamentos.
  *
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
@@ -43,13 +45,14 @@ public class Denuncia implements Serializable {
   @Size(min = 50, max = 5000, message = "A descrição deve ter entre 10 e 5000 caracteres")
   private String descricao;
 
-  @Enumerated
+  @Enumerated(EnumType.STRING)
+  @Column(name = "categoria")
   @NotNull(message = "A categoria não pode ser nula")
   private Categorias categoria;
 
-  @Enumerated
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status")
   @NotNull(message = "O status não pode ser nulo")
-  @Column(name = "status_denuncia_enum")
   private Status status;
 
   @Column(name = "motivo_rejeicao")
@@ -73,8 +76,30 @@ public class Denuncia implements Serializable {
   @Transient // para não ser persistido no banco de dados
   private String recaptchaToken;
 
+  @Column(name = "deseja_se_identificar")
+  private boolean desejaSeIdentificar;
+
+  @Column(name = "nome_completo")
+  private String nomeCompleto;
+
+  @Column(name = "email")
+  private String email;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "grau")
+  private Grau grau;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "curso")
+  private Curso curso;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "turma")
+  private Turma turma;
+
   /**
-   * Construtor padrão que inicializa uma nova denúncia. Define um token de acompanhamento único,
+   * Construtor padrão que inicializa uma nova denúncia. Define um token de
+   * acompanhamento único,
    * status inicial como RECEBIDO e a data/hora de criação.
    */
 
@@ -172,6 +197,62 @@ public class Denuncia implements Serializable {
     this.alteradoEm = alteradoEm;
   }
 
+  public String getRecaptchaToken() {
+    return recaptchaToken;
+  }
+
+  public void setRecaptchaToken(String recaptchaToken) {
+    this.recaptchaToken = recaptchaToken;
+  }
+
+  public boolean isDesejaSeIdentificar() {
+    return desejaSeIdentificar;
+  }
+
+  public void setDesejaSeIdentificar(boolean desejaSeIdentificar) {
+    this.desejaSeIdentificar = desejaSeIdentificar;
+  }
+
+  public String getNomeCompleto() {
+    return nomeCompleto;
+  }
+
+  public void setNomeCompleto(String nomeCompleto) {
+    this.nomeCompleto = nomeCompleto;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public Grau getGrau() {
+    return grau;
+  }
+
+  public void setGrau(Grau grau) {
+    this.grau = grau;
+  }
+
+  public Curso getCurso() {
+    return curso;
+  }
+
+  public void setCurso(Curso curso) {
+    this.curso = curso;
+  }
+
+  public Turma getTurma() {
+    return turma;
+  }
+
+  public void setTurma(Turma turma) {
+    this.turma = turma;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -196,7 +277,5 @@ public class Denuncia implements Serializable {
         + "]" + ", tokenAcompanhamento=[" + tokenAcompanhamento + "]" + ", criadoEm=[" + criadoEm
         + "]" + ", alteradoPor=[" + alteradoPor + "]" + ", alteradoEm=[" + alteradoEm + "]" + "}";
   }
-
-
 
 }
