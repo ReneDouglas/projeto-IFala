@@ -2,7 +2,9 @@ package br.edu.ifpi.ifala.denuncia.denunciaDTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import br.edu.ifpi.ifala.shared.enums.Categorias;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -16,62 +18,15 @@ import jakarta.validation.constraints.Size;
  */
 
 @Schema(name = "Criar Denúncia", description = "Dados necessários para registrar uma nova denúncia.")
-public class CriarDenunciaDto {
+public record CriarDenunciaDto(
 
-  private String desejaSeIdentificar;
-  private DadosDeIdentificacaoDto dadosDeIdentificacao;
+    Boolean desejaSeIdentificar,
 
-  @JsonProperty("descricaoDetalhada")
-  @NotBlank(message = "A descrição não pode ser vazia")
-  @Size(min = 50, max = 5000, message = "A descrição deve ter entre 50 e 5000 caracteres")
-  private String descricao;
+    @Schema(description = "Dados de identificação (obrigatório se desejaSeIdentificar for true)") @Valid DadosDeIdentificacaoDto dadosDeIdentificacao,
 
-  @JsonProperty("categoriaDenuncia")
-  @NotNull(message = "A categoria não pode ser nula")
-  private String categoria;
+    @JsonProperty("descricaoDetalhada") @Schema(description = "Descrição detalhada da denúncia.", minLength = 50, maxLength = 5000, requiredMode = Schema.RequiredMode.REQUIRED) @NotBlank(message = "A descrição não pode ser vazia") @Size(min = 50, max = 5000, message = "A descrição deve ter entre 50 e 5000 caracteres") String descricao,
 
-  // @NotBlank(message = "O token do ReCaptcha é obrigatório.")
-  // A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO ---
-  @JsonProperty("g-recaptcha-response")
-  private String recaptchaToken;
+    @JsonProperty("categoriaDaDenuncia") @Schema(description = "Categoria da denúncia.", example = "BULLYING", requiredMode = Schema.RequiredMode.REQUIRED) @NotNull(message = "A categoria não pode ser nula") Categorias categoria,
 
-  public String getDescricao() {
-    return descricao;
-  }
-
-  public void setDescricao(String descricao) {
-    this.descricao = descricao;
-  }
-
-  public String getCategoria() {
-    return categoria;
-  }
-
-  public void setCategoria(String categoria) {
-    this.categoria = categoria;
-  }
-
-  public String getRecaptchaToken() {
-    return recaptchaToken;
-  }
-
-  public void setRecaptchaToken(String recaptchaToken) {
-    this.recaptchaToken = recaptchaToken;
-  }
-
-  public String getDesejaSeIdentificar() {
-    return desejaSeIdentificar;
-  }
-
-  public void setDesejaSeIdentificar(String desejaSeIdentificar) {
-    this.desejaSeIdentificar = desejaSeIdentificar;
-  }
-
-  public DadosDeIdentificacaoDto getDadosDeIdentificacao() {
-    return dadosDeIdentificacao;
-  }
-
-  public void setDadosDeIdentificacao(DadosDeIdentificacaoDto dadosDeIdentificacao) {
-    this.dadosDeIdentificacao = dadosDeIdentificacao;
-  }
+    @JsonProperty("g-recaptcha-response") @Schema(description = "Token do Google ReCaptcha v2 (opcional por enquanto)") String recaptchaToken) {
 }
