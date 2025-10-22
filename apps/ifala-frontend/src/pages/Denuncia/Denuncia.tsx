@@ -19,8 +19,20 @@ import {
   Button,
   type SelectChangeEvent,
 } from '@mui/material';
-import ReCAPTCHA from 'react-google-recaptcha';
+//import ReCAPTCHA from 'react-google-recaptcha';
 import '../../styles/theme.css';
+
+declare global {
+  interface Window {
+    grecaptcha: {
+      ready: (cb: () => void) => void;
+      execute: (
+        siteKey: string,
+        options: { action: string },
+      ) => Promise<string>;
+    };
+  }
+}
 
 const cursosPorNivel = {
   medio: ['Administração', 'Agropecuária', 'Informática', 'Meio Ambiente'],
@@ -65,7 +77,7 @@ export function Denuncia() {
     relato: '',
   });
   const [tipoDenuncia, setTipoDenuncia] = useState('anonima');
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  //const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [errors, setErrors] = useState({
     nome: false,
     email: false,
@@ -74,7 +86,7 @@ export function Denuncia() {
     turma: false,
     categoria: false,
     relato: false,
-    recaptcha: false,
+    //recaptcha: false,
   });
 
   const navigate = useNavigate();
@@ -93,7 +105,7 @@ export function Denuncia() {
     }
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -112,7 +124,7 @@ export function Denuncia() {
         formData.turma.trim() === '',
       categoria: formData.categoria.trim() === '',
       relato: formData.relato.trim().length < 50,
-      recaptcha: !recaptchaToken,
+      //recaptcha: !recaptchaToken,
     };
 
     setErrors(newErrors);
@@ -124,26 +136,92 @@ export function Denuncia() {
         errorMessage =
           'Por favor, preencha todos os campos obrigatórios e garanta que a descrição tenha no mínimo 50 caracteres.';
       }
-      if (newErrors.recaptcha) {
+      /*if (newErrors.recaptcha) {
         errorMessage = 'Por favor, complete o desafio "Não sou um robô".';
-      }
+      }*/
       alert(errorMessage);
       return;
     }
 
-    const fakeTrackingToken = `IFALA-${Math.random()
-      .toString(36)
-      .substring(2, 11)
-      .toUpperCase()}`;
-    navigate('/denuncia/sucesso', { state: { token: fakeTrackingToken } });
+    window.grecaptcha.ready(() => {
+      window.grecaptcha
+        .execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY, {
+          action: 'denuncia',
+        })
+        .then(async (token: string) => {
+          if (!token) {
+            alert('Falha ao validar o reCAPTCHA. Tente novamente.');
+            return; // Bloqueia se o token estiver vazio
+          }
+
+          const categoriaMap: Record<string, string> = {
+            bullying_assedio: 'BULLYING',
+            uso_substancias: 'DROGAS',
+            violencia: 'VIOLENCIA',
+            vandalismo: 'VANDALISMO',
+            fraude_academica: 'ACADEMICO',
+            'Porte de Celular, Tablet ou Outros Dispositivos': 'CELULAR',
+            outros: 'OUTROS',
+          };
+
+          try {
+            const response = await fetch('/api/v1/public/denuncias', {
+              method: 'POST',
+              body: JSON.stringify({
+                descricao: formData.relato,
+                categoria:
+                  categoriaMap[formData.categoria] ||
+                  String(formData.categoria).toUpperCase(),
+                nome: formData.nome || null,
+                email: formData.email || null,
+                grau: formData.grau || null,
+                curso: formData.curso || null,
+                turma: formData.turma || null,
+                recaptchaToken: token,
+              }),
+              headers: { 'Content-Type': 'application/json' },
+            }); // 1. TRATAMENTO DE ERRO DE RECAPTCHA (Status 403)
+
+            if (response.status === 403) {
+              alert(
+                'Acesso negado. Falha na verificação de segurança (reCAPTCHA). Por favor, tente novamente.',
+              );
+              return; // Bloqueia
+            } // 2. TRATAMENTO DE OUTROS ERROS DO SERVIDOR (Status 4xx, 5xx)
+
+            if (!response.ok) {
+              // Se for um erro do servidor, exibe uma mensagem genérica
+              alert(
+                'Ocorreu um erro ao processar sua denúncia. Tente novamente.',
+              );
+              return; // Bloqueia
+            } // 3. FLUXO DE SUCESSO (Apenas se response.ok for true)
+
+            const fakeTrackingToken = `IFALA-${Math.random()
+              .toString(36)
+              .substring(2, 11)
+              .toUpperCase()}`;
+
+            navigate('/denuncia/sucesso', {
+              state: { token: fakeTrackingToken },
+            });
+          } catch (error) {
+            // 4. Erro de rede (falha ao se conectar)
+            console.error('Erro na submissão:', error);
+            alert(
+              'Não foi possível se conectar com o servidor. Verifique sua conexão.',
+            );
+          }
+        });
+    });
   };
 
-  const handleRecaptchaChange = (token: string | null) => {
+  /*const handleRecaptchaChange = (token: string | null) => {
     setRecaptchaToken(token);
     if (token) {
       setErrors((prevErrors) => ({ ...prevErrors, recaptcha: false }));
     }
-  };
+  };*/
 
   const fieldStyles = {
     '& .MuiOutlinedInput-root': {
@@ -503,7 +581,7 @@ export function Denuncia() {
               pessoais ou qualquer informação que possa identificá-lo.
             </Alert>
 
-            <Box
+            {/*<Box
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -520,7 +598,7 @@ export function Denuncia() {
                   Por favor, complete o desafio.
                 </FormHelperText>
               )}
-            </Box>
+            </Box>*/}
 
             <Button
               variant='contained'

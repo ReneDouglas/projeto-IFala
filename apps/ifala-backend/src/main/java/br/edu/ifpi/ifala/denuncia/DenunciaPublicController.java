@@ -33,6 +33,7 @@ import java.util.UUID;
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
  */
+
 @RestController
 @RequestMapping("/api/v1/public/denuncias")
 @Tag(name = "Denúncias Públicas",

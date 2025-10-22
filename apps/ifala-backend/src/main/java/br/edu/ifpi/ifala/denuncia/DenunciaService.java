@@ -10,6 +10,7 @@ import br.edu.ifpi.ifala.denuncia.denunciaDTO.CriarDenunciaDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
+import br.edu.ifpi.ifala.security.recaptcha.RecaptchaService;
 import org.owasp.html.PolicyFactory;
 import org.owasp.html.Sanitizers;
 import org.springframework.data.domain.Page;
@@ -48,20 +49,14 @@ public class DenunciaService {
   private final AcompanhamentoRepository acompanhamentoRepository;
 
   // A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO
-  // private final RecaptchaService recaptchaService;
+  private final RecaptchaService recaptchaService;
 
-  // public DenunciaService(DenunciaRepository denunciaRepository,
-  // AcompanhamentoRepository acompanhamentoRepository,
-  // RecaptchaService recaptchaService) {
-  // this.denunciaRepository = denunciaRepository;
-  // this.acompanhamentoRepository = acompanhamentoRepository;
-  // this.recaptchaService = recaptchaService;
-  // }
 
   public DenunciaService(DenunciaRepository denunciaRepository,
-      AcompanhamentoRepository acompanhamentoRepository) {
+      AcompanhamentoRepository acompanhamentoRepository, RecaptchaService recaptchaService) {
     this.denunciaRepository = denunciaRepository;
     this.acompanhamentoRepository = acompanhamentoRepository;
+    this.recaptchaService = recaptchaService;
   }
 
   public DenunciaResponseDto criarDenuncia(CriarDenunciaDto dto) {
@@ -69,12 +64,12 @@ public class DenunciaService {
     // Validação do reCAPTCHA - A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER
     // FUNCIONANDO EM PRODUÇÃO
 
-    // boolean isRecaptchaValid =
-    // recaptchaService.validarToken(dto.getRecaptchaToken()).block();
+    boolean isRecaptchaValid =
+        recaptchaService.validarToken(dto.getRecaptchaToken(), "denuncia", 0.5).block();
 
-    // if (!isRecaptchaValid) {
-    // throw new RuntimeException("Falha na validação do ReCaptcha.");
-    // }
+    if (!isRecaptchaValid) {
+      throw new RuntimeException("Falha na validação do ReCaptcha.");
+    }
 
     Denuncia novaDenuncia = new Denuncia();
     novaDenuncia.setDescricao(dto.getDescricao());

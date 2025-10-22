@@ -18,6 +18,12 @@ public class RecaptchaResponseDto {
       example = "true")
   private boolean success;
 
+  @Schema(description = "O score retornado pelo reCAPTCHA (0.0 - 1.0).", example = "0.85")
+  private double score;
+
+  @Schema(description = "Nome da action associada ao token.", example = "denuncia")
+  private String action;
+
   @Schema(
       description = "Lista de códigos de erro retornados pelo Google em caso de falha na validação.",
       example = "[\"invalid-input-response\", \"timeout-or-duplicate\"]")
@@ -30,6 +36,22 @@ public class RecaptchaResponseDto {
 
   public void setSuccess(boolean success) {
     this.success = success;
+  }
+
+  public double getScore() {
+    return score;
+  }
+
+  public void setScore(double score) {
+    this.score = score;
+  }
+
+  public String getAction() {
+    return action;
+  }
+
+  public void setAction(String action) {
+    this.action = action;
   }
 
   public String[] getErrorCodes() {

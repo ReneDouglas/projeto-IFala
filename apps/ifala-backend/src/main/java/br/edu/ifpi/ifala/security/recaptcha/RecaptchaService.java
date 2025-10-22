@@ -25,13 +25,15 @@ public class RecaptchaService {
     this.recaptchaConfig = recaptchaConfig;
   }
 
-  public Mono<Boolean> validarToken(String token) {
+  public Mono<Boolean> validarToken(String token, String actionEsperada, double scoreMinimo) {
     MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
     formData.add("secret", recaptchaConfig.getSecret());
     formData.add("response", token);
 
     return this.webClient.post().bodyValue(formData).retrieve()
-        .bodyToMono(RecaptchaResponseDto.class).map(RecaptchaResponseDto::isSuccess)
+        .bodyToMono(RecaptchaResponseDto.class)
+        .map(dto -> dto.isSuccess() && dto.getAction() != null
+            && dto.getAction().equalsIgnoreCase(actionEsperada) && dto.getScore() >= scoreMinimo)
         .onErrorReturn(false); // Erro de comunicação retorna falso
   }
 }
