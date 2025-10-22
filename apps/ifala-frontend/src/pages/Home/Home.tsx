@@ -93,7 +93,7 @@ export function Home() {
                 <div className={`token-input ${showTokenInput ? 'show' : ''}`}>
                   <input
                     type='text'
-                    placeholder='Digite o token de acompanhamento'
+                    placeholder='Digite seu token de acompanhamento'
                     value={token}
                     onChange={(e) => setToken(e.target.value)}
                   />
