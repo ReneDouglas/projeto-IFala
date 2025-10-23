@@ -15,14 +15,10 @@ export function DenunciasList() {
     ordenacao: 'dataCriacao,desc',
   });
 
-  const {
-    denuncias,
-    loading,
-    error,
-    totalPages,
-
-    refetch,
-  } = useDenuncias(currentPage, searchParams);
+  const { denuncias, loading, error, totalPages, refetch } = useDenuncias(
+    currentPage,
+    searchParams,
+  );
 
   const [showWelcome, setShowWelcome] = useState(true);
 
@@ -214,32 +210,16 @@ export function DenunciasList() {
                       </div>
                     )}
                   </div>
-
-                  {/* Ordenação Rápida */}
-                  <div className='quick-sort'>
-                    <label>Ordenar por:</label>
-                    <select
-                      value={searchParams.ordenacao}
-                      onChange={(e) =>
-                        handleFilterChange('ordenacao', e.target.value)
-                      }
-                      className='sort-select'
-                    >
-                      <option value='dataCriacao,desc'>Mais Recentes</option>
-                      <option value='dataCriacao,asc'>Mais Antigas</option>
-                      <option value='titulo,asc'>Título A-Z</option>
-                      <option value='titulo,desc'>Título Z-A</option>
-                    </select>
-                  </div>
                 </div>
 
                 {/* Lista de Denúncias ou Estado de Nenhum Resultado */}
                 <div className='denuncias-grid'>
                   {denuncias.length > 0 ? (
-                    denuncias.map((denuncia) => (
+                    denuncias.map((denuncia, index) => (
                       <DenunciaCard
                         key={denuncia.id}
                         denuncia={denuncia}
+                        contador={index + 1} // ← CORREÇÃO AQUI
                         onViewDetails={handleViewDetails}
                         onViewMessages={handleViewMessages}
                       />
