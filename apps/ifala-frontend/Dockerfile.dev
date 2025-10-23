@@ -1,0 +1,17 @@
+# Dockerfile para ambiente de desenvolvimento do frontend IFALA
+FROM node:22-bookworm
+
+# Definir diretório de trabalho
+WORKDIR /app
+
+# Copiar arquivos de dependência
+COPY package*.json ./
+
+# Instalar TODAS as dependências (incluindo devDependencies)
+RUN npm install
+
+EXPOSE 5173
+
+# Comando para iniciar o servidor de desenvolvimento
+# 'npm run dev' é o padrão mais comum.
+CMD ["npm", "run", "dev"]
