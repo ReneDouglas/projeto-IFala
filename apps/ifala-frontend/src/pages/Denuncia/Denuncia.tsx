@@ -88,6 +88,10 @@ export function Denuncia() {
 
     if (name === 'grau') {
       setFormData((prev) => ({ ...prev, grau: value, curso: '', turma: '' }));
+    } else if (name === 'relato') {
+      // Remove múltiplos espaços consecutivos, permitindo apenas espaços simples
+      const sanitizedValue = value.replace(/\s{2,}/g, ' ');
+      setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
