@@ -47,10 +47,61 @@
 @media (max-width: 768px) {
   .pagination {
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
+    padding-top: 1.25rem;
+    margin-top: 1.25rem;
   }
 
   .pagination-pages {
     order: -1;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pagination-btn,
+  .pagination-page {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination {
+    gap: 0.85rem;
+    padding-top: 1rem;
+    margin-top: 1rem;
+  }
+
+  .pagination-pages {
+    gap: 0.15rem;
+    flex-wrap: wrap;
+  }
+
+  .pagination-btn,
+  .pagination-page {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    min-width: 32px;
+    min-height: 32px;
+    justify-content: center;
+  }
+
+  .pagination-btn .material-symbols-outlined {
+    font-size: 1rem !important;
+  }
+
+  /* Esconder algumas páginas no mobile para economizar espaço */
+  .pagination-page.hide-mobile {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .pagination-btn,
+  .pagination-page {
+    padding: 5px 8px;
+    font-size: 0.7rem;
+    min-width: 28px;
+    min-height: 28px;
   }
 }
