@@ -5,6 +5,16 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: fit-content;
+  flex-shrink: 0;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
 }
 
 .status-resolvido {
@@ -46,18 +56,49 @@
 /* Responsivo */
 @media (max-width: 768px) {
   .status-badge {
-    padding: 4px 7px;
-    font-size: 0.6rem;
+    padding: 3px 6px;
+    font-size: 0.55rem;
     border-radius: 10px;
+    min-height: 1.4rem;
+    align-items: center;
+    max-width: 100px;
+    flex-shrink: 1;
   }
 }
 
 @media (max-width: 480px) {
   .status-badge {
-    padding: 3px 6px;
-    font-size: 0.55rem;
+    padding: 3px 5px;
+    font-size: 0.5rem;
     border-radius: 8px;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
+    min-height: 1.3rem;
+    align-items: center;
+    text-align: center;
+    max-width: 90px;
+    flex-shrink: 1;
   }
 }
 
+@media (max-width: 360px) {
+  .status-badge {
+    padding: 2px 4px;
+    font-size: 0.45rem;
+    border-radius: 6px;
+    letter-spacing: 0.1px;
+    min-height: 1.2rem;
+    max-width: 75px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+  }
+}
+
+@media (max-width: 320px) {
+  .status-badge {
+    padding: 2px 3px;
+    font-size: 0.4rem;
+    max-width: 65px;
+    min-height: 1.1rem;
+  }
+}
