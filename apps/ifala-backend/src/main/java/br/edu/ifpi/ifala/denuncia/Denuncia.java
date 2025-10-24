@@ -87,24 +87,6 @@ public class Denuncia implements Serializable {
   @JoinColumn(name = "denunciante_id", referencedColumnName = "id", unique = true)
   private Denunciante denunciante;
 
-  // @Column(name = "nome_completo")
-  // private String nomeCompleto;
-
-  // @Column(name = "email")
-  // private String email;
-
-  // @Enumerated(EnumType.STRING)
-  // @Column(name = "grau")
-  // private Grau grau;
-
-  // @Enumerated(EnumType.STRING)
-  // @Column(name = "curso")
-  // private Curso curso;
-
-  // @Enumerated(EnumType.STRING)
-  // @Column(name = "turma")
-  // private Turma turma;
-
   /**
    * Construtor padrão que inicializa uma nova denúncia. Define um token de
    * acompanhamento único,
