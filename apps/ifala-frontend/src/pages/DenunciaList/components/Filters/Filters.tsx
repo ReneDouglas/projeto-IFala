@@ -32,7 +32,7 @@ export const Filters = ({
     { value: '', label: 'Todos os status' },
     { value: 'RECEPTADO', label: 'Receptado' },
     { value: 'EM_ANALISE', label: 'Em Análise' },
-    { value: 'AGUARDANDO_INFORMACOES', label: 'Aguardando Informações' },
+    { value: 'AGUARDANDO_INFORMACOES', label: 'Pendente' },
     { value: 'RESOLVIDO', label: 'Resolvido' },
     { value: 'REJEITADO', label: 'Rejeitado' },
   ];
