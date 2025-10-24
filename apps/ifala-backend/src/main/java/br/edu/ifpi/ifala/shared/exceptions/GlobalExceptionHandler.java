@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
@@ -83,6 +84,28 @@ public class GlobalExceptionHandler {
     });
     log.warn("Erro de validação nos dados da requisição (DTO): {}", errors);
     return errors;
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public Map<String, String> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+    log.warn("Erro ao ler/parsear a requisição JSON: {}", ex.getMessage());
+    String specificMessage = "Erro no formato da requisição JSON.";
+    Throwable cause = ex.getCause();
+    if (cause instanceof com.fasterxml.jackson.databind.exc.InvalidFormatException ifx) {
+      if (ifx.getTargetType() != null && ifx.getTargetType().isEnum()) {
+        specificMessage = String.format("Valor inválido '%s' para o campo '%s'. Valores aceitos: %s",
+            ifx.getValue(),
+            ifx.getPath().get(ifx.getPath().size() - 1).getFieldName(),
+            java.util.Arrays.toString(ifx.getTargetType().getEnumConstants()));
+      }
+    } else if (cause instanceof com.fasterxml.jackson.databind.exc.MismatchedInputException mie) {
+      if (!mie.getPath().isEmpty()) {
+        specificMessage = String.format("Tipo de dado inválido para o campo '%s'. Verifique a documentação da API.",
+            mie.getPath().get(mie.getPath().size() - 1).getFieldName());
+      }
+    }
+    return Map.of("error", specificMessage);
   }
 
   @ExceptionHandler(Exception.class)
