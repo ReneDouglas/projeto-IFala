@@ -4,13 +4,17 @@ import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
 import br.edu.ifpi.ifala.notificacao.Notificacao;
 import br.edu.ifpi.ifala.shared.enums.*;
 import jakarta.persistence.EnumType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
@@ -79,23 +83,27 @@ public class Denuncia implements Serializable {
   @Column(name = "deseja_se_identificar")
   private boolean desejaSeIdentificar;
 
-  @Column(name = "nome_completo")
-  private String nomeCompleto;
+  @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
+  @JoinColumn(name = "denunciante_id", referencedColumnName = "id", unique = true)
+  private Denunciante denunciante;
 
-  @Column(name = "email")
-  private String email;
+  // @Column(name = "nome_completo")
+  // private String nomeCompleto;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "grau")
-  private Grau grau;
+  // @Column(name = "email")
+  // private String email;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "curso")
-  private Curso curso;
+  // @Enumerated(EnumType.STRING)
+  // @Column(name = "grau")
+  // private Grau grau;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "turma")
-  private Turma turma;
+  // @Enumerated(EnumType.STRING)
+  // @Column(name = "curso")
+  // private Curso curso;
+
+  // @Enumerated(EnumType.STRING)
+  // @Column(name = "turma")
+  // private Turma turma;
 
   /**
    * Construtor padrão que inicializa uma nova denúncia. Define um token de
@@ -213,44 +221,12 @@ public class Denuncia implements Serializable {
     this.desejaSeIdentificar = desejaSeIdentificar;
   }
 
-  public String getNomeCompleto() {
-    return nomeCompleto;
+  public Denunciante getDenunciante() {
+    return denunciante;
   }
 
-  public void setNomeCompleto(String nomeCompleto) {
-    this.nomeCompleto = nomeCompleto;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public Grau getGrau() {
-    return grau;
-  }
-
-  public void setGrau(Grau grau) {
-    this.grau = grau;
-  }
-
-  public Curso getCurso() {
-    return curso;
-  }
-
-  public void setCurso(Curso curso) {
-    this.curso = curso;
-  }
-
-  public Turma getTurma() {
-    return turma;
-  }
-
-  public void setTurma(Turma turma) {
-    this.turma = turma;
+  public void setDenunciante(Denunciante denunciante) {
+    this.denunciante = denunciante;
   }
 
   @Override

@@ -81,17 +81,24 @@ public class DenunciaService {
 
       log.info("Processando criação de denúncia identificada.");
       novaDenuncia.setDesejaSeIdentificar(true);
+
+      Denunciante denunciante = new Denunciante();
       DadosDeIdentificacaoDto idDto = dto.dadosDeIdentificacao();
 
-      novaDenuncia.setNomeCompleto(policy.sanitize(idDto.nomeCompleto()));
-      novaDenuncia.setEmail(policy.sanitize(idDto.email()));
-      novaDenuncia.setGrau(idDto.grau());
-      novaDenuncia.setCurso(idDto.curso());
-      novaDenuncia.setTurma(idDto.turma());
+      denunciante.setNomeCompleto(policy.sanitize(idDto.nomeCompleto()));
+      denunciante.setEmail(policy.sanitize(idDto.email()));
+      denunciante.setGrau(idDto.grau());
+      denunciante.setCurso(idDto.curso());
+      denunciante.setTurma(idDto.turma());
+
+      novaDenuncia.setDenunciante(denunciante);
+
     } else {
       log.info("Processando criação de denúncia anônima.");
       novaDenuncia.setDesejaSeIdentificar(false);
+      novaDenuncia.setDenunciante(null);
     }
+
     Denuncia denunciaSalva = denunciaRepository.save(novaDenuncia);
 
     log.info("Denúncia salva com sucesso");
@@ -202,29 +209,30 @@ public class DenunciaService {
         .collect(Collectors.toList());
   }
 
-  public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento,
-      AcompanhamentoDto dto) {
+  public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento, AcompanhamentoDto dto) {
     log.info("Adicionando acompanhamento (público) para o token: {}", tokenAcompanhamento);
     Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
         .filter(d -> d.getStatus() != Status.RESOLVIDO && d.getStatus() != Status.REJEITADO)
-        .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada ou finalizada."));
+        .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada, finalizada ou token inválido."));
 
     Acompanhamento novoAcompanhamento = new Acompanhamento();
-    String mensagemSanitizada = policy.sanitize(dto.mensagem());
-    novoAcompanhamento.setMensagem(mensagemSanitizada);
+    novoAcompanhamento.setMensagem(policy.sanitize(dto.mensagem()));
     novoAcompanhamento.setDenuncia(denuncia);
 
-    // se deseja se identificar, usa o nome completo; senão, usa "DENUNCIANTE"
-    if (denuncia.isDesejaSeIdentificar() && denuncia.getNomeCompleto() != null
-        && !denuncia.getNomeCompleto().isBlank()) {
-      novoAcompanhamento.setAutor(denuncia.getNomeCompleto());
+    // se o denunciante optou por se identificar, usar o nome completo dele como
+    // autor
+    if (denuncia.isDesejaSeIdentificar() && denuncia.getDenunciante() != null
+        && denuncia.getDenunciante().getNomeCompleto() != null
+        && !denuncia.getDenunciante().getNomeCompleto().isBlank()) {
+      novoAcompanhamento.setAutor(denuncia.getDenunciante().getNomeCompleto());
     } else {
-      novoAcompanhamento.setAutor("DENUNCIANTE");
+      novoAcompanhamento.setAutor("DENUNCIANTE"); // se for anônimo, usar "DENUNCIANTE"
     }
 
     Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
     log.info("Acompanhamento adicionado com sucesso a denúncia de token: {}", tokenAcompanhamento);
     return mapToAcompanhamentoResponseDto(salvo);
+
   }
 
   public AcompanhamentoDto adicionarAcompanhamentoAdmin(Long id, AcompanhamentoDto dto,
