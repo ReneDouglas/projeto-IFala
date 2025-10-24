@@ -333,11 +333,11 @@
 }
 
 /* --------------------------------------------------------------------------
-   Grid de Denúncias 3x3 Fixo para 9 cards
+   Grid de Denúncias - Responsivo
    -------------------------------------------------------------------------- */
 .denuncias-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* ← 3 colunas fixas */
+  grid-template-columns: repeat(3, 1fr); /* Desktop: 3 colunas */
   gap: 1.5rem;
   margin-bottom: 3rem;
   min-height: 600px; /* Altura mínima para manter layout consistente */
@@ -749,9 +749,9 @@
     gap: 1.5rem;
   }
 
+  /* Removido o grid 1fr que estava causando conflito */
   .denuncias-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
     min-height: auto;
   }
 
@@ -904,8 +904,8 @@
     padding: 0.4rem 0.8rem;
   }
 
+  /* Removido grid-template-columns: 1fr que estava causando conflito */
   .denuncias-grid {
-    grid-template-columns: 1fr;
     gap: 1rem;
   }
 

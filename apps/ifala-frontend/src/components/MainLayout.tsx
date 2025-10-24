@@ -24,7 +24,7 @@ export function MainLayout() {
   };
 
   const handleDashboard = () => {
-    // TODO: Implementar navegação para dashboard
+    navigate('/dashboard-denuncias');
   };
 
   const handleChangePassword = () => {
@@ -33,6 +33,10 @@ export function MainLayout() {
 
   const handleNewDenuncia = () => {
     navigate('/denuncia');
+  };
+
+  const handleAcompanhamento = () => {
+    navigate('/acompanhamento');
   };
 
   return (
@@ -50,6 +54,7 @@ export function MainLayout() {
         onDashboard={handleDashboard}
         onChangePassword={handleChangePassword}
         onNewDenuncia={handleNewDenuncia}
+        onAcompanhamento={handleAcompanhamento}
       />
       <main>
         {/* O <Outlet /> é o espaço onde o conteúdo de cada página será renderizado */}
