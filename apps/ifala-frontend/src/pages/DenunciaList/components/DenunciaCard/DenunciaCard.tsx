@@ -112,18 +112,20 @@ export const DenunciaCard = ({
       <div className='denuncia-actions'>
         <button
           className='btn-details'
+          title='Ver Detalhes da Denúncia'
           onClick={() => onViewDetails(denuncia.token)}
         >
           <span className='material-symbols-outlined'>visibility</span>
-          Ver Detalhes
+          <span>Ver Detalhes</span>
         </button>
 
         <button
           className='btn-messages'
+          title='Ver Mensagens da Denúncia'
           onClick={() => onViewMessages(denuncia.token)}
         >
           <span className='material-symbols-outlined'>chat</span>
-          Mensagens
+          <span>Mensagens</span>
         </button>
       </div>
 
