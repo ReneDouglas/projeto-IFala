@@ -104,3 +104,58 @@
   background: var(--azul-confianca);
   color: var(--branco);
 }
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .select-label {
+    font-size: 0.85rem;
+  }
+
+  .custom-select {
+    padding: 0.7rem 0.9rem;
+    padding-left: 2.4rem;
+    padding-right: 2.4rem;
+    font-size: 0.95rem;
+  }
+
+  .select-icon,
+  .select-arrow,
+  .select-success {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .select-label {
+    font-size: 0.8rem;
+  }
+
+  .custom-select {
+    padding: 0.65rem 0.85rem;
+    padding-left: 2.3rem;
+    padding-right: 2.3rem;
+    font-size: 0.9rem;
+    border-radius: 7px;
+  }
+
+  .select-icon {
+    left: 10px;
+    font-size: 1rem;
+  }
+
+  .select-arrow {
+    right: 10px;
+    font-size: 1rem;
+  }
+
+  .select-success {
+    right: 35px;
+    font-size: 1rem;
+  }
+
+  .custom-select option {
+    padding: 0.4rem;
+    font-size: 0.9rem;
+  }
+}
+

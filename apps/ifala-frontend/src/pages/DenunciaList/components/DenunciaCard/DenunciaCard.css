@@ -373,6 +373,31 @@
     align-items: flex-start;
   }
 
+  .header-left {
+    width: 100%;
+  }
+
+  .denuncia-token {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .denuncia-titulo {
+    font-size: 1rem;
+  }
+
+  .denuncia-descricao {
+    font-size: 0.85rem;
+  }
+
+  .metadata-item {
+    font-size: 0.75rem;
+  }
+
+  .metadata-item .icon {
+    font-size: 0.9rem !important;
+  }
+
   .denuncia-actions {
     flex-direction: column;
     gap: 0.5rem;
@@ -381,15 +406,97 @@
   .btn-details,
   .btn-messages {
     width: 100%;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  .ultima-atualizacao {
+    font-size: 0.7rem;
   }
 }
 
 @media (max-width: 480px) {
   .denuncia-card {
     padding: 1rem;
-    margin: 0 -0.5rem;
-    border-radius: 8px;
-    border-left: none;
-    border-right: none;
+    border-radius: 12px;
+    /* Removido margin negativo que quebrava o layout */
+    margin: 0;
+  }
+
+  .denuncia-card::before {
+    width: 3px;
+  }
+
+  .denuncia-card:hover::before {
+    width: 4px;
+  }
+
+  .denuncia-header {
+    gap: 0.5rem;
+  }
+
+  .denuncia-token {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .token-icon {
+    font-size: 0.85rem !important;
+  }
+
+  .denuncia-titulo {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .denuncia-descricao {
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .denuncia-metadata {
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .metadata-item {
+    font-size: 0.7rem;
+  }
+
+  .metadata-item .icon {
+    font-size: 0.85rem !important;
+  }
+
+  .unread-messages-btn {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.75rem;
+  }
+
+  .alert-icon {
+    font-size: 0.95rem !important;
+  }
+
+  .btn-details,
+  .btn-messages {
+    padding: 0.65rem 0.8rem;
+    font-size: 0.75rem;
+  }
+
+  .btn-details .material-symbols-outlined,
+  .btn-messages .material-symbols-outlined {
+    font-size: 1rem !important;
+  }
+
+  .denuncia-footer {
+    padding-top: 0.75rem;
+  }
+
+  .footer-icon {
+    font-size: 0.85rem !important;
+  }
+
+  .ultima-atualizacao {
+    font-size: 0.65rem;
   }
 }
