@@ -23,24 +23,32 @@ CREATE TABLE IF NOT EXISTS usuarios_perfil (
     FOREIGN KEY (usuarios_id) REFERENCES usuarios (id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    usuario_id BIGINT NOT NULL,
+    data_expiracao TIMESTAMP NOT NULL,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE
+);
+
 -- Inserir usuários
 INSERT INTO usuarios (nome, email, senha, must_change_password, username)
 VALUES 
-  ('Phaola', 'paixaophaola@gmail.com', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'phaola'),
-  ('Renê', 'rene.moraes@ifpi.edu.br', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'rene'),
-  ('Joniel', 'jonielmendes237@gmail.com', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'joniel'),
-  ('Jonathas', 'jhon.gomes.r@gmail.com', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'jonathas'),
-  ('Luis', 'luisthedevmagician@gmail.com', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'luis'),
-  ('João', 'joaoandresantana38@gmail.com', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'joao'),
-  ('Edilucia', 'ediluciamendesbarbosa@gmail.com', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'edilucia'),
-  ('Rafael', 'cacor.2021121tads0038@aluno.ifpi.edu.br', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'rafael'),
-  ('Elissandra', 'elissandrav563@gmail.com', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'elissandra'),
-  ('Keyllane', 'keyllaneguede@gmail.com', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'keyllane'),
-  ('Mateus', 'matheuscatalao99@gmail.com', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'mateus'),
-  ('Guilherme', 'coradodasilva33@gmail.com', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'guilherme'),
-  ('Thiago', 'thiagomoraisjacobina@gmail.com', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'thiago'),
-  ('Luana', 'cacor.2020121tads0005@aluno.ifpi.edu.br', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'luana'),
-  ('Jordean', 'cacor.2019121tads0028@aluno.ifpi.edu.br', '$2a$10$5R.283.kkRx0DJZBkKP1E.7uiSrYwXB5wTM1kUhYTPAiSkQoJRFQy', TRUE, 'jordean')
+  ('Phaola', 'paixaophaola@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'phaola'),
+  ('Renê', 'rene.moraes@ifpi.edu.br', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'rene'),
+  ('Joniel', 'jonielmendes237@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'joniel'),
+  ('Jonathas', 'jhon.gomes.r@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'jonathas'),
+  ('Luis', 'luisthedevmagician@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'luis'),
+  ('João', 'joaoandresantana38@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'joao'),
+  ('Edilucia', 'ediluciamendesbarbosa@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'edilucia'),
+  ('Rafael', 'cacor.2021121tads0038@aluno.ifpi.edu.br', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'rafael'),
+  ('Elissandra', 'elissandrav563@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'elissandra'),
+  ('Keyllane', 'keyllaneguede@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'keyllane'),
+  ('Mateus', 'matheuscatalao99@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'mateus'),
+  ('Guilherme', 'coradodasilva33@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'guilherme'),
+  ('Thiago', 'thiagomoraisjacobina@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'thiago'),
+  ('Luana', 'cacor.2020121tads0005@aluno.ifpi.edu.br', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'luana'),
+  ('Jordean', 'cacor.2019121tads0028@aluno.ifpi.edu.br', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'jordean')
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO usuarios_perfil (usuarios_id, perfil)

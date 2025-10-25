@@ -1,6 +1,6 @@
 package br.edu.ifpi.ifala.security;
 
-import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDto;
+import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -10,15 +10,19 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 import java.security.Key;
 import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class JwtUtil {
+
+  private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
   @Value("${jwt.secret}")
   private String secretKey;
 
   @Value("${jwt.expiration}")
-  private long expirationTime;
+  private long expirationSeconds;
 
   private Key signingKey;
 
@@ -27,15 +31,19 @@ public class JwtUtil {
     this.signingKey = Keys.hmacShaKeyFor(secretKey.getBytes());
   }
 
-  public TokenDataDto generateToken(String username) {
+  public TokenDataDTO generateToken(String username) {
     Date issuedAt = new Date();
-    Date expiration = new Date(System.currentTimeMillis() + expirationTime);
+
+    Date expiration = new Date(System.currentTimeMillis() + (expirationSeconds * 1000));
     String token = Jwts.builder().setSubject(username).setIssuedAt(issuedAt)
         .setExpiration(expiration).signWith(signingKey, SignatureAlgorithm.HS256).compact();
-    return new TokenDataDto(token, issuedAt.toInstant(), expiration.toInstant());
+    logger.info("Gerando JWT para {}: issuedAt={}, expiration={}", username, issuedAt, expiration);
+    return new TokenDataDTO(token, issuedAt.toInstant(), expiration.toInstant());
   }
 
   public Claims extractClaims(String token) {
+    // IMPORTANTE: O parser do JJWT verifica a expiração automaticamente neste
+    // ponto.
     return Jwts.parserBuilder().setSigningKey(signingKey).build().parseClaimsJws(token).getBody();
   }
 
@@ -52,18 +60,21 @@ public class JwtUtil {
   }
 
   /**
-   * Valida se o token pode ser usado para refresh. Permite tokens expirados para que possam ser
+   * Valida se o token pode ser usado para refresh. Permite tokens expirados para
+   * que possam ser
    * renovados.
+   * * @param token o token JWT
    * 
-   * @param token o token JWT
    * @return true se o token é válido (mesmo que expirado)
    */
   public boolean canRefreshToken(String token) {
     try {
+      // Tenta extrair. Se passar, é válido e não expirou (mas este método é
+      // tipicamente usado para Refresh Token, que pode estar expirado).
       extractClaims(token);
       return true;
     } catch (io.jsonwebtoken.ExpiredJwtException e) {
-      // Token expirado mas válido para refresh
+      // Token expirado mas válido para refresh (neste caso, é um Refresh Token)
       return true;
     } catch (Exception e) {
       // Token inválido (assinatura incorreta, malformado, etc.)
@@ -72,15 +83,17 @@ public class JwtUtil {
   }
 
   /**
-   * Extrai o username de um token mesmo que esteja expirado. Útil para o processo de refresh token.
+   * Extrai o username de um token mesmo que esteja expirado. Útil para o processo
+   * de refresh token.
+   * * @param token o token JWT
    * 
-   * @param token o token JWT
    * @return o username do token
    */
   public String extractUsernameFromExpiredToken(String token) {
     try {
       return extractUsername(token);
     } catch (io.jsonwebtoken.ExpiredJwtException e) {
+      // No caso de expiração, a exceção contém os claims (o corpo do token)
       return e.getClaims().getSubject();
     }
   }

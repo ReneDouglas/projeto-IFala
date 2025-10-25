@@ -1,23 +1,25 @@
 package br.edu.ifpi.ifala.autenticacao;
 
-import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDto;
-import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDto;
-import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDto;
-import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDto;
-import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDto;
-import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDto;
-import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDto;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
 import br.edu.ifpi.ifala.security.JwtUtil;
 import br.edu.ifpi.ifala.security.TokenBlacklistService;
 import jakarta.servlet.http.HttpServletRequest;
-import io.jsonwebtoken.ExpiredJwtException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +32,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Exceção personalizada para lidar com erros de autenticação e autorização, permitindo retornar
+ * Exceção personalizada para lidar com erros de autenticação e autorização,
+ * permitindo retornar
  * códigos de status HTTP específicos.
  */
 class AutenticacaoException extends RuntimeException {
@@ -46,7 +49,6 @@ class AutenticacaoException extends RuntimeException {
   }
 }
 
-
 @Service
 public class AuthServiceImpl implements AuthService {
   private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
@@ -55,23 +57,30 @@ public class AuthServiceImpl implements AuthService {
   private final PasswordEncoder passwordEncoder;
   private final JwtUtil jwtUtil;
   private final TokenBlacklistService tokenBlacklistService;
+  private final RefreshTokenService refreshTokenService;
   private final JavaMailSender mailSender;
 
-  // Configuração da URL do front-end para redefinição de senha
+  private final AuthenticationManager authenticationManager;
+
   @Value("${app.frontend.reset-password-url:http://localhost:3000/reset-password}")
   private String resetPasswordUrl;
 
   public AuthServiceImpl(UsuarioRepository userRepository, PasswordEncoder passwordEncoder,
-      JwtUtil jwtUtil, TokenBlacklistService tokenBlacklistService, JavaMailSender mailSender) {
+      JwtUtil jwtUtil, TokenBlacklistService tokenBlacklistService,
+      RefreshTokenService refreshTokenService, JavaMailSender mailSender,
+      AuthenticationManager authenticationManager) {
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.jwtUtil = jwtUtil;
     this.tokenBlacklistService = tokenBlacklistService;
+    this.refreshTokenService = refreshTokenService;
     this.mailSender = mailSender;
+    this.authenticationManager = authenticationManager;
   }
 
   /**
-   * Determina o caminho de redirecionamento do usuário após o login, baseado em seus perfis.
+   * Determina o caminho de redirecionamento do usuário após o login, baseado em
+   * seus perfis.
    */
   private String determineRedirect(Usuario user) {
     String rolesList = user.getRoles().stream().map(Perfis::name).collect(Collectors.joining(", "));
@@ -88,12 +97,11 @@ public class AuthServiceImpl implements AuthService {
     return determinedPath;
   }
 
-
   // LÓGICA DE REGISTRO
 
   @Override
   @Transactional
-  public UsuarioResponseDto registrarUsuario(RegistroRequestDto registroRequest) {
+  public UsuarioResponseDTO registrarUsuario(RegistroRequestDTO registroRequest) {
     logger.info("Tentativa de registro de usuário: {}", registroRequest.email());
 
     // Valida se o e-mail já está em uso
@@ -136,11 +144,9 @@ public class AuthServiceImpl implements AuthService {
 
     logger.info("Usuário registrado com sucesso: {}", usuario.getEmail());
 
-    return new UsuarioResponseDto(usuario.getNome(), usuario.getEmail(), usuario.getUsername(),
+    return new UsuarioResponseDTO(usuario.getNome(), usuario.getEmail(), usuario.getUsername(),
         usuario.getRoles());
   }
-
-
 
   // LÓGICA DE REDEFINIÇÃO DE SENHA (E-MAIL)
 
@@ -181,55 +187,64 @@ public class AuthServiceImpl implements AuthService {
   // LÓGICA DE LOGIN
 
   @Override
-  public LoginResponseDto login(LoginRequestDto req) {
+  public LoginResponseDTO login(LoginRequestDTO req) {
     String identifier = req.email() != null ? req.email() : req.username();
     logger.info("Tentativa de login recebida para: {}", identifier);
 
+    // 1. Tenta autenticar via Spring Security
+    try {
+      // Usa o identifier (email ou username) e a senha
+      authenticationManager
+          .authenticate(new UsernamePasswordAuthenticationToken(identifier, req.password()));
+      logger.info("Autenticação via Spring Security bem-sucedida para: {}", identifier);
+
+    } catch (AuthenticationException e) {
+      logger.warn("Falha de autenticação (credenciais inválidas) para: {}", identifier, e);
+      // Mapeia a exceção do Spring Security para a sua exceção personalizada
+      throw new AutenticacaoException("Usuário ou senha inválidos.", 401); // 401 Unauthorized
+    }
+
+    // 2. Busca o usuário no repositório para a lógica de negócio
+    // (mustChangePassword, roles, etc.)
     Optional<Usuario> userOpt = req.email() != null ? userRepository.findByEmail(req.email())
         : userRepository.findByUsername(req.username());
 
-    // Verifica se o usuário existe
     if (userOpt.isEmpty()) {
-      logger.warn("Falha de login: Usuário não encontrado para: {}", identifier);
-      throw new AutenticacaoException("Usuário ou senha inválidos.", 401); // 401 Unauthorized
+      logger.error("Usuário autenticado não encontrado no DB! Email/Username: {}", identifier);
+      throw new AutenticacaoException("Erro interno de autenticação.", 500);
     }
 
     Usuario user = userOpt.get();
 
-    // Verifica a senha
-    if (!passwordEncoder.matches(req.password(), user.getSenha())) {
-      logger.warn("Falha de login para o usuário {}: Senha incorreta.", user.getEmail());
-      throw new AutenticacaoException("Usuário ou senha inválidos.", 401);
-    }
-
     logger.info("Login bem-sucedido para o usuário: {}", user.getEmail());
 
-    // Se a senha precisar ser trocada, força a redefinição
+    // 3. Se a senha precisar ser trocada, força a redefinição
     if (user.isMustChangePassword()) {
       logger.info("Usuário {} deve alterar a senha. Chamando lógica de redefinição.",
           user.getEmail());
       sendPasswordReset(user);
 
-      return new LoginResponseDto(null, null, null, null, true, null,
+      return new LoginResponseDTO(null, null, null, null, true, null,
           "É necessário alterar a senha. Um e-mail de redefinição foi enviado.");
     }
 
-    // Gera e retorna tokens
-    TokenDataDto tokenData = jwtUtil.generateToken(user.getEmail());
-    TokenDataDto refreshTokenData = jwtUtil.generateToken(user.getEmail());
+    // 4. Gera e retorna tokens
+    TokenDataDTO tokenData = jwtUtil.generateToken(user.getEmail());
+    // Cria e persiste um refresh token rotativo (UUID) no banco
+    RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
     String redirect = determineRedirect(user);
 
     logger.info("Login finalizado para {}. Redirecionamento: {}", user.getEmail(), redirect);
 
-    return new LoginResponseDto(tokenData.token(), tokenData.issuedAt(), tokenData.expirationTime(),
-        refreshTokenData.token(), false, redirect, null);
+    return new LoginResponseDTO(tokenData.token(), tokenData.issuedAt(), tokenData.expirationTime(),
+        refreshToken.getToken(), false, redirect, null);
   }
 
   // LÓGICA DE MUDANÇA DE SENHA
 
   @Override
   @Transactional
-  public LoginResponseDto changePassword(MudarSenhaRequestDto req) {
+  public LoginResponseDTO changePassword(MudarSenhaRequestDTO req) {
     logger.info("Tentativa de mudança de senha recebida para o e-mail: {}", req.email());
 
     Optional<Usuario> userOpt = userRepository.findByEmail(req.email());
@@ -272,72 +287,67 @@ public class AuthServiceImpl implements AuthService {
     logger.info("Senha alterada com sucesso para o usuário: {}", user.getEmail());
 
     // Gera novos tokens de acesso após a mudança de senha
-    TokenDataDto tokenData = jwtUtil.generateToken(user.getEmail());
-    TokenDataDto refreshTokenData = jwtUtil.generateToken(user.getEmail());
+    TokenDataDTO tokenData = jwtUtil.generateToken(user.getEmail());
+    RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
     String redirect = determineRedirect(user);
 
     logger.info("Redefinição de senha finalizada. Novo redirecionamento: {}", redirect);
 
-    return new LoginResponseDto(tokenData.token(), tokenData.issuedAt(), tokenData.expirationTime(),
-        refreshTokenData.token(), false, redirect, null);
+    return new LoginResponseDTO(tokenData.token(), tokenData.issuedAt(), tokenData.expirationTime(),
+        refreshToken.getToken(), false, redirect, null);
   }
 
   // LÓGICA DE REFRESH TOKEN
 
   @Override
-  public LoginResponseDto refreshToken(RefreshTokenRequestDto req) {
+  public LoginResponseDTO refreshToken(RefreshTokenRequestDTO req) {
     String oldRefreshToken = req.token();
-    logger.info("Tentativa de refresh de token recebida");
+    logger.info("Tentativa de refresh de token recebida (fluxo opaco DB)");
 
-    // Verifica se o token antigo está na blacklist
-    if (tokenBlacklistService.isBlacklisted(oldRefreshToken)) {
-      logger.warn("Tentativa de refresh com token na blacklist");
-      throw new AutenticacaoException("Refresh token inválido ou expirado.", 401);
-    }
-
-    // Validação adicional de token (pode incluir validação de assinatura, etc.)
-    if (!jwtUtil.canRefreshToken(oldRefreshToken)) {
-      logger.warn("Refresh token inválido para refresh");
+    // Busca o refresh token no banco
+    Optional<RefreshToken> existing = refreshTokenService.findByToken(oldRefreshToken);
+    if (existing.isEmpty()) {
+      logger.warn("Refresh token não encontrado no banco: {}", oldRefreshToken);
       throw new AutenticacaoException("Refresh token inválido.", 401);
     }
 
+    RefreshToken stored = existing.get();
+
+    // Verifica expiração do refresh token
     try {
-      // Extrai o username (e-mail) do token antigo
-      String username = jwtUtil.extractUsernameFromExpiredToken(oldRefreshToken);
-      logger.debug("Refresh token para usuário: {}", username);
-
-      Optional<Usuario> userOpt = userRepository.findByEmail(username);
-      if (userOpt.isEmpty()) {
-        logger.warn("Usuário não encontrado para refresh: {}", username);
-        throw new AutenticacaoException("Usuário não encontrado.", 401);
+      refreshTokenService.verifyExpiration(stored);
+    } catch (RuntimeException e) {
+      logger.warn("Refresh token expirado: {}", oldRefreshToken);
+      // garante remoção do token expirado
+      try {
+        refreshTokenService.deleteByToken(oldRefreshToken);
+      } catch (Exception ignored) {
       }
+      throw new AutenticacaoException("Refresh token expirado. Faça login novamente.", 401);
+    }
 
-      Usuario user = userOpt.get();
+    // Usuário associado ao refresh token
+    Usuario user = stored.getUsuario();
 
-      // Gera novos tokens
-      TokenDataDto accessTokenData = jwtUtil.generateToken(user.getEmail());
-      TokenDataDto refreshTokenData = jwtUtil.generateToken(user.getEmail());
+    try {
+      // Gera novo access token (JWT) e novo refresh token (rotativo, salvo no DB)
+      TokenDataDTO accessTokenData = jwtUtil.generateToken(user.getEmail());
+      RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user.getEmail());
       String redirect = determineRedirect(user);
 
       logger.info("Tokens renovados com sucesso para: {}", user.getEmail());
 
-      // Coloca o Refresh Token antigo na blacklist
+      // Remove o refresh token antigo do banco
       try {
-        Instant expiresAt = jwtUtil.extractClaims(oldRefreshToken).getExpiration().toInstant();
-        tokenBlacklistService.blacklistToken(oldRefreshToken, expiresAt);
-      } catch (ExpiredJwtException e) {
-        tokenBlacklistService.blacklistToken(oldRefreshToken,
-            e.getClaims().getExpiration().toInstant());
+        refreshTokenService.deleteByToken(oldRefreshToken);
+      } catch (Exception ignored) {
       }
 
-      return new LoginResponseDto(accessTokenData.token(), accessTokenData.issuedAt(),
-          accessTokenData.expirationTime(), refreshTokenData.token(), false, redirect,
+      return new LoginResponseDTO(accessTokenData.token(), accessTokenData.issuedAt(),
+          accessTokenData.expirationTime(), newRefreshToken.getToken(), false, redirect,
           "Tokens renovados com sucesso.");
-
-    } catch (AutenticacaoException e) {
-      throw e;
     } catch (Exception e) {
-      logger.error("Erro ao processar refresh token", e);
+      logger.error("Erro ao processar refresh token opaco", e);
       throw new AutenticacaoException("Erro ao processar refresh token.", 500);
     }
   }
@@ -356,6 +366,20 @@ public class AuthServiceImpl implements AuthService {
       Instant expiresAt = jwtUtil.extractClaims(token).getExpiration().toInstant();
       tokenBlacklistService.blacklistToken(token, expiresAt);
       logger.info("Token de acesso colocado na blacklist para logout.");
+      // Também tenta remover o refresh token vindo via cookie (se houver)
+      if (request.getCookies() != null) {
+        for (jakarta.servlet.http.Cookie c : request.getCookies()) {
+          if ("refreshToken".equals(c.getName()) && c.getValue() != null
+              && !c.getValue().isBlank()) {
+            try {
+              refreshTokenService.deleteByToken(c.getValue());
+            } catch (Exception e) {
+              logger.debug("Falha ao deletar refresh token do cookie durante logout: {}",
+                  e.getMessage());
+            }
+          }
+        }
+      }
     } catch (Exception e) {
       logger.error("Erro ao processar logout/blacklist de token", e);
       throw new AutenticacaoException("Token inválido.", 400);

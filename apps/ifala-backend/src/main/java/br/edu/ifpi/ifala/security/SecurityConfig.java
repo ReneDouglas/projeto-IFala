@@ -17,15 +17,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-  /**
-   * Define as configurações de segurança, incluindo regras de acesso e filtros. O Spring injetará o
-   * JwtAuthenticationFilter (criado no método @Bean abaixo) diretamente como um parâmetro. * @param
-   * http O objeto HttpSecurity para configurar.
-   * 
-   * @param jwtAuthenticationFilter O filtro JWT injetado pelo Spring.
-   * @return O SecurityFilterChain configurado.
-   * @throws Exception Se houver erro na configuração.
-   */
+
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http,
       JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
@@ -34,7 +26,8 @@ public class SecurityConfig {
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
-            // Rotas públicas - não requerem autenticação
+            // Rotas públicas - não requerem autenticação ou JWT. O Controller fará a
+            // validação do Refresh Token.
             .requestMatchers("/api/v1/auth/login", "/actuator/**", "/api/v1/auth/redefinir-senha",
                 "/api/v1/public/**", "/api/v1/auth/refresh", "/swagger-ui/**", "/v3/api-docs/**",
                 "/swagger-ui.html", "/webjars/**", "/swagger-resources/**")
@@ -50,36 +43,17 @@ public class SecurityConfig {
     return http.build();
   }
 
-  /**
-   * Bean que define como o JwtAuthenticationFilter deve ser criado. O Spring o injetará nos métodos
-   * que o requerem (como o securityFilterChain). * @param jwtUtil O utilitário para manipulação de
-   * tokens.
-   * 
-   * @param userDetailsService O serviço para carregar detalhes do usuário.
-   * @return Uma nova instância de JwtAuthenticationFilter.
-   */
   @Bean
   public JwtAuthenticationFilter jwtAuthenticationFilter(JwtUtil jwtUtil,
       UserDetailsService userDetailsService, TokenBlacklistService tokenBlacklistService) {
     return new JwtAuthenticationFilter(jwtUtil, userDetailsService, tokenBlacklistService);
   }
 
-  /**
-   * Bean para injetar o PasswordEncoder (BCrypt) no AuthController. * @return Uma instância de
-   * PasswordEncoder.
-   */
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
   }
 
-  /**
-   * Expõe o AuthenticationManager para uso em outros serviços (como o login). * @param
-   * configuration Configuração de autenticação do Spring.
-   * 
-   * @return O AuthenticationManager.
-   * @throws Exception Se houver erro.
-   */
   @Bean
   public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
       throws Exception {

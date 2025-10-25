@@ -1,6 +1,5 @@
 package br.edu.ifpi.ifala.autenticacao;
 
-
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,9 +17,16 @@ public class CustomUserDetailsService implements UserDetailsService {
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    Usuario usuario = usuarioRepository.findByEmail(username)
+    // Tenta localizar por e-mail primeiro; se não encontrado, tenta por username.
+    var usuarioOpt = usuarioRepository.findByEmail(username);
+    if (usuarioOpt.isEmpty()) {
+      usuarioOpt = usuarioRepository.findByUsername(username);
+    }
+
+    Usuario usuario = usuarioOpt
         .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
 
+    // Retorna UserDetails com o e-mail como username (o token JWT usa e-mail como identificador).
     return User.builder().username(usuario.getEmail()).password(usuario.getSenha())
         .authorities(usuario.getRoles().stream().map(role -> role.name()).toArray(String[]::new))
         .build();
