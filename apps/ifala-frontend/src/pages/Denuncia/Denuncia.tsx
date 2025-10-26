@@ -32,14 +32,13 @@ declare global {
   }
 }
 
-// Adicione este mapeamento
 const categoriaMap: { [key: string]: string } = {
   bullying_assedio: 'BULLYING',
-  uso_substancias: 'DROGAS', // ✅ CORRIGIDO
+  uso_substancias: 'DROGAS',
   violencia: 'VIOLENCIA',
   vandalismo: 'VANDALISMO',
-  fraude_academica: 'ACADEMICO', // ✅ CORRIGIDO
-  'Porte de Celular, Tablet ou Outros Dispositivos': 'OUTROS', // ✅ Não existe essa categoria, vai para OUTROS
+  fraude_academica: 'ACADEMICO',
+  'Porte de Celular, Tablet ou Outros Dispositivos': 'OUTROS',
   outros: 'OUTROS',
 };
 
@@ -140,10 +139,8 @@ export function Denuncia() {
       relato: formData.relato.trim().length < 50,
     };
 
-    // 2. Atualize o estado dos erros de uma só vez para a UI
     setErrors(validationErrors);
 
-    // 3. Verifique a variável local para decidir se continua
     const hasErrors = Object.values(validationErrors).some((error) => error);
 
     if (hasErrors) {
@@ -153,10 +150,9 @@ export function Denuncia() {
           'Por favor, preencha todos os campos obrigatórios e garanta que a descrição tenha no mínimo 50 caracteres.';
       }
       alert(errorMessage);
-      return; // Para aqui se houver erros
+      return;
     }
 
-    // Se não houver erros, a lógica continua...
     if (!window.grecaptcha) {
       alert('Erro ao carregar o reCAPTCHA. Por favor, recarregue a página.');
       return;
