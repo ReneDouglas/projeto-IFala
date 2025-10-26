@@ -1,74 +1,61 @@
 package br.edu.ifpi.ifala.utils;
 
 import br.edu.ifpi.ifala.shared.dto.EnumDTO;
-import br.edu.ifpi.ifala.utils.repositories.CategoriaRepository;
-import br.edu.ifpi.ifala.utils.repositories.CursoRepository;
-import br.edu.ifpi.ifala.utils.repositories.GrauRepository;
-import br.edu.ifpi.ifala.utils.repositories.StatusRepository;
-import br.edu.ifpi.ifala.utils.repositories.TurmaRepository;
+import br.edu.ifpi.ifala.shared.enums.Status;
+import br.edu.ifpi.ifala.shared.enums.Categorias;
+import br.edu.ifpi.ifala.shared.enums.Grau;
+import br.edu.ifpi.ifala.shared.enums.Curso;
+import br.edu.ifpi.ifala.shared.enums.Turma;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 /**
- * Serviço que fornece métodos para buscar enumerações do banco de dados e convertê-las para DTOs.
+ * Serviço que fornece métodos para converter enumerações Java para DTOs.
  * 
- * Os dados são buscados das tabelas enum_* e convertidos para EnumDTO para exposição via API.
- * Isso permite flexibilidade para adicionar/modificar valores sem recompilar a aplicação.
+ * Converte os enums do sistema para EnumDTO para exposição via API.
+ * Implementação corrigida para usar enums Java conforme especificação da Task
+ * #74.
  *
  * @author luisthedevmagician
+ * @author GitHub Copilot (correção)
  */
 @Service
 public class UtilsService {
 
-  private final StatusRepository statusRepository;
-  private final CategoriaRepository categoriaRepository;
-  private final GrauRepository grauRepository;
-  private final CursoRepository cursoRepository;
-  private final TurmaRepository turmaRepository;
-
-  public UtilsService(StatusRepository statusRepository, CategoriaRepository categoriaRepository,
-      GrauRepository grauRepository, CursoRepository cursoRepository,
-      TurmaRepository turmaRepository) {
-    this.statusRepository = statusRepository;
-    this.categoriaRepository = categoriaRepository;
-    this.grauRepository = grauRepository;
-    this.cursoRepository = cursoRepository;
-    this.turmaRepository = turmaRepository;
-  }
-
- // Busca todos os status da tabela enum_status e converte para EnumDTO.
+  // Converte todos os valores do enum Status para EnumDTO
   public List<EnumDTO> getAllStatus() {
-    return statusRepository.findAll().stream()
-        .map(entity -> new EnumDTO(entity.getValue(), entity.getLabel()))
+    return Arrays.stream(Status.values())
+        .map(status -> new EnumDTO(status.name(), status.getDisplayName()))
         .collect(Collectors.toList());
   }
 
-  // Busca todas as categorias da tabela enum_categorias e converte para EnumDTO.
+  // Converte todos os valores do enum Categorias para EnumDTO
   public List<EnumDTO> getAllCategorias() {
-    return categoriaRepository.findAll().stream()
-        .map(entity -> new EnumDTO(entity.getValue(), entity.getLabel()))
+    return Arrays.stream(Categorias.values())
+        .map(categoria -> new EnumDTO(categoria.name(), categoria.getDisplayName()))
         .collect(Collectors.toList());
   }
 
-  // Busca todos os graus da tabela enum_graus e converte para EnumDTO.
+  // Converte todos os valores do enum Grau para EnumDTO
   public List<EnumDTO> getAllGraus() {
-    return grauRepository.findAll().stream()
-        .map(entity -> new EnumDTO(entity.getValue(), entity.getLabel()))
+    return Arrays.stream(Grau.values())
+        .map(grau -> new EnumDTO(grau.name(), grau.getDisplayName()))
         .collect(Collectors.toList());
   }
 
-  // Busca todos os cursos da tabela enum_cursos e converte para EnumDTO.
+  // Converte todos os valores do enum Curso para EnumDTO
   public List<EnumDTO> getAllCursos() {
-    return cursoRepository.findAll().stream()
-        .map(entity -> new EnumDTO(entity.getValue(), entity.getLabel()))
+    return Arrays.stream(Curso.values())
+        .map(curso -> new EnumDTO(curso.name(), curso.getDisplayName()))
         .collect(Collectors.toList());
   }
 
-  // Busca todas as turmas da tabela enum_turmas e converte para EnumDTO.
+  // Converte todos os valores do enum Turma para EnumDTO
   public List<EnumDTO> getAllTurmas() {
-    return turmaRepository.findAll().stream()
-        .map(entity -> new EnumDTO(entity.getValue(), entity.getLabel()))
+    return Arrays.stream(Turma.values())
+        .map(turma -> new EnumDTO(turma.name(), turma.getDisplayName()))
         .collect(Collectors.toList());
   }
 }
