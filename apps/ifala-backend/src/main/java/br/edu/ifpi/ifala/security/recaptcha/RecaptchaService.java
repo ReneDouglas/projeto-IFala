@@ -8,7 +8,8 @@ import org.springframework.web.client.RestClient;
 import br.edu.ifpi.ifala.security.recaptcha.recaptchaDTO.RecaptchaResponseDto;
 
 /**
- * Serviço para validação do reCAPTCHA do Google. Esta classe utiliza o RestClient para enviar
+ * Serviço para validação do reCAPTCHA do Google. Esta classe utiliza o
+ * RestClient para enviar
  * requisições ao serviço reCAPTCHA e validar tokens.
  *
  * @author Jhonatas G Ribeiro
@@ -24,11 +25,26 @@ public class RecaptchaService {
     this.recaptchaConfig = recaptchaConfig;
   }
 
-  public Boolean validarToken(String token) {
+  public Boolean validarToken(String token, String actionEsperada, double scoreMinimo) {
     MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
     formData.add("secret", recaptchaConfig.getSecret());
     formData.add("response", token);
 
-    return false; // A SER IMPLEMENTADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO
+    try {
+      RecaptchaResponseDto dto = restClient.post()
+          .uri(recaptchaConfig.getUrl())
+          .body(formData)
+          .retrieve()
+          .body(RecaptchaResponseDto.class);
+
+      if (dto == null) {
+        return false;
+      }
+      return dto.isSuccess() && dto.getAction() != null && dto.getAction().equalsIgnoreCase(actionEsperada)
+          && dto.getScore() >= scoreMinimo;
+
+    } catch (Exception e) {
+      return false;
+    }
   }
 }

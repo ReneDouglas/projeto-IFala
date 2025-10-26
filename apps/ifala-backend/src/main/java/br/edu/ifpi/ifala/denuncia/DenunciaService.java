@@ -1,6 +1,5 @@
 package br.edu.ifpi.ifala.denuncia;
 
-
 import org.springframework.stereotype.Service;
 import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
 import br.edu.ifpi.ifala.acompanhamento.AcompanhamentoRepository;
@@ -27,16 +26,17 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
+import br.edu.ifpi.ifala.security.recaptcha.RecaptchaService;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 /**
- * Classe de serviço responsável por manipular operações relacionadas a denúncias.
+ * Classe de serviço responsável por manipular operações relacionadas a
+ * denúncias.
  *
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
  */
-
 
 @Service
 @Transactional
@@ -46,35 +46,23 @@ public class DenunciaService {
 
   private final DenunciaRepository denunciaRepository;
   private final AcompanhamentoRepository acompanhamentoRepository;
-
-  // A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO
-  // private final RecaptchaService recaptchaService;
-
-  // public DenunciaService(DenunciaRepository denunciaRepository,
-  // AcompanhamentoRepository acompanhamentoRepository,
-  // RecaptchaService recaptchaService) {
-  // this.denunciaRepository = denunciaRepository;
-  // this.acompanhamentoRepository = acompanhamentoRepository;
-  // this.recaptchaService = recaptchaService;
-  // }
+  private final RecaptchaService recaptchaService;
 
   public DenunciaService(DenunciaRepository denunciaRepository,
-      AcompanhamentoRepository acompanhamentoRepository) {
+      AcompanhamentoRepository acompanhamentoRepository, RecaptchaService recaptchaService) {
     this.denunciaRepository = denunciaRepository;
     this.acompanhamentoRepository = acompanhamentoRepository;
+    this.recaptchaService = recaptchaService;
   }
 
   public DenunciaResponseDto criarDenuncia(CriarDenunciaDto dto) {
 
-    // Validação do reCAPTCHA - A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER
-    // FUNCIONANDO EM PRODUÇÃO
+    boolean isRecaptchaValid = recaptchaService.validarToken(dto.getRecaptchaToken(), "denuncia", 0.5);
 
-    // boolean isRecaptchaValid =
-    // recaptchaService.validarToken(dto.getRecaptchaToken()).block();
+    if (!isRecaptchaValid) {
 
-    // if (!isRecaptchaValid) {
-    // throw new RuntimeException("Falha na validação do ReCaptcha.");
-    // }
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Falha na validação do ReCaptcha.");
+    }
 
     Denuncia novaDenuncia = new Denuncia();
     novaDenuncia.setDescricao(dto.getDescricao());
@@ -97,9 +85,12 @@ public class DenunciaService {
   }
 
   /*
-   * tipo Page é uma interface do Spring Data que encapsula uma página de dados Pageable é uma
-   * interface que define a paginação e ordenação Specification é uma interface do Spring Data JPA
-   * que permite construir consultas dinamicamente predicate é uma condição usada em consultas para
+   * tipo Page é uma interface do Spring Data que encapsula uma página de dados
+   * Pageable é uma
+   * interface que define a paginação e ordenação Specification é uma interface do
+   * Spring Data JPA
+   * que permite construir consultas dinamicamente predicate é uma condição usada
+   * em consultas para
    * filtrar resultados
    */
 
@@ -157,9 +148,8 @@ public class DenunciaService {
 
   @Transactional(readOnly = true)
   public List<AcompanhamentoDto> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
-    Denuncia denuncia =
-        denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
-            () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
+    Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
+        () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
 
     return denuncia.getAcompanhamentos().stream().map(this::mapToAcompanhamentoResponseDto)
         .collect(Collectors.toList());

@@ -19,8 +19,29 @@ import {
   Button,
   type SelectChangeEvent,
 } from '@mui/material';
-import ReCAPTCHA from 'react-google-recaptcha';
 import '../../styles/theme.css';
+declare global {
+  interface Window {
+    grecaptcha: {
+      ready: (callback: () => void) => void;
+      execute: (
+        siteKey: string,
+        options: { action: string },
+      ) => Promise<string>;
+    };
+  }
+}
+
+// Adicione este mapeamento
+const categoriaMap: { [key: string]: string } = {
+  bullying_assedio: 'BULLYING',
+  uso_substancias: 'DROGAS', // ✅ CORRIGIDO
+  violencia: 'VIOLENCIA',
+  vandalismo: 'VANDALISMO',
+  fraude_academica: 'ACADEMICO', // ✅ CORRIGIDO
+  'Porte de Celular, Tablet ou Outros Dispositivos': 'OUTROS', // ✅ Não existe essa categoria, vai para OUTROS
+  outros: 'OUTROS',
+};
 
 const cursosPorNivel = {
   medio: ['Administração', 'Agropecuária', 'Informática', 'Meio Ambiente'],
@@ -65,7 +86,7 @@ export function Denuncia() {
     relato: '',
   });
   const [tipoDenuncia, setTipoDenuncia] = useState('anonima');
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  // const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [errors, setErrors] = useState({
     nome: false,
     email: false,
@@ -74,7 +95,7 @@ export function Denuncia() {
     turma: false,
     categoria: false,
     relato: false,
-    recaptcha: false,
+    // recaptcha: false,
   });
 
   const navigate = useNavigate();
@@ -97,11 +118,12 @@ export function Denuncia() {
     }
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    const newErrors = {
+    // 1. Valide em uma variável local, NÃO no estado
+    const validationErrors = {
       nome: tipoDenuncia === 'identificada' && formData.nome.trim() === '',
       email:
         tipoDenuncia === 'identificada' && !emailRegex.test(formData.email),
@@ -116,37 +138,84 @@ export function Denuncia() {
         formData.turma.trim() === '',
       categoria: formData.categoria.trim() === '',
       relato: formData.relato.trim().length < 50,
-      recaptcha: !recaptchaToken,
     };
 
-    setErrors(newErrors);
-    const hasErrors = Object.values(newErrors).some((error) => error === true);
+    // 2. Atualize o estado dos erros de uma só vez para a UI
+    setErrors(validationErrors);
+
+    // 3. Verifique a variável local para decidir se continua
+    const hasErrors = Object.values(validationErrors).some((error) => error);
 
     if (hasErrors) {
       let errorMessage = 'Por favor, preencha todos os campos obrigatórios.';
-      if (newErrors.relato) {
+      if (validationErrors.relato) {
         errorMessage =
           'Por favor, preencha todos os campos obrigatórios e garanta que a descrição tenha no mínimo 50 caracteres.';
       }
-      if (newErrors.recaptcha) {
-        errorMessage = 'Por favor, complete o desafio "Não sou um robô".';
-      }
       alert(errorMessage);
+      return; // Para aqui se houver erros
+    }
+
+    // Se não houver erros, a lógica continua...
+    if (!window.grecaptcha) {
+      alert('Erro ao carregar o reCAPTCHA. Por favor, recarregue a página.');
       return;
     }
 
-    const fakeTrackingToken = `IFALA-${Math.random()
-      .toString(36)
-      .substring(2, 11)
-      .toUpperCase()}`;
-    navigate('/denuncia/sucesso', { state: { token: fakeTrackingToken } });
-  };
+    window.grecaptcha.ready(() => {
+      window.grecaptcha
+        .execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY, {
+          action: 'denuncia',
+        })
+        .then(async (token: string) => {
+          if (!token) {
+            alert('Falha ao obter o token do reCAPTCHA. Tente novamente.');
+            return;
+          }
 
-  const handleRecaptchaChange = (token: string | null) => {
-    setRecaptchaToken(token);
-    if (token) {
-      setErrors((prevErrors) => ({ ...prevErrors, recaptcha: false }));
-    }
+          const denunciaData = {
+            descricao: formData.relato,
+            categoria: categoriaMap[formData.categoria] || 'OUTROS',
+            nome: tipoDenuncia === 'identificada' ? formData.nome : null,
+            email: tipoDenuncia === 'identificada' ? formData.email : null,
+            grau: tipoDenuncia === 'identificada' ? formData.grau : null,
+            curso: tipoDenuncia === 'identificada' ? formData.curso : null,
+            turma: tipoDenuncia === 'identificada' ? formData.turma : null,
+            recaptchaToken: token,
+          };
+
+          try {
+            const response = await fetch('/api/v1/public/denuncias', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(denunciaData),
+            });
+
+            if (response.status === 403) {
+              alert('Falha na verificação do reCAPTCHA.');
+              return;
+            }
+
+            if (!response.ok) {
+              throw new Error(
+                `Falha ao enviar a denúncia. Status: ${response.status}`,
+              );
+            }
+
+            const data = await response.json();
+            navigate('/denuncia/sucesso', {
+              state: { token: data.tokenAcompanhamento },
+            });
+          } catch (error) {
+            console.error('Erro:', error);
+            alert(
+              'Ocorreu um erro ao enviar sua denúncia. Tente novamente mais tarde.',
+            );
+          }
+        });
+    });
   };
 
   const fieldStyles = {
@@ -511,25 +580,6 @@ export function Denuncia() {
               será totalmente anônima. Não coletamos endereços IP, dados
               pessoais ou qualquer informação que possa identificá-lo.
             </Alert>
-
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                my: 1,
-              }}
-            >
-              <ReCAPTCHA
-                sitekey='6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
-                onChange={handleRecaptchaChange}
-              />
-              {errors.recaptcha && (
-                <FormHelperText error sx={{ mt: 1 }}>
-                  Por favor, complete o desafio.
-                </FormHelperText>
-              )}
-            </Box>
 
             <Button
               variant='contained'
