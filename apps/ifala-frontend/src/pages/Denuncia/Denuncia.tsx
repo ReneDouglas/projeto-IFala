@@ -121,7 +121,6 @@ export function Denuncia() {
     event.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // 1. Valide em uma variável local, NÃO no estado
     const validationErrors = {
       nome: tipoDenuncia === 'identificada' && formData.nome.trim() === '',
       email:

@@ -89,7 +89,7 @@ export function ResetPassword() {
             resetData,
           );
           alert('Senha redefinida com sucesso!');
-          navigate('/'); // Simula o retorno para a página inicial
+          navigate('/');
         });
     });
   };
