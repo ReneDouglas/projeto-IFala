@@ -1,33 +1,25 @@
-package br.edu.ifpi.ifala.notificacao;
+package br.edu.ifpi.ifala.notificacao.dto;
 
-import br.edu.ifpi.ifala.denuncia.Denuncia;
+import br.edu.ifpi.ifala.notificacao.Notificacao;
 import br.edu.ifpi.ifala.notificacao.enums.NotificationType;
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-public class Notificacao {
+public class NotificationResponseDto {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String titulo;
-
     private String mensagem;
-
-    @Enumerated(EnumType.STRING)
     private NotificationType tipo;
-
-    @Column(name = "criado_em", updatable = false, nullable = false)
     private LocalDateTime criadoEm;
 
-    @ManyToOne
-    @JoinColumn(name = "denuncia_id")
-    private Denuncia denuncia;
-
-    public Notificacao() {
-        this.criadoEm = LocalDateTime.now();
+    public static NotificationResponseDto fromEntity(Notificacao entity) {
+        NotificationResponseDto dto = new NotificationResponseDto();
+        dto.setId(entity.getId());
+        dto.setTitulo(entity.getTitulo());
+        dto.setMensagem(entity.getMensagem());
+        dto.setTipo(entity.getTipo());
+        dto.setCriadoEm(entity.getCriadoEm());
+        return dto;
     }
 
     public Long getId() { return id; }
@@ -44,7 +36,4 @@ public class Notificacao {
 
     public LocalDateTime getCriadoEm() { return criadoEm; }
     public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
-
-    public Denuncia getDenuncia() { return denuncia; }
-    public void setDenuncia(Denuncia denuncia) { this.denuncia = denuncia; }
 }
