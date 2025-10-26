@@ -32,7 +32,7 @@ public class NotificationEmailService {
             "Uma nova denúncia foi registrada no sistema IFala.\n\n" +
             "Título: " + notificacao.getTitulo() + "\n" +
             "Mensagem: " + notificacao.getMensagem() + "\n\n" +
-            "Atenciosamente,\nEquipe IFala"
+            "Atenciosamente,\nEquipe IFala!"
         );
 
         mailSender.send(message);
