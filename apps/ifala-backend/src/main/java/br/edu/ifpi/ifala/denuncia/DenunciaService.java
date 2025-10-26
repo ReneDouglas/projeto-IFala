@@ -86,7 +86,7 @@ public class DenunciaService {
       DadosDeIdentificacaoDto idDto = dto.dadosDeIdentificacao();
 
       denunciante.setNomeCompleto(policy.sanitize(idDto.nomeCompleto()));
-      denunciante.setEmail(policy.sanitize(idDto.email()));
+      denunciante.setEmail(idDto.email().trim()); // Email não deve ser sanitizado
       denunciante.setGrau(idDto.grau());
       denunciante.setCurso(idDto.curso());
       denunciante.setTurma(idDto.turma());
