@@ -219,7 +219,7 @@ export function DenunciasList() {
                       <DenunciaCard
                         key={denuncia.id}
                         denuncia={denuncia}
-                        contador={index + 1} // ← CORREÇÃO AQUI
+                        contador={index + 1} 
                         onViewDetails={handleViewDetails}
                         onViewMessages={handleViewMessages}
                       />
@@ -274,8 +274,7 @@ export function DenunciasList() {
         </div>
       </main>
 
-      {/* Loading Overlay para operações */}
-      {loading && <div className='global-loading-overlay'></div>}
+      
     </div>
   );
 }
