@@ -126,16 +126,6 @@ export const DenunciaCard = ({
         </button>
       </div>
 
-      {/* Footer */}
-      <div className='denuncia-footer'>
-        <div className='footer-content'>
-          <span className='material-symbols-outlined footer-icon'>update</span>
-          <span className='ultima-atualizacao'>
-            Atualizado em {formatDate(denuncia.ultimaAtualizacao)}
-          </span>
-        </div>
-      </div>
-
       {/* Efeito de hover */}
       <div className='card-hover-effect'></div>
     </div>
