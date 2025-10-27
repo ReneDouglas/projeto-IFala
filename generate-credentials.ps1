@@ -91,15 +91,15 @@ KEYCLOAK_ADMIN_PASSWORD=$keycloakPassword
 GF_SECURITY_ADMIN_PASSWORD=$grafanaPassword
 
 ========================================
-ATENÇÃO: Mantenha este arquivo seguro!
-Não compartilhe estas credenciais.
+ATENCAO: Mantenha este arquivo seguro!
+NAO compartilhe estas credenciais.
 Depois de copiar para o .env, DELETE este arquivo!
 ========================================
 "@
         
         $content | Out-File -FilePath $filename -Encoding UTF8
         Write-Host "Credenciais salvas em: $filename" -ForegroundColor Green
-        Write-Host "LEMBRE-SE DE DELETAR ESTE ARQUIVO após copiar para o .env!" -ForegroundColor Red
+        Write-Host "LEMBRE-SE DE DELETAR ESTE ARQUIVO apos copiar para o .env!" -ForegroundColor Red
     }
 }
 
@@ -113,9 +113,9 @@ function Show-Menu {
     Write-Host "2. Gerar Senha do Banco de Dados"
     Write-Host "3. Gerar TODAS as credenciais"
     Write-Host "0. Sair`n"
-    
-    $choice = Read-Host "Escolha uma opção"
-    
+
+    $choice = Read-Host "Escolha uma opcao"
+
     switch ($choice) {
         '1' { 
             Generate-JWTSecret
@@ -140,7 +140,7 @@ function Show-Menu {
             exit 
         }
         default { 
-            Write-Host "`nOpção inválida!" -ForegroundColor Red
+            Write-Host "`nOpcao inválida!" -ForegroundColor Red
             Start-Sleep -Seconds 1
             Show-Menu
         }

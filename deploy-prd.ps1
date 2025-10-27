@@ -1,7 +1,7 @@
 # ========================================
-# Script de Deploy em Produção - IFala
+# Script de Deploy em Producao - IFala
 # ========================================
-# Este script facilita o deploy da aplicação em produção
+# Este script facilita o deploy da aplicacao em producao
 
 param(
     [Parameter(Mandatory=$false)]
@@ -21,14 +21,14 @@ function Write-Info { Write-Host $args -ForegroundColor Cyan }
 function Write-Warning { Write-Host $args -ForegroundColor Yellow }
 function Write-Error { Write-Host $args -ForegroundColor Red }
 
-# Verificar se docker está instalado
+# Verificar se docker esta instalado
 function Test-Docker {
     try {
         docker --version | Out-Null
         docker-compose --version | Out-Null
         return $true
     } catch {
-        Write-Error "Docker ou Docker Compose não encontrado!"
+        Write-Error "Docker ou Docker Compose nao encontrado!"
         Write-Error "Instale o Docker Desktop: https://www.docker.com/products/docker-desktop"
         return $false
     }
@@ -37,7 +37,7 @@ function Test-Docker {
 # Verificar se arquivo .env existe
 function Test-EnvFile {
     if (-not (Test-Path $EnvFile)) {
-        Write-Warning "Arquivo .env não encontrado!"
+        Write-Warning "Arquivo .env nao encontrado!"
         Write-Info "Criando a partir do .env.example..."
         
         if (Test-Path ".env.example") {
@@ -49,7 +49,7 @@ function Test-EnvFile {
             notepad $EnvFile
             return $false
         } else {
-            Write-Error "Arquivo .env.example não encontrado!"
+            Write-Error "Arquivo .env.example nao encontrado!"
             return $false
         }
     }
@@ -64,13 +64,13 @@ function Invoke-Action {
     
     switch ($ActionName) {
         'start' {
-            Write-Info "Iniciando serviços em produção..."
+            Write-Info "Iniciando servicos em producao..."
             if ($ServiceName) {
                 docker-compose -f $ComposeFile up -d $ServiceName
             } else {
                 docker-compose -f $ComposeFile up -d
             }
-            Write-Success "`nServiços iniciados com sucesso!"
+            Write-Success "`nServicos iniciados com sucesso!"
             Write-Info "`nAcesse:"
             Write-Info "  Frontend: http://localhost:8080"
             Write-Info "  Grafana:  http://localhost:8081"
@@ -78,23 +78,23 @@ function Invoke-Action {
         }
         
         'stop' {
-            Write-Info "Parando serviços..."
+            Write-Info "Parando servicos..."
             if ($ServiceName) {
                 docker-compose -f $ComposeFile stop $ServiceName
             } else {
                 docker-compose -f $ComposeFile down
             }
-            Write-Success "Serviços parados!"
+            Write-Success "Servicos parados!"
         }
         
         'restart' {
-            Write-Info "Reiniciando serviços..."
+            Write-Info "Reiniciando servicos..."
             if ($ServiceName) {
                 docker-compose -f $ComposeFile restart $ServiceName
             } else {
                 docker-compose -f $ComposeFile restart
             }
-            Write-Success "Serviços reiniciados!"
+            Write-Success "Servicos reiniciados!"
         }
         
         'logs' {
@@ -107,7 +107,7 @@ function Invoke-Action {
         }
         
         'status' {
-            Write-Info "Status dos serviços:"
+            Write-Info "Status dos servicos:"
             docker-compose -f $ComposeFile ps
         }
         
@@ -118,23 +118,23 @@ function Invoke-Action {
             } else {
                 docker-compose -f $ComposeFile build
             }
-            Write-Success "Build concluído!"
+            Write-Success "Build concluido!"
         }
         
         'clean' {
-            Write-Warning "ATENÇÃO: Esta ação irá remover TODOS os containers, volumes e dados!"
-            $confirm = Read-Host "Tem certeza? (sim/não)"
+            Write-Warning "ATENCAO: Esta acao ira remover TODOS os containers, volumes e dados!"
+            $confirm = Read-Host "Tem certeza? (sim/nao)"
             if ($confirm -eq 'sim') {
                 Write-Info "Removendo containers, volumes e imagens..."
                 docker-compose -f $ComposeFile down -v --rmi all
-                Write-Success "Limpeza concluída!"
+                Write-Success "Limpeza concluida!"
             } else {
-                Write-Info "Operação cancelada."
+                Write-Info "Operacao cancelada."
             }
         }
         
         default {
-            Write-Error "Ação desconhecida: $ActionName"
+            Write-Error "Acao desconhecida: $ActionName"
         }
     }
 }
@@ -143,19 +143,19 @@ function Invoke-Action {
 function Show-Menu {
     Clear-Host
     Write-Info "========================================`n"
-    Write-Info "  IFala - Gerenciador de Produção`n"
+    Write-Info "  IFala - Gerenciador de Producao`n"
     Write-Info "========================================`n"
-    Write-Host "1. Iniciar todos os serviços"
-    Write-Host "2. Parar todos os serviços"
-    Write-Host "3. Reiniciar todos os serviços"
+    Write-Host "1. Iniciar todos os servicos"
+    Write-Host "2. Parar todos os servicos"
+    Write-Host "3. Reiniciar todos os servicos"
     Write-Host "4. Ver logs"
     Write-Host "5. Ver status"
     Write-Host "6. Build de imagens"
     Write-Host "7. Limpeza completa (CUIDADO!)"
     Write-Host "0. Sair`n"
-    
-    $choice = Read-Host "Escolha uma opção"
-    
+
+    $choice = Read-Host "Escolha uma opcao"
+
     switch ($choice) {
         '1' { Invoke-Action 'start' '' }
         '2' { Invoke-Action 'stop' '' }
@@ -165,7 +165,7 @@ function Show-Menu {
         '6' { Invoke-Action 'build' '' }
         '7' { Invoke-Action 'clean' '' }
         '0' { Write-Info "Saindo..."; exit }
-        default { Write-Warning "Opção inválida!" }
+        default { Write-Warning "Opcao invalida!" }
     }
     
     Write-Host "`nPressione qualquer tecla para continuar..."
@@ -174,7 +174,7 @@ function Show-Menu {
 }
 
 # Main
-Write-Info "IFala - Deploy em Produção`n"
+Write-Info "IFala - Deploy em Producao`n"
 
 if (-not (Test-Docker)) {
     exit 1
@@ -185,7 +185,7 @@ if (-not (Test-EnvFile)) {
 }
 
 # Se foi passado argumento via linha de comando, executa diretamente
-if ($Action) {
+if ($PSBoundParameters.ContainsKey('Action')) {
     Invoke-Action $Action $Service
 } else {
     # Caso contrário, mostra menu interativo
