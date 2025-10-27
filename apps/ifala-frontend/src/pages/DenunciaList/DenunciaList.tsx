@@ -219,7 +219,7 @@ export function DenunciasList() {
                       <DenunciaCard
                         key={denuncia.id}
                         denuncia={denuncia}
-                        contador={index + 1} 
+                        contador={index + 1}
                         onViewDetails={handleViewDetails}
                         onViewMessages={handleViewMessages}
                       />
@@ -273,8 +273,6 @@ export function DenunciasList() {
           </section>
         </div>
       </main>
-
-      
     </div>
   );
 }
