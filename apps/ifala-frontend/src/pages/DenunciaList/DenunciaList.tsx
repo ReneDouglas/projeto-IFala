@@ -172,43 +172,6 @@ export function DenunciasList() {
                 <div className='denuncias-header'>
                   <div className='header-content'>
                     <h2 className='section-title'>Denúncias</h2>
-
-                    {/* Filtros Ativos */}
-                    {(searchParams.search ||
-                      searchParams.categoria ||
-                      searchParams.status) && (
-                      <div className='active-filters-preview'>
-                        <span className='preview-label'>
-                          Filtros aplicados:
-                        </span>
-                        <div className='preview-chips'>
-                          {searchParams.search && (
-                            <span className='preview-chip'>
-                              <span className='material-symbols-outlined'>
-                                search
-                              </span>
-                              "{searchParams.search}"
-                            </span>
-                          )}
-                          {searchParams.categoria && (
-                            <span className='preview-chip'>
-                              <span className='material-symbols-outlined'>
-                                category
-                              </span>
-                              {searchParams.categoria}
-                            </span>
-                          )}
-                          {searchParams.status && (
-                            <span className='preview-chip'>
-                              <span className='material-symbols-outlined'>
-                                status
-                              </span>
-                              {searchParams.status}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
 
