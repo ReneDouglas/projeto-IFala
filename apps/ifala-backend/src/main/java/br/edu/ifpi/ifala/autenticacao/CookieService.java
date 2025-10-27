@@ -6,39 +6,26 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CookieService {
+
   @Value("${jwt.refresh-expiration-seconds}")
   private Long refreshTokenDurationSeconds;
 
-  // Permite controlar se o cookie deve ser marcado como 'Secure' (recomendado em
-  // produção)
-  @Value("${app.cookie.secure:false}")
-  private boolean secureCookie;
-
-  // Caminho onde o cookie de refresh será válido (configurável)
-  @Value("${app.cookie.path:/}")
-  private String refreshCookiePath;
-
-  @Value("${app.cookie.same-site:Lax}")
-  private String sameSite;
+  private final String REFRESH_COOKIE_PATH = "/api/v1/auth";
 
   /**
    * Cria o cookie HttpOnly para o Refresh Token.
    */
   public ResponseCookie createRefreshTokenCookie(String token) {
-    // Em ambiente de desenvolvimento HTTP, secure=false para que o cookie funcione
-    // em localhost.
-    return ResponseCookie.from("refreshToken", token).httpOnly(true).secure(secureCookie)
-        .sameSite(sameSite).path(refreshCookiePath) // Path e SameSite configuráveis
-        .maxAge(refreshTokenDurationSeconds) // maxAge é em segundos
-        .build();
+    return ResponseCookie.from("refreshToken", token).httpOnly(true).secure(true).sameSite("Strict")
+        .path(REFRESH_COOKIE_PATH).maxAge(refreshTokenDurationSeconds).build();
   }
 
   /**
    * Cria um cookie "vazio" que expira imediatamente para fazer o logout.
    */
   public ResponseCookie createLogoutCookie() {
-    return ResponseCookie.from("refreshToken", "").httpOnly(true).secure(secureCookie)
-        .sameSite(sameSite).path(refreshCookiePath).maxAge(0) // Expira imediatamente
+    return ResponseCookie.from("refreshToken", "").httpOnly(true).secure(true).sameSite("Strict")
+        .path(REFRESH_COOKIE_PATH).maxAge(0) // Expira imediatamente
         .build();
   }
 }

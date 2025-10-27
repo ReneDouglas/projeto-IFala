@@ -6,6 +6,7 @@ import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
+import br.edu.ifpi.ifala.shared.exceptions.RefreshTokenException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.HttpHeaders;
@@ -20,8 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Controlador de Autenticação responsável por receber requisições HTTP e
- * delegar a lógica de
+ * Controlador de Autenticação responsável por receber requisições HTTP e delegar a lógica de
  * negócio para o AuthService.
  */
 @RestController
@@ -38,14 +38,9 @@ public class AuthController {
 
   @PostMapping("/admin/registrar-usuario")
   public ResponseEntity<?> registerUser(@Valid @RequestBody RegistroRequestDTO registroRequest) {
-    try {
-      logger.info("Requisição de registro recebida para e-mail: {}", registroRequest.email());
-      UsuarioResponseDTO usuarioResponse = authService.registrarUsuario(registroRequest);
-      return ResponseEntity.status(201).body(usuarioResponse);
-    } catch (AutenticacaoException e) {
-      logger.warn("Falha ao registrar usuário: {}", e.getMessage());
-      return ResponseEntity.status(e.getStatusCode()).body(e.getMessage());
-    }
+    logger.info("Requisição de registro recebida para e-mail: {}", registroRequest.email());
+    UsuarioResponseDTO usuarioResponse = authService.registrarUsuario(registroRequest);
+    return ResponseEntity.status(201).body(usuarioResponse);
   }
 
   /**
@@ -53,109 +48,85 @@ public class AuthController {
    */
   @PostMapping("/login")
   public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO req) {
-    try {
-      logger.info("Tentativa de login para identificador: {}",
-          req.email() != null ? req.email() : req.username());
-      LoginResponseDTO response = authService.login(req);
+    logger.info("Tentativa de login para identificador: {}",
+        req.email() != null ? req.email() : req.username());
+    LoginResponseDTO response = authService.login(req);
 
-      // Cria cookie HttpOnly de refresh
-      ResponseCookie cookie = cookieService.createRefreshTokenCookie(response.refreshToken());
-      // Log do Set-Cookie enviado (mascarado) para auxiliar debug em testes
-      try {
-        String masked = response.refreshToken() != null && response.refreshToken().length() > 8
-            ? response.refreshToken().substring(0, 8) + "..."
-            : response.refreshToken();
-        logger.info("Enviando Set-Cookie de refresh token: {} (len={})", masked,
-            response.refreshToken() != null ? response.refreshToken().length() : 0);
-      } catch (Exception e) {
-        logger.debug("Erro ao mascarar refresh token para log: {}", e.getMessage());
-      }
-      return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(response);
-    } catch (AutenticacaoException e) {
-      logger.warn("Falha no login: {}", e.getMessage());
-      return ResponseEntity.status(e.getStatusCode())
-          .body(new LoginResponseDTO(null, null, null, null, false, null, e.getMessage()));
+    // Cria cookie HttpOnly de refresh
+    ResponseCookie cookie = cookieService.createRefreshTokenCookie(response.refreshToken());
+    try {
+      String masked = response.refreshToken() != null && response.refreshToken().length() > 8
+          ? response.refreshToken().substring(0, 8) + "..."
+          : response.refreshToken();
+      logger.info("Enviando Set-Cookie de refresh token: {} (len={})", masked,
+          response.refreshToken() != null ? response.refreshToken().length() : 0);
+    } catch (Exception e) {
+      logger.debug("Erro ao mascarar refresh token para log: {}", e.getMessage());
     }
+    LoginResponseDTO sanitized =
+        new LoginResponseDTO(response.token(), response.issuedAt(), response.expirationTime(), null,
+            response.passwordChangeRequired(), response.redirect(), response.message());
+    return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(sanitized);
   }
 
   /**
-   * Endpoint para redefinir a senha (via token de e-mail) ou mudar a senha (via
-   * senha atual).
+   * Endpoint para redefinir a senha (via token de e-mail) ou mudar a senha (via senha atual).
    */
   @PostMapping("/redefinir-senha")
   public ResponseEntity<LoginResponseDTO> changePassword(
       @Valid @RequestBody MudarSenhaRequestDTO req) {
-    try {
-      logger.info("Tentativa de redefinição/mudança de senha para o e-mail: {}", req.email());
-      LoginResponseDTO response = authService.changePassword(req);
-      return ResponseEntity.ok(response);
-    } catch (AutenticacaoException e) {
-      logger.warn("Falha ao mudar/redefinir senha: {}", e.getMessage());
-      return ResponseEntity.status(e.getStatusCode())
-          .body(new LoginResponseDTO(null, null, null, null, false, null, e.getMessage()));
-    }
+    logger.info("Tentativa de redefinição/mudança de senha para o e-mail: {}", req.email());
+    LoginResponseDTO response = authService.changePassword(req);
+    return ResponseEntity.ok(response);
   }
 
-  /**
-   * Endpoint para obter um novo Access Token usando o Refresh Token.
-   */
+
   @PostMapping("/refresh")
   public ResponseEntity<LoginResponseDTO> refreshToken(
       @CookieValue(name = "refreshToken", required = false) String refreshToken,
       @RequestBody(required = false) RefreshTokenRequestDTO body) {
+    // 1. Tenta obter o token do cookie (padrão de segurança)
+    String tokenToUse = refreshToken;
 
-    // 1. Verifica a presença do Refresh Token no cookie
-    if (refreshToken == null || refreshToken.isEmpty()) {
-      // Se não veio cookie, tenta aceitar o token no corpo como fallback
+    if (tokenToUse == null || tokenToUse.isEmpty()) {
       if (body != null && body.token() != null && !body.token().isEmpty()) {
-        refreshToken = body.token();
-        logger.warn(
-            "Refresh token não encontrado no cookie — usando token recebido no corpo da requisição (fallback). Consider verificar CORS/credentials no frontend.");
+        tokenToUse = body.token();
+        logger.warn("Refresh token não encontrado no cookie - usando fallback do corpo.");
       } else {
-        logger.warn("Tentativa de refresh sem refresh token no cookie.");
-        // Retorna 401 com um corpo JSON informando o erro e instruindo o cliente a
-        // fazer login novamente
+        logger.warn("Tentativa de refresh sem refresh token.");
         ResponseCookie logoutCookie = cookieService.createLogoutCookie();
-        return ResponseEntity.status(401)
-            .header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
+        return ResponseEntity.status(401).header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
             .body(new LoginResponseDTO(null, null, null, null, false, null,
-                "Refresh token não encontrado no cookie."));
+                "Refresh token não fornecido. Faça login novamente."));
       }
     }
 
-    // Log com máscara (não imprime token completo) para ajudar no debug
     try {
-      String masked = refreshToken.length() > 8 ? refreshToken.substring(0, 8) + "..." : refreshToken;
-      logger.info("Refresh token cookie recebido: {} (len={})", masked, refreshToken.length());
-    } catch (Exception e) {
-      logger.debug("Erro ao mascarar refresh token para log: {}", e.getMessage());
-    }
+      LoginResponseDTO response = authService.refreshToken(new RefreshTokenRequestDTO(tokenToUse));
 
-    try {
-      // 2. Chama a lógica de negócio do Service
-      RefreshTokenRequestDTO effectiveReq = new RefreshTokenRequestDTO(refreshToken);
-      LoginResponseDTO response = authService.refreshToken(effectiveReq);
+      // Atualiza o cookie HttpOnly com o novo refresh token (roteamento seguro)
+      ResponseCookie cookie = cookieService.createRefreshTokenCookie(response.refreshToken());
+      LoginResponseDTO sanitized =
+          new LoginResponseDTO(response.token(), response.issuedAt(), response.expirationTime(),
+              null, response.passwordChangeRequired(), response.redirect(), response.message());
 
-      // 3. Cria um novo cookie com o Refresh Token rotacionado
-      ResponseCookie newRefreshTokenCookie = cookieService.createRefreshTokenCookie(response.refreshToken());
+      return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(sanitized);
 
-      // 4. Retorna a resposta com o novo Access Token no corpo e o novo Refresh Token
-      // no Header
-      return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, newRefreshTokenCookie.toString())
-          .body(response);
-
-    } catch (AutenticacaoException e) {
-      // 5. Captura exceções (Token Inválido, Expirado, etc.)
-      logger.warn("Falha no refresh de token: {}", e.getMessage());
-
-      // Cria um cookie de logout para forçar o cliente a remover o token inválido
+    } catch (RefreshTokenException e) {
+      logger.warn("Falha no refresh token para {}. Motivo: {}", tokenToUse, e.getMessage());
       ResponseCookie logoutCookie = cookieService.createLogoutCookie();
 
-      // Retorna o status code da exceção (e.g., 401) e o cookie de logout
-      return ResponseEntity.status(e.getStatusCode())
-          .header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
-          // Retorna um DTO de login, mas com campos nulos e apenas a mensagem de erro
-          .body(new LoginResponseDTO(null, null, null, null, false, null, e.getMessage()));
+      String errorMessage = "Sessão expirada ou token inválido. " + e.getMessage();
+
+      return ResponseEntity.status(401).header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
+          .body(new LoginResponseDTO(null, null, null, null, false, null, errorMessage));
+
+    } catch (Exception e) {
+      logger.error("Erro interno inesperado durante o refresh de token.", e);
+      ResponseCookie logoutCookie = cookieService.createLogoutCookie();
+      return ResponseEntity.status(500).header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
+          .body(new LoginResponseDTO(null, null, null, null, false, null,
+              "Erro interno ao renovar a sessão."));
     }
   }
 
@@ -164,15 +135,10 @@ public class AuthController {
    */
   @PostMapping("/sair")
   public ResponseEntity<?> logout(HttpServletRequest request) {
-    try {
-      authService.logout(request);
-      // Limpa o cookie de refresh
-      ResponseCookie cookie = cookieService.createLogoutCookie();
-      return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
-          .body("Logout realizado com sucesso.");
-    } catch (AutenticacaoException e) {
-      logger.warn("Falha no logout: {}", e.getMessage());
-      return ResponseEntity.status(e.getStatusCode()).body(e.getMessage());
-    }
+    authService.logout(request);
+    // Limpa o cookie de refresh
+    ResponseCookie cookie = cookieService.createLogoutCookie();
+    return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+        .body("Logout realizado com sucesso.");
   }
 }

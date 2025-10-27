@@ -22,6 +22,7 @@ public class RefreshToken {
   @Column(nullable = false)
   private Instant dataExpiracao;
 
+
   // Construtores, Getters e Setters
 
   public RefreshToken() {}
@@ -57,4 +58,5 @@ public class RefreshToken {
   public void setDataExpiracao(Instant dataExpiracao) {
     this.dataExpiracao = dataExpiracao;
   }
+
 }

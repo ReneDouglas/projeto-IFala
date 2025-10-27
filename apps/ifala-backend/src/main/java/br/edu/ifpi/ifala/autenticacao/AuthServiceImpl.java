@@ -21,6 +21,18 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import br.edu.ifpi.ifala.shared.exceptions.RefreshTokenException;
+import br.edu.ifpi.ifala.shared.exceptions.EmailAlreadyExistsException;
+import br.edu.ifpi.ifala.shared.exceptions.UsernameAlreadyExistsException;
+import br.edu.ifpi.ifala.shared.exceptions.InvalidRoleException;
+import br.edu.ifpi.ifala.shared.exceptions.EmailServiceException;
+import br.edu.ifpi.ifala.shared.exceptions.InvalidCredentialsException;
+import br.edu.ifpi.ifala.shared.exceptions.InternalAuthException;
+import br.edu.ifpi.ifala.shared.exceptions.UserNotFoundException;
+import br.edu.ifpi.ifala.shared.exceptions.InvalidTokenException;
+import br.edu.ifpi.ifala.shared.exceptions.TokenExpiredException;
+import br.edu.ifpi.ifala.shared.exceptions.PasswordMismatchException;
+import br.edu.ifpi.ifala.shared.exceptions.MissingAuthorizationHeaderException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,24 +42,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-/**
- * Exceção personalizada para lidar com erros de autenticação e autorização,
- * permitindo retornar
- * códigos de status HTTP específicos.
- */
-class AutenticacaoException extends RuntimeException {
-  private final int statusCode;
-
-  public AutenticacaoException(String message, int statusCode) {
-    super(message);
-    this.statusCode = statusCode;
-  }
-
-  public int getStatusCode() {
-    return statusCode;
-  }
-}
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -79,8 +73,7 @@ public class AuthServiceImpl implements AuthService {
   }
 
   /**
-   * Determina o caminho de redirecionamento do usuário após o login, baseado em
-   * seus perfis.
+   * Determina o caminho de redirecionamento do usuário após o login, baseado em seus perfis.
    */
   private String determineRedirect(Usuario user) {
     String rolesList = user.getRoles().stream().map(Perfis::name).collect(Collectors.joining(", "));
@@ -108,15 +101,14 @@ public class AuthServiceImpl implements AuthService {
     if (userRepository.findByEmail(registroRequest.email()).isPresent()) {
       logger.warn("Falha ao registrar usuário: E-mail já em uso: {}", registroRequest.email());
       // Código 409 Conflict: o recurso (e-mail) já existe.
-      throw new AutenticacaoException(
-          "E-mail já cadastrado. Utilize outro e-mail ou recupere a senha.", 409);
+      throw new EmailAlreadyExistsException();
     }
 
     // Valida se o username já está em uso
     if (registroRequest.username() != null
         && userRepository.findByUsername(registroRequest.username()).isPresent()) {
       logger.warn("Falha ao registrar usuário: Username já em uso: {}", registroRequest.username());
-      throw new AutenticacaoException("Username já cadastrado. Por favor, escolha outro.", 409);
+      throw new UsernameAlreadyExistsException();
     }
 
     // 1. Converte as roles de String para o Enum Perfis
@@ -126,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
       } catch (IllegalArgumentException e) {
         logger.error("Perfil inválido recebido: {}", roleString);
         // Código 400 Bad Request: dados da requisição inválidos.
-        throw new AutenticacaoException("Perfil(s) fornecido(s) é(são) inválido(s).", 400);
+        throw new InvalidRoleException();
       }
     }).toList();
 
@@ -178,9 +170,7 @@ public class AuthServiceImpl implements AuthService {
       logger.error("Falha ao enviar e-mail de redefinição para {}: {}", user.getEmail(),
           e.getMessage(), e);
       // Código 500 Internal Server Error: falha no serviço interno de e-mail.
-      throw new AutenticacaoException(
-          "Falha ao enviar e-mail de redefinição de senha. Verifique as configurações de e-mail.",
-          500);
+      throw new EmailServiceException();
     }
   }
 
@@ -201,7 +191,7 @@ public class AuthServiceImpl implements AuthService {
     } catch (AuthenticationException e) {
       logger.warn("Falha de autenticação (credenciais inválidas) para: {}", identifier, e);
       // Mapeia a exceção do Spring Security para a sua exceção personalizada
-      throw new AutenticacaoException("Usuário ou senha inválidos.", 401); // 401 Unauthorized
+      throw new InvalidCredentialsException(); // 401 Unauthorized
     }
 
     // 2. Busca o usuário no repositório para a lógica de negócio
@@ -211,7 +201,7 @@ public class AuthServiceImpl implements AuthService {
 
     if (userOpt.isEmpty()) {
       logger.error("Usuário autenticado não encontrado no DB! Email/Username: {}", identifier);
-      throw new AutenticacaoException("Erro interno de autenticação.", 500);
+      throw new InternalAuthException();
     }
 
     Usuario user = userOpt.get();
@@ -251,7 +241,7 @@ public class AuthServiceImpl implements AuthService {
     if (userOpt.isEmpty()) {
       logger.warn("Falha ao redefinir senha: Usuário não encontrado para o e-mail: {}",
           req.email());
-      throw new AutenticacaoException("Usuário não encontrado para o e-mail informado.", 404);
+      throw new UserNotFoundException();
     }
 
     Usuario user = userOpt.get();
@@ -263,17 +253,17 @@ public class AuthServiceImpl implements AuthService {
       String token = req.token();
       if (user.getPasswordResetToken() == null || !user.getPasswordResetToken().equals(token)) {
         logger.warn("Token inválido para usuário {}.", user.getEmail());
-        throw new AutenticacaoException("Token inválido para redefinição de senha.", 401);
+        throw new InvalidTokenException();
       }
       if (user.getPasswordResetExpires() == null
           || user.getPasswordResetExpires().isBefore(Instant.now())) {
         logger.warn("Token expirado para usuário {}.", user.getEmail());
-        throw new AutenticacaoException("Token expirado para redefinição de senha.", 401);
+        throw new TokenExpiredException();
       }
     } else {
       if (!passwordEncoder.matches(req.currentPassword(), user.getSenha())) {
         logger.warn("Falha ao redefinir senha para {}: Senha atual incorreta.", user.getEmail());
-        throw new AutenticacaoException("Senha atual incorreta.", 401);
+        throw new PasswordMismatchException();
       }
     }
 
@@ -298,58 +288,53 @@ public class AuthServiceImpl implements AuthService {
   }
 
   // LÓGICA DE REFRESH TOKEN
-
   @Override
+  @Transactional
   public LoginResponseDTO refreshToken(RefreshTokenRequestDTO req) {
     String oldRefreshToken = req.token();
     logger.info("Tentativa de refresh de token recebida (fluxo opaco DB)");
 
-    // Busca o refresh token no banco
-    Optional<RefreshToken> existing = refreshTokenService.findByToken(oldRefreshToken);
-    if (existing.isEmpty()) {
+    // 1. Busca e valida o refresh token
+    RefreshToken stored = refreshTokenService.findByToken(oldRefreshToken).orElseThrow(() -> {
       logger.warn("Refresh token não encontrado no banco: {}", oldRefreshToken);
-      throw new AutenticacaoException("Refresh token inválido.", 401);
-    }
+      // Lança RefreshTokenException para garantir que o GlobalExceptionHandler envie
+      // o cookie de
+      // logout
+      return new RefreshTokenException("Refresh token inválido. Faça login novamente.", 401);
+    });
 
-    RefreshToken stored = existing.get();
-
-    // Verifica expiração do refresh token
+    // 2. Verifica expiração (o serviço deve lançar uma RuntimeException se
+    // expirado)
+    // Se o verifyExpiration lançar exceção, o @Transactional fará o rollback.
+    refreshTokenService.verifyExpiration(stored);
     try {
-      refreshTokenService.verifyExpiration(stored);
-    } catch (RuntimeException e) {
-      logger.warn("Refresh token expirado: {}", oldRefreshToken);
-      // garante remoção do token expirado
-      try {
-        refreshTokenService.deleteByToken(oldRefreshToken);
-      } catch (Exception ignored) {
-      }
-      throw new AutenticacaoException("Refresh token expirado. Faça login novamente.", 401);
-    }
-
-    // Usuário associado ao refresh token
-    Usuario user = stored.getUsuario();
-
-    try {
-      // Gera novo access token (JWT) e novo refresh token (rotativo, salvo no DB)
-      TokenDataDTO accessTokenData = jwtUtil.generateToken(user.getEmail());
-      RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user.getEmail());
-      String redirect = determineRedirect(user);
-
-      logger.info("Tokens renovados com sucesso para: {}", user.getEmail());
-
-      // Remove o refresh token antigo do banco
-      try {
-        refreshTokenService.deleteByToken(oldRefreshToken);
-      } catch (Exception ignored) {
-      }
-
-      return new LoginResponseDTO(accessTokenData.token(), accessTokenData.issuedAt(),
-          accessTokenData.expirationTime(), newRefreshToken.getToken(), false, redirect,
-          "Tokens renovados com sucesso.");
+      refreshTokenService.deleteByToken(oldRefreshToken);
+      logger.info("Refresh token antigo removido com sucesso: {}", oldRefreshToken);
+    } catch (RefreshTokenException e) {
+      logger.warn("Delete de refresh token falhou (token inválido/já usado): {}", oldRefreshToken);
+      throw e;
     } catch (Exception e) {
-      logger.error("Erro ao processar refresh token opaco", e);
-      throw new AutenticacaoException("Erro ao processar refresh token.", 500);
+      logger.error("Falha irrecuperável ao deletar refresh token antigo: {}", oldRefreshToken, e);
+      throw new RefreshTokenException("Erro de segurança ao processar token. Faça login novamente.",
+          500);
     }
+
+    // 4. Gera novo access token e NOVO refresh token
+    Usuario user = stored.getUsuario();
+    TokenDataDTO accessTokenData = jwtUtil.generateToken(user.getEmail());
+
+    // A criação do novo token DEVE acontecer *APÓS* a deleção do antigo
+    // Preserva o expiry absoluto do token antigo para que a rotação não estenda
+    // a validade além do tempo originalmente emitido.
+    RefreshToken newRefreshToken =
+        refreshTokenService.createRefreshToken(user.getEmail(), stored.getDataExpiracao());
+    String redirect = determineRedirect(user);
+
+    logger.info("Tokens renovados com sucesso para: {}", user.getEmail());
+
+    return new LoginResponseDTO(accessTokenData.token(), accessTokenData.issuedAt(),
+        accessTokenData.expirationTime(), newRefreshToken.getToken(), false, redirect,
+        "Tokens renovados com sucesso.");
   }
 
   // LÓGICA DE LOGOUT
@@ -358,31 +343,35 @@ public class AuthServiceImpl implements AuthService {
   public void logout(HttpServletRequest request) {
     String header = request.getHeader("Authorization");
     if (header == null || !header.startsWith("Bearer ")) {
-      throw new AutenticacaoException("Header Authorization ausente ou inválido.", 400);
+      throw new MissingAuthorizationHeaderException();
     }
     String token = header.substring(7);
+
     try {
       // Extrai a data de expiração e coloca o token na blacklist
       Instant expiresAt = jwtUtil.extractClaims(token).getExpiration().toInstant();
       tokenBlacklistService.blacklistToken(token, expiresAt);
       logger.info("Token de acesso colocado na blacklist para logout.");
-      // Também tenta remover o refresh token vindo via cookie (se houver)
-      if (request.getCookies() != null) {
-        for (jakarta.servlet.http.Cookie c : request.getCookies()) {
-          if ("refreshToken".equals(c.getName()) && c.getValue() != null
-              && !c.getValue().isBlank()) {
-            try {
-              refreshTokenService.deleteByToken(c.getValue());
-            } catch (Exception e) {
-              logger.debug("Falha ao deletar refresh token do cookie durante logout: {}",
-                  e.getMessage());
-            }
+    } catch (Exception e) {
+      logger.warn("Falha ao processar e colocar JWT na blacklist: {}", e.getMessage());
+      // Continua o fluxo, pois o principal no logout é revogar a sessão (refresh
+      // token)
+    }
+
+    // Revoga o refresh token vindo via cookie (se houver)
+    if (request.getCookies() != null) {
+      for (jakarta.servlet.http.Cookie c : request.getCookies()) {
+        if ("refreshToken".equals(c.getName()) && c.getValue() != null && !c.getValue().isBlank()) {
+          try {
+            refreshTokenService.deleteByToken(c.getValue());
+            logger.info("Refresh token do cookie revogado com sucesso.");
+          } catch (Exception e) {
+            logger.debug("Falha ao deletar refresh token do cookie durante logout: {}",
+                e.getMessage());
           }
+          // A revogação deve ocorrer, mas o erro não impede o logout
         }
       }
-    } catch (Exception e) {
-      logger.error("Erro ao processar logout/blacklist de token", e);
-      throw new AutenticacaoException("Token inválido.", 400);
     }
   }
 }
