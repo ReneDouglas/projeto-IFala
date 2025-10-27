@@ -67,10 +67,10 @@ export const Filters = ({
         <div className='filters-form'>
           {/* Busca por texto com validação em tempo real */}
           <Input
-            label='Buscar denúncias'
+            label='Buscar por Token'
             value={searchParams.search}
             onChange={(value) => onFilterChange('search', value)}
-            placeholder='Buscar por token, título ou descrição...'
+            placeholder='Insira o token'
             error={fieldErrors.search}
             icon='search'
           />
