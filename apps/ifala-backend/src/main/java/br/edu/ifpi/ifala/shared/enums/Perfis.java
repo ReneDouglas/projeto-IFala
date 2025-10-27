@@ -5,17 +5,18 @@ package br.edu.ifpi.ifala.shared.enums;
  * associada para facilitar a identificação.
  *
  * @author Renê Morais
+ * 
+ * @author luisthedevmagician
  */
 public enum Perfis {
   ADMIN("Admin"), ANONIMO("Usuário Anônimo");
+  private final String displayName;
 
-  private String descricao;
-
-  Perfis(String descricao) {
-    this.descricao = descricao;
+  Perfis(String displayName) {
+    this.displayName = displayName;
   }
 
-  public String getDescricao() {
-    return descricao;
+  public String getDisplayName() {
+    return displayName;
   }
 }

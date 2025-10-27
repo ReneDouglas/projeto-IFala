@@ -1,5 +1,11 @@
 package br.edu.ifpi.ifala.autenticacao;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +30,8 @@ import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "Autenticação",
+    description = "Endpoints para login, logout e primeiro acesso de usuários.")
 public class AuthController {
 
   private static final Logger log = LoggerFactory.getLogger(AuthController.class);
@@ -38,9 +46,33 @@ public class AuthController {
    * @param request Credenciais temporárias do usuário (username + senha temporária)
    * @return Resposta da validação e envio do email
    */
+
+
+
   @PostMapping("primeiro-acesso")
+  @Operation(summary = "Realiza o fluxo de primeiro acesso",
+      description = "Valida credenciais temporárias de um usuário e dispara o envio de e-mail para definição de senha definitiva.")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200",
+          description = "Credenciais validadas e e-mail enviado com sucesso",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = AuthResponseDTO.class))),
+      @ApiResponse(responseCode = "401", description = "Credenciais temporárias inválidas",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = AuthResponseDTO.class))),
+      @ApiResponse(responseCode = "400",
+          description = "Erro na requisição ou falha ao enviar o e-mail",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = AuthResponseDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Erro interno do servidor",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = AuthResponseDTO.class)))})
+
   public ResponseEntity<AuthResponseDTO> primeiroAcesso(
-      @RequestBody PrimeiroAcessoRequestDTO request) {
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "Credenciais temporárias do usuário (username + senha).", required = true,
+          content = @Content(schema = @Schema(
+              implementation = PrimeiroAcessoRequestDTO.class))) @RequestBody PrimeiroAcessoRequestDTO request) {
     try {
       // 1. Tenta validar credenciais temporárias
       TokenResponseDTO tokenResponse =
@@ -87,7 +119,24 @@ public class AuthController {
    * @return Resposta da autenticação com tokens
    */
   @PostMapping("/login")
-  public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO request) {
+  @Operation(summary = "Autentica um usuário",
+      description = "Realiza o login de um usuário com credenciais definitivas e retorna os tokens de acesso e refresh.")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Login bem-sucedido",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = AuthResponseDTO.class))),
+      @ApiResponse(responseCode = "401", description = "Credenciais inválidas",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = AuthResponseDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Erro interno do servidor",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = AuthResponseDTO.class)))})
+
+  public ResponseEntity<AuthResponseDTO> login(
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "Credenciais de login (username + senha).", required = true,
+          content = @Content(schema = @Schema(
+              implementation = LoginRequestDTO.class))) @RequestBody LoginRequestDTO request) {
     try {
       // 1. Autentica no Keycloak e obtém os tokens
       TokenResponseDTO tokenResponse =
@@ -121,7 +170,23 @@ public class AuthController {
    * @return Resposta do logout
    */
   @PostMapping("/logout")
-  public ResponseEntity<AuthResponseDTO> logout(@RequestBody LogoutRequestDTO request) {
+  @Operation(summary = "Realiza o logout do usuário",
+      description = "Invalida a sessão do usuário no provedor de identidade (Keycloak) usando o refresh token.")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Logout bem-sucedido",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = AuthResponseDTO.class))),
+      @ApiResponse(responseCode = "400",
+          description = "Erro ao realizar o logout (ex: token inválido)",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = AuthResponseDTO.class)))})
+
+
+  public ResponseEntity<AuthResponseDTO> logout(
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "Refresh token do usuário para invalidar a sessão.", required = true,
+          content = @Content(schema = @Schema(
+              implementation = LogoutRequestDTO.class))) @RequestBody LogoutRequestDTO request) {
     try {
       authService.performKeycloakLogout(request.getRefreshToken());
       return ResponseEntity

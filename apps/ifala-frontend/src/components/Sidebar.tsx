@@ -14,6 +14,7 @@ interface SidebarProps {
   onDashboard: () => void;
   onChangePassword: () => void;
   onNewDenuncia: () => void;
+  onAcompanhamento: () => void;
 }
 
 // ================================
@@ -28,6 +29,7 @@ function Sidebar({
   onDashboard,
   onChangePassword,
   onNewDenuncia,
+  onAcompanhamento,
 }: SidebarProps) {
   // Fecha o menu lateral
   const closeSidebar = () => {
@@ -57,10 +59,45 @@ function Sidebar({
 
         {/* Conteúdo do menu */}
         <div className='sidebar-content'>
+          {/* Seção principal - sempre visível */}
+          <div className='menu-section'>
+            <h3 className='menu-section-title'>Navegação</h3>
+            <button
+              className='menu-item'
+              onClick={() => {
+                window.location.href = '/';
+                closeSidebar();
+              }}
+            >
+              <span className='material-symbols-outlined'>home</span>
+              Página Inicial
+            </button>
+            <button
+              className='menu-item'
+              onClick={() => {
+                onNewDenuncia();
+                closeSidebar();
+              }}
+            >
+              <span className='material-symbols-outlined'>shield</span>
+              Fazer Denúncia
+            </button>
+            <button
+              className='menu-item'
+              onClick={() => {
+                onAcompanhamento();
+                closeSidebar();
+              }}
+            >
+              <span className='material-symbols-outlined'>search</span>
+              Acompanhar Denúncia
+            </button>
+          </div>
+
           {isLoggedIn ? (
-            // Menu para usuário logado
+            // Menu para usuário logado (admin)
             <div className='menu-section'>
-              <h3 className='menu-section-title'>Painel do Usuário</h3>
+              <h3 className='menu-section-title'>Painel Administrativo</h3>
               <button
                 className='menu-item'
                 onClick={() => {
@@ -69,17 +106,7 @@ function Sidebar({
                 }}
               >
                 <span className='material-symbols-outlined'>dashboard</span>
-                Dashboard
-              </button>
-              <button
-                className='menu-item'
-                onClick={() => {
-                  onNewDenuncia();
-                  closeSidebar();
-                }}
-              >
-                <span className='material-symbols-outlined'>add_circle</span>
-                Nova Denúncia
+                Dashboard de Denúncias
               </button>
               <button
                 className='menu-item'
@@ -105,7 +132,7 @@ function Sidebar({
           ) : (
             // Menu para usuário não logado
             <div className='menu-section'>
-              <h3 className='menu-section-title'>Acesso</h3>
+              <h3 className='menu-section-title'>Acesso Administrativo</h3>
               <button
                 className='menu-item'
                 onClick={() => {

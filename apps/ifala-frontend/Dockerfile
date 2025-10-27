@@ -1,18 +1,37 @@
-# Estágio 1: Definir a imagem base
-FROM node:22-slim
+# Multi-stage build para otimizar o tamanho da imagem final
 
-# Definir o diretório de trabalho dentro do contêiner
+# Estágio 1: Build da aplicação
+FROM node:22-alpine AS builder
+
+# Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar os arquivos de gerenciamento de pacotes
-COPY package.json ./
-COPY package-lock.json ./
+# Copiar arquivos de dependências
+COPY package*.json ./
 
-# Instalar as dependências
-RUN npm install
+# Instalar dependências (incluindo devDependencies para o build)
+RUN npm ci --only=production=false
 
-# Expor a porta que o Vite utiliza
-EXPOSE 5173
+# Copiar código fonte
+COPY . .
 
-# Comando para iniciar o servidor de desenvolvimento do Vite
-CMD ["npm", "run", "dev"]
+# Build da aplicação para produção
+RUN npm run build
+
+# Estágio 2: Servidor de produção
+FROM node:22-alpine AS production
+
+# Instalar serve globalmente para servir arquivos estáticos
+RUN npm install -g serve
+
+# Definir diretório de trabalho
+WORKDIR /app
+
+# Copiar apenas os arquivos buildados do estágio anterior
+COPY --from=builder /app/dist ./dist
+
+# Expor porta (Railway usa a variável PORT)
+EXPOSE $PORT
+
+# Comando para iniciar o servidor usando a porta do Railway
+CMD ["sh", "-c", "serve -s dist -l ${PORT:-3000}"]

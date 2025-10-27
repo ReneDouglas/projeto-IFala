@@ -2,21 +2,25 @@ package br.edu.ifpi.ifala.denuncia;
 
 import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
 import br.edu.ifpi.ifala.notificacao.Notificacao;
-import br.edu.ifpi.ifala.shared.enums.Categorias;
-import br.edu.ifpi.ifala.shared.enums.Status;
+import br.edu.ifpi.ifala.shared.enums.*;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,7 +37,9 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "denuncias")
-public class Denuncia {
+public class Denuncia implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,13 +49,14 @@ public class Denuncia {
   @Size(min = 50, max = 5000, message = "A descrição deve ter entre 10 e 5000 caracteres")
   private String descricao;
 
-  @Enumerated
+  @Enumerated(EnumType.STRING)
+  @Column(name = "categoria")
   @NotNull(message = "A categoria não pode ser nula")
   private Categorias categoria;
 
-  @Enumerated
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status")
   @NotNull(message = "O status não pode ser nulo")
-  @Column(name = "status_denuncia_enum")
   private Status status;
 
   @Column(name = "motivo_rejeicao")
@@ -72,6 +79,13 @@ public class Denuncia {
 
   @Transient // para não ser persistido no banco de dados
   private String recaptchaToken;
+
+  @Column(name = "deseja_se_identificar")
+  private boolean desejaSeIdentificar;
+
+  @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
+  @JoinColumn(name = "denunciante_id", referencedColumnName = "id", unique = true)
+  private Denunciante denunciante;
 
   /**
    * Construtor padrão que inicializa uma nova denúncia. Define um token de
@@ -171,6 +185,55 @@ public class Denuncia {
 
   public void setAlteradoEm(LocalDateTime alteradoEm) {
     this.alteradoEm = alteradoEm;
+  }
+
+  public String getRecaptchaToken() {
+    return recaptchaToken;
+  }
+
+  public void setRecaptchaToken(String recaptchaToken) {
+    this.recaptchaToken = recaptchaToken;
+  }
+
+  public boolean isDesejaSeIdentificar() {
+    return desejaSeIdentificar;
+  }
+
+  public void setDesejaSeIdentificar(boolean desejaSeIdentificar) {
+    this.desejaSeIdentificar = desejaSeIdentificar;
+  }
+
+  public Denunciante getDenunciante() {
+    return denunciante;
+  }
+
+  public void setDenunciante(Denunciante denunciante) {
+    this.denunciante = denunciante;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Denuncia)) {
+      return false;
+    }
+    Denuncia other = (Denuncia) o;
+    return id != null && id.equals(other.getId());
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "Denuncia{" + "id=[" + id + "]" + ", descricao=[" + descricao + "]" + ", categoria=["
+        + categoria + "]" + ", status=[" + status + "]" + ", motivoRejeicao=[" + motivoRejeicao
+        + "]" + ", tokenAcompanhamento=[" + tokenAcompanhamento + "]" + ", criadoEm=[" + criadoEm
+        + "]" + ", alteradoPor=[" + alteradoPor + "]" + ", alteradoEm=[" + alteradoEm + "]" + "}";
   }
 
 }

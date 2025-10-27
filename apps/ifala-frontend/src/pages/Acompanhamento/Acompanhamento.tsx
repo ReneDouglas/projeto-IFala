@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Typography,
@@ -14,6 +13,7 @@ import {
   Button,
   Chip,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
 
 const simulado_dados = {
   token: 'GUARD-XXXX-0002',
@@ -55,13 +55,11 @@ const statusColorMap = (status: string) => {
 };
 
 export function Acompanhamento() {
-  const navigate = useNavigate();
-
   const [currentStatus, setCurrentStatus] = useState(
     simulado_dados.initialStatus,
   );
   const [newMessage, setNewMessage] = useState('');
-  const [details, setDetails] = useState(simulado_dados);
+  const [details] = useState(simulado_dados);
   const [mensagens, setMensagens] = useState(simulado_mensagens);
 
   const mensagensBoxRef = useRef<HTMLDivElement>(null);
@@ -76,15 +74,19 @@ export function Acompanhamento() {
     const token = details.token;
     fetch(`/api/v1/public/denuncias/${token}/acompanhamento`)
       .then((res) => res.json())
-      .then((data) => {});
+      .then(() => {
+        // TODO: Implementar tratamento dos dados da API
+      });
 
     fetch(`/api/v1/public/denuncias/${token}/acompanhamento/mensagens`)
       .then((res) => res.json())
-      .then((data) => {});
+      .then(() => {
+        // TODO: Implementar tratamento das mensagens da API
+      });
   }, [details.token]);
 
-  const handleStatusChange = (event: any) => {
-    setCurrentStatus(event.target.value as string);
+  const handleStatusChange = (event: SelectChangeEvent) => {
+    setCurrentStatus(event.target.value);
   };
 
   const handleUpdateStatus = () => {
@@ -212,7 +214,7 @@ export function Acompanhamento() {
                   <MenuItem value='Em Análise'>Em Análise</MenuItem>
                   <MenuItem value='Recebido'>Recebido</MenuItem>
                   <MenuItem value='Resolvido'>Resolvido</MenuItem>
-                  <MenuItem value='Aguardando'>Aguardando informações</MenuItem>
+                  <MenuItem value='Aguardando'>Pendente</MenuItem>
                   <MenuItem value='Rejeitado'>Rejeitado</MenuItem>
                 </Select>
               </FormControl>

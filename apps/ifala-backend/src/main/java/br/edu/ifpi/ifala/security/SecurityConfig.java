@@ -22,22 +22,26 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(auth -> auth
-            // endpoints públicos permitidos para todos
-            .requestMatchers("/api/v1/public/**", "/actuator/**", "/auth/primeiro-acesso", "/auth/login",
-                "/auth/logout",
-                "/auth/recuperar-senha")
-            .permitAll()
+    http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(auth -> auth
+        // endpoints públicos permitidos para todos
+        .requestMatchers("/api/v1/public/**", "/actuator/**", "/auth/primeiro-acesso",
+            "/auth/login", "/auth/logout", "/auth/recuperar-senha", "/v3/api-docs/**",
+            "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**",
+            "/webjars/**", "/api/v1/utils/**")
+        .permitAll()
 
-            // endpoints de admin restritos à ROLE "ADMIN"
-            // .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+        // endpoints de admin restritos à ROLE "ADMIN"
+        // .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
-            // qualquer outra requisição diferenteexige autenticação
-            .anyRequest().authenticated())
+        // TEMPORARIAMENTE PERMITIDO PARA TESTES DA TASK 62
+        // qualquer outra requisição diferente exige autenticação
+        .anyRequest().permitAll())
 
-        .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)))
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        // TEMPORARIAMENTE DESABILITADO PARA TESTES DA TASK 62
+        // .oauth2ResourceServer(
+        // oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)))
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
     return http.build();
   }

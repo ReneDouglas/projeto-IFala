@@ -27,7 +27,7 @@ services:
   ifala-frontend:
     build:
       context: ./apps/ifala-frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: ifala-frontend
     environment:
       - NODE_ENV=development
@@ -144,8 +144,34 @@ services:
       - ./monitoring/grafana/dashboards/:/var/lib/grafana/dashboards/
       - grafana-data:/var/lib/grafana
 
+  # Serviço de Logs Grafana Loki
+  loki:
+    image: grafana/loki:2.9.5
+    container_name: loki
+    ports:
+      - '3100:3100'
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+
+  # Adicionado para a Task 72 - Coletor de Logs Promtail
+  promtail:
+    image: grafana/promtail:2.9.5
+    container_name: promtail
+    volumes:
+      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - promtail-positions:/var/lib/promtail
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+
 volumes:
   pgdata:
   keycloak_data:
   grafana-data: {}
+  loki-data: {}
+  promtail-positions: {}
   # pmm-data:

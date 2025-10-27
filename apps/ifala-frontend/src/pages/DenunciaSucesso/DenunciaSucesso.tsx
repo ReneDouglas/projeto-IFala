@@ -7,6 +7,7 @@ import {
   Button,
   Paper,
   Snackbar,
+  Stack,
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
@@ -166,12 +167,21 @@ export function DenunciaSucesso() {
         </Alert>
 
         {/* Actions */}
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 1 }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          justifyContent='center'
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          sx={{ mt: 1 }}
+        >
           <Button
             variant='contained'
             color='success'
             onClick={() => navigate('/acompanhamento', { state: { token } })}
-            sx={{ minWidth: 220 }}
+            sx={{
+              width: { xs: '100%', sm: 'auto' },
+              minWidth: { xs: '100%', sm: 220 },
+            }}
           >
             Acompanhar Agora
           </Button>
@@ -180,7 +190,8 @@ export function DenunciaSucesso() {
             variant='outlined'
             onClick={() => navigate('/')}
             sx={{
-              minWidth: 220,
+              width: { xs: '100%', sm: 'auto' },
+              minWidth: { xs: '100%', sm: 220 },
               borderColor: 'success.main',
               color: 'success.main',
               '&:hover': {
@@ -193,7 +204,7 @@ export function DenunciaSucesso() {
           >
             Voltar ao Início
           </Button>
-        </Box>
+        </Stack>
       </Paper>
 
       <Snackbar

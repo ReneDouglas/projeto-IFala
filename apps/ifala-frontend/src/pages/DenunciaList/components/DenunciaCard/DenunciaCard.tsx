@@ -118,11 +118,22 @@ export const DenunciaCard = ({
       <div className='denuncia-actions'>
         <button
           className='btn-details'
+          title='Ver Detalhes da Denúncia'
           onClick={() => onViewDetails(denuncia.token)}
         >
           <span className='material-symbols-outlined'>visibility</span>
-          Ver Detalhes
+          <span>Ver Detalhes</span>
         </button>
+      </div>
+
+      {/* Footer */}
+      <div className='denuncia-footer'>
+        <div className='footer-content'>
+          <span className='material-symbols-outlined footer-icon'>update</span>
+          <span className='ultima-atualizacao'>
+            Atualizado em {formatDate(denuncia.ultimaAtualizacao)}
+          </span>
+        </div>
       </div>
 
       {/* Efeito de hover */}

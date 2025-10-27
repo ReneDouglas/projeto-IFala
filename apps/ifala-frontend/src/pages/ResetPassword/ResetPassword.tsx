@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import '../../App.css';
+import ifalaLogo from '../../assets/IFala-logo.png';
 
 export function ResetPassword() {
   const [email, setEmail] = useState('');
@@ -123,7 +124,7 @@ export function ResetPassword() {
               {/* Logo IFala */}
               <Box sx={{ mb: 3 }}>
                 <img
-                  src='/src/assets/IFala-logo.png'
+                  src={ifalaLogo}
                   alt='IFala Logo'
                   style={{
                     width: '140px',

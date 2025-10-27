@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -17,44 +17,34 @@ import {
   MenuItem,
   Alert,
   Button,
+  CircularProgress,
   type SelectChangeEvent,
 } from '@mui/material';
 import ReCAPTCHA from 'react-google-recaptcha';
 import '../../styles/theme.css';
-
-const cursosPorNivel = {
-  medio: ['Administração', 'Agropecuária', 'Informática', 'Meio Ambiente'],
-  superior: [
-    'Análise e Desenvolvimento de Sistemas',
-    'Licenciatura em Matemática',
-    'Licenciatura em Física',
-    'Administração',
-    'Gestão Ambiental',
-  ],
-};
-
-const turmasPorNivel = {
-  medio: [
-    '1º ano A',
-    '1º ano B',
-    '2º ano A',
-    '2º ano B',
-    '3º ano A',
-    '3º ano B',
-  ],
-  superior: [
-    'Módulo I',
-    'Módulo II',
-    'Módulo III',
-    'Módulo IV',
-    'Módulo V',
-    'Módulo VI',
-    'Módulo VII',
-    'Módulo VIII',
-  ],
-};
+import {
+  getCategorias,
+  getGraus,
+  getCursos,
+  getTurmas,
+  criarDenuncia,
+} from '../../services/api';
+import type { EnumOption, ApiError } from '../../types/denuncia';
 
 export function Denuncia() {
+  // Estados para dados carregados da API
+  const [categorias, setCategorias] = useState<EnumOption[]>([]);
+  const [graus, setGraus] = useState<EnumOption[]>([]);
+  const [cursos, setCursos] = useState<EnumOption[]>([]);
+  const [turmas, setTurmas] = useState<EnumOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  // Estados para dados filtrados por grau
+  const [cursosFiltrados, setCursosFiltrados] = useState<EnumOption[]>([]);
+  const [turmasFiltradas, setTurmasFiltradas] = useState<EnumOption[]>([]);
+
+  // Estado do formulário
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -76,8 +66,99 @@ export function Denuncia() {
     relato: false,
     recaptcha: false,
   });
+  const [submitting, setSubmitting] = useState(false);
 
   const navigate = useNavigate();
+
+  // Carregar dados da API ao montar o componente
+  useEffect(() => {
+    const carregarDados = async () => {
+      try {
+        setLoading(true);
+        const [categoriasData, grausData, cursosData, turmasData] =
+          await Promise.all([
+            getCategorias(),
+            getGraus(),
+            getCursos(),
+            getTurmas(),
+          ]);
+
+        setCategorias(categoriasData);
+        setGraus(grausData);
+        setCursos(cursosData);
+        setTurmas(turmasData);
+        setApiError(null);
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        setApiError(
+          'Erro ao carregar dados do formulário. Por favor, recarregue a página.',
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarDados();
+  }, []);
+
+  // Filtrar cursos e turmas para o grau selecionado
+  useEffect(() => {
+    if (!formData.grau) {
+      setCursosFiltrados([]);
+      setTurmasFiltradas([]);
+      return;
+    }
+
+    const cursosMedio = [
+      'ADMINISTRACAO',
+      'AGROPECUARIA',
+      'INFORMATICA',
+      'MEIO_AMBIENTE',
+    ];
+
+    const cursosSuperior = [
+      'ANALISE_DESENVOLVIMENTO_SISTEMAS',
+      'LICENCIATURA_MATEMATICA',
+      'LICENCIATURA_FISICA',
+      'GESTAO_AMBIENTAL',
+    ];
+
+    const turmasMedio = [
+      'ANO1_A',
+      'ANO1_B',
+      'ANO2_A',
+      'ANO2_B',
+      'ANO3_A',
+      'ANO3_B',
+    ];
+
+    const turmasSuperior = [
+      'MODULO_I',
+      'MODULO_II',
+      'MODULO_III',
+      'MODULO_IV',
+      'MODULO_V',
+      'MODULO_VI',
+      'MODULO_VII',
+      'MODULO_VIII',
+    ];
+
+    if (formData.grau === 'MEDIO') {
+      setCursosFiltrados(
+        cursos.filter((curso) => cursosMedio.includes(curso.value)),
+      );
+      setTurmasFiltradas(
+        turmas.filter((turma) => turmasMedio.includes(turma.value)),
+      );
+    } else if (formData.grau === 'SUPERIOR') {
+      setCursosFiltrados(
+        cursos.filter((curso) => cursosSuperior.includes(curso.value)),
+      );
+      setTurmasFiltradas(
+        turmas.filter((turma) => turmasSuperior.includes(turma.value)),
+      );
+    }
+  }, [formData.grau, cursos, turmas]);
 
   const handleChange = (
     event:
@@ -88,12 +169,16 @@ export function Denuncia() {
 
     if (name === 'grau') {
       setFormData((prev) => ({ ...prev, grau: value, curso: '', turma: '' }));
+    } else if (name === 'relato') {
+      // Remove múltiplos espaços consecutivos, permitindo apenas espaços simples
+      const sanitizedValue = value.replace(/\s{2,}/g, ' ');
+      setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -131,11 +216,55 @@ export function Denuncia() {
       return;
     }
 
-    const fakeTrackingToken = `IFALA-${Math.random()
-      .toString(36)
-      .substring(2, 11)
-      .toUpperCase()}`;
-    navigate('/denuncia/sucesso', { state: { token: fakeTrackingToken } });
+    // enviar denuncia para o backend
+    setSubmitting(true);
+    setApiError(null);
+
+    try {
+      const payload = {
+        desejaSeIdentificar: tipoDenuncia === 'identificada',
+        dadosDeIdentificacao:
+          tipoDenuncia === 'identificada'
+            ? {
+                nomeCompleto: formData.nome,
+                email: formData.email,
+                grau: formData.grau,
+                curso: formData.curso,
+                turma: formData.turma,
+              }
+            : undefined,
+        descricaoDetalhada: formData.relato,
+        categoriaDaDenuncia: formData.categoria,
+        'g-recaptcha-response': recaptchaToken || undefined,
+      };
+
+      const response = await criarDenuncia(payload);
+
+      // redireciona para página de sucesso com token real
+      navigate('/denuncia/sucesso', {
+        state: { token: response.tokenAcompanhamento },
+      });
+    } catch (error) {
+      console.error('Erro ao criar denúncia:', error);
+
+      const apiErr = error as ApiError;
+
+      // Tratamento de erros de validação
+      if (apiErr.errors) {
+        const errorMessages = Object.entries(apiErr.errors)
+          .map(([field, message]) => `${field}: ${message}`)
+          .join('\n');
+        alert(`Erro de validação:\n${errorMessages}`);
+      } else if (apiErr.message) {
+        alert(`Erro: ${apiErr.message}`);
+      } else {
+        alert(
+          'Erro ao enviar denúncia. Por favor, tente novamente mais tarde.',
+        );
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleRecaptchaChange = (token: string | null) => {
@@ -177,367 +306,396 @@ export function Denuncia() {
   return (
     <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh' }}>
       <Container maxWidth='md' sx={{ py: 4 }}>
-        <Paper
-          component='form'
-          onSubmit={handleSubmit}
-          variant='outlined'
-          sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}
-        >
-          <Box sx={{ mb: 4 }}>
-            <Typography
-              variant='h5'
-              component='h1'
-              gutterBottom
-              sx={{ fontWeight: 'bold' }}
-            >
-              Nova Denúncia
-            </Typography>
-            <Typography variant='body1' color='text.secondary'>
-              Relate ocorrências que acontecem dentro da instituição de forma
-              anônima e segura através do IFala.
-            </Typography>
+        {/* Mensagem de erro ao carregar dados */}
+        {apiError && (
+          <Alert severity='error' sx={{ mb: 3 }}>
+            {apiError}
+          </Alert>
+        )}
+
+        {/* Loading ao carregar dados da API */}
+        {loading ? (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '50vh',
+            }}
+          >
+            <CircularProgress sx={{ color: 'var(--verde-esperanca)' }} />
           </Box>
-
-          <Stack spacing={3}>
-            <FormControl>
+        ) : (
+          <Paper
+            component='form'
+            onSubmit={handleSubmit}
+            variant='outlined'
+            sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}
+          >
+            <Box sx={{ mb: 4 }}>
               <Typography
-                component='label'
-                sx={{ fontWeight: 'medium', mb: 1 }}
+                variant='h5'
+                component='h1'
+                gutterBottom
+                sx={{ fontWeight: 'bold' }}
               >
-                Deseja se identificar? *
+                Nova Denúncia
               </Typography>
-              <RadioGroup
-                value={tipoDenuncia}
-                onChange={(e) => setTipoDenuncia(e.target.value)}
-              >
-                <FormControlLabel
-                  value='anonima'
-                  control={
-                    <Radio
-                      sx={{
-                        '&.Mui-checked': { color: 'var(--verde-esperanca)' },
-                      }}
-                    />
-                  }
-                  label='Não, prefiro permanecer anônimo'
-                />
-                <FormControlLabel
-                  value='identificada'
-                  control={
-                    <Radio
-                      sx={{
-                        '&.Mui-checked': { color: 'var(--verde-esperanca)' },
-                      }}
-                    />
-                  }
-                  label='Sim, desejo me identificar'
-                />
-              </RadioGroup>
-            </FormControl>
-
-            {tipoDenuncia === 'identificada' && (
-              <Stack
-                spacing={3}
-                sx={{
-                  borderLeft: '3px solid',
-                  borderColor: 'var(--verde-esperanca)',
-                  pl: 2,
-                  ml: 1,
-                  py: 2,
-                }}
-              >
-                <Typography variant='h6' sx={{ fontWeight: 'medium' }}>
-                  Dados de Identificação
-                </Typography>
-                <Alert
-                  severity='success'
-                  icon={false}
-                  sx={{
-                    backgroundColor: 'var(--verde-esperanca-10)',
-                    color: 'var(--cinza-escuro)',
-                  }}
-                >
-                  <strong>Confidencialidade Garantida:</strong> Mesmo se
-                  identificando, seus dados serão mantidos em absoluto sigilo.
-                  Apenas a administração autorizada terá acesso às informações,
-                  e você não será exposto em momento algum durante o processo de
-                  investigação.
-                </Alert>
-                <TextField
-                  name='nome'
-                  label='Nome Completo *'
-                  variant='outlined'
-                  fullWidth
-                  value={formData.nome}
-                  onChange={handleChange}
-                  error={errors.nome}
-                  helperText={errors.nome ? 'O nome é obrigatório.' : ''}
-                  sx={fieldStyles}
-                />
-                <TextField
-                  name='email'
-                  label='Email *'
-                  variant='outlined'
-                  fullWidth
-                  value={formData.email}
-                  onChange={handleChange}
-                  error={errors.email}
-                  helperText={
-                    errors.email ? 'Por favor, insira um email válido.' : ''
-                  }
-                  sx={fieldStyles}
-                />
-
-                <FormControl fullWidth required error={errors.grau}>
-                  <InputLabel
-                    sx={{
-                      '&.Mui-focused': { color: 'var(--verde-esperanca)' },
-                    }}
-                  >
-                    Grau
-                  </InputLabel>
-                  <Select
-                    name='grau'
-                    value={formData.grau}
-                    label='Grau *'
-                    onChange={handleChange}
-                    sx={{
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: 'var(--verde-esperanca)',
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: 'var(--verde-esperanca)',
-                      },
-                    }}
-                  >
-                    <MenuItem value='medio' sx={menuItemStyles}>
-                      Médio
-                    </MenuItem>
-                    <MenuItem value='superior' sx={menuItemStyles}>
-                      Superior
-                    </MenuItem>
-                  </Select>
-                  {errors.grau && (
-                    <FormHelperText>O grau é obrigatório.</FormHelperText>
-                  )}
-                </FormControl>
-
-                {formData.grau && (
-                  <>
-                    <FormControl fullWidth required error={errors.curso}>
-                      <InputLabel
-                        sx={{
-                          '&.Mui-focused': {
-                            color: 'var(--verde-esperanca)',
-                          },
-                        }}
-                      >
-                        Curso
-                      </InputLabel>
-                      <Select
-                        name='curso'
-                        value={formData.curso}
-                        label='Curso *'
-                        onChange={handleChange}
-                        sx={{
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'var(--verde-esperanca)',
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'var(--verde-esperanca)',
-                          },
-                        }}
-                      >
-                        {(
-                          cursosPorNivel[
-                            formData.grau as 'medio' | 'superior'
-                          ] || []
-                        ).map((curso) => (
-                          <MenuItem
-                            key={curso}
-                            value={curso}
-                            sx={menuItemStyles}
-                          >
-                            {curso}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {errors.curso && (
-                        <FormHelperText>O curso é obrigatório.</FormHelperText>
-                      )}
-                    </FormControl>
-
-                    <FormControl fullWidth required error={errors.turma}>
-                      <InputLabel
-                        sx={{
-                          '&.Mui-focused': {
-                            color: 'var(--verde-esperanca)',
-                          },
-                        }}
-                      >
-                        Turma
-                      </InputLabel>
-                      <Select
-                        name='turma'
-                        value={formData.turma}
-                        label='Turma *'
-                        onChange={handleChange}
-                        sx={{
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'var(--verde-esperanca)',
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'var(--verde-esperanca)',
-                          },
-                        }}
-                      >
-                        {(
-                          turmasPorNivel[
-                            formData.grau as 'medio' | 'superior'
-                          ] || []
-                        ).map((turma) => (
-                          <MenuItem
-                            key={turma}
-                            value={turma}
-                            sx={menuItemStyles}
-                          >
-                            {turma}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {errors.turma && (
-                        <FormHelperText>A turma é obrigatória.</FormHelperText>
-                      )}
-                    </FormControl>
-                  </>
-                )}
-              </Stack>
-            )}
-
-            <FormControl fullWidth required error={errors.categoria}>
-              <InputLabel
-                sx={{ '&.Mui-focused': { color: 'var(--verde-esperanca)' } }}
-              >
-                Categoria da Denúncia
-              </InputLabel>
-              <Select
-                name='categoria'
-                value={formData.categoria}
-                label='Categoria da Denúncia *'
-                onChange={handleChange}
-                sx={{
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'var(--verde-esperanca)',
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'var(--verde-esperanca)',
-                  },
-                }}
-              >
-                <MenuItem value='bullying_assedio' sx={menuItemStyles}>
-                  Bullying e Assédio
-                </MenuItem>
-                <MenuItem value='uso_substancias' sx={menuItemStyles}>
-                  Uso ou Porte de Substâncias Ilícitas
-                </MenuItem>
-                <MenuItem value='violencia' sx={menuItemStyles}>
-                  Violência Física ou Verbal
-                </MenuItem>
-                <MenuItem value='vandalismo' sx={menuItemStyles}>
-                  Vandalismo e Danos ao Patrimônio
-                </MenuItem>
-                <MenuItem value='fraude_academica' sx={menuItemStyles}>
-                  Questões Acadêmicas (Fraude, Plágio)
-                </MenuItem>
-                <MenuItem value='outros' sx={menuItemStyles}>
-                  Outros
-                </MenuItem>
-              </Select>
-              {errors.categoria && (
-                <FormHelperText>A categoria é obrigatória.</FormHelperText>
-              )}
-            </FormControl>
-
-            <TextField
-              name='relato'
-              label='Descrição Detalhada '
-              placeholder={`Descreva sua denúncia com o máximo de detalhes possível:
-- O que aconteceu?
-- Quem são os envolvidos?
-- Onde e quando ocorreu?
-- Existem testemunhas?
-- Qualquer informação adicional é valiosa.`}
-              multiline
-              rows={8}
-              fullWidth
-              required
-              value={formData.relato}
-              onChange={handleChange}
-              error={errors.relato}
-              helperText={
-                errors.relato
-                  ? 'A descrição é obrigatória e deve ter no mínimo 50 caracteres.'
-                  : `Mínimo: 50 caracteres (atual: ${formData.relato.length})`
-              }
-              sx={fieldStyles}
-            />
-
-            <Alert
-              severity='info'
-              icon={false}
-              sx={{
-                backgroundColor: 'var(--verde-esperanca-10)',
-                color: 'var(--cinza-escuro)',
-                borderLeft: '4px solid var(--verde-esperanca)',
-              }}
-            >
-              <strong>Sua Segurança é Nossa Prioridade:</strong> Esta denúncia
-              será totalmente anônima. Não coletamos endereços IP, dados
-              pessoais ou qualquer informação que possa identificá-lo.
-            </Alert>
-
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                my: 1,
-              }}
-            >
-              <ReCAPTCHA
-                sitekey='6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
-                onChange={handleRecaptchaChange}
-              />
-              {errors.recaptcha && (
-                <FormHelperText error sx={{ mt: 1 }}>
-                  Por favor, complete o desafio.
-                </FormHelperText>
-              )}
+              <Typography variant='body1' color='text.secondary'>
+                Relate ocorrências que acontecem dentro da instituição de forma
+                anônima e segura através do IFala.
+              </Typography>
             </Box>
 
-            <Button
-              variant='contained'
-              size='large'
-              type='submit'
-              fullWidth
-              sx={{
-                py: 1.5,
-                fontWeight: 'bold',
-                textTransform: 'none',
-                fontSize: '1rem',
-                borderRadius: 2,
-                backgroundColor: 'var(--verde-esperanca)',
-                '&:hover': {
-                  backgroundColor: '#257247',
-                },
-              }}
-            >
-              {tipoDenuncia === 'anonima'
-                ? 'Enviar Denúncia de Forma Anônima'
-                : 'Enviar Denúncia Identificada'}
-            </Button>
-          </Stack>
-        </Paper>
+            <Stack spacing={3}>
+              <FormControl>
+                <Typography
+                  component='label'
+                  sx={{ fontWeight: 'medium', mb: 1 }}
+                >
+                  Deseja se identificar? *
+                </Typography>
+                <RadioGroup
+                  value={tipoDenuncia}
+                  onChange={(e) => setTipoDenuncia(e.target.value)}
+                >
+                  <FormControlLabel
+                    value='anonima'
+                    control={
+                      <Radio
+                        sx={{
+                          '&.Mui-checked': { color: 'var(--verde-esperanca)' },
+                        }}
+                      />
+                    }
+                    label='Não, prefiro permanecer anônimo'
+                  />
+                  <FormControlLabel
+                    value='identificada'
+                    control={
+                      <Radio
+                        sx={{
+                          '&.Mui-checked': { color: 'var(--verde-esperanca)' },
+                        }}
+                      />
+                    }
+                    label='Sim, desejo me identificar'
+                  />
+                </RadioGroup>
+              </FormControl>
+
+              {tipoDenuncia === 'identificada' && (
+                <Stack
+                  spacing={3}
+                  sx={{
+                    borderLeft: '3px solid',
+                    borderColor: 'var(--verde-esperanca)',
+                    pl: 2,
+                    ml: 1,
+                    py: 2,
+                  }}
+                >
+                  <Typography variant='h6' sx={{ fontWeight: 'medium' }}>
+                    Dados de Identificação
+                  </Typography>
+                  <Alert
+                    severity='success'
+                    icon={false}
+                    sx={{
+                      backgroundColor: 'var(--verde-esperanca-10)',
+                      color: 'var(--cinza-escuro)',
+                    }}
+                  >
+                    <strong>Confidencialidade Garantida:</strong> Mesmo se
+                    identificando, seus dados serão mantidos em absoluto sigilo.
+                    Apenas a administração autorizada terá acesso às
+                    informações, e você não será exposto em momento algum
+                    durante o processo de investigação.
+                  </Alert>
+                  <TextField
+                    name='nome'
+                    label='Nome Completo *'
+                    variant='outlined'
+                    fullWidth
+                    value={formData.nome}
+                    onChange={handleChange}
+                    error={errors.nome}
+                    helperText={errors.nome ? 'O nome é obrigatório.' : ''}
+                    sx={fieldStyles}
+                  />
+                  <TextField
+                    name='email'
+                    label='Email *'
+                    variant='outlined'
+                    fullWidth
+                    value={formData.email}
+                    onChange={handleChange}
+                    error={errors.email}
+                    helperText={
+                      errors.email ? 'Por favor, insira um email válido.' : ''
+                    }
+                    sx={fieldStyles}
+                  />
+
+                  <FormControl fullWidth required error={errors.grau}>
+                    <InputLabel
+                      sx={{
+                        '&.Mui-focused': { color: 'var(--verde-esperanca)' },
+                      }}
+                    >
+                      Grau
+                    </InputLabel>
+                    <Select
+                      name='grau'
+                      value={formData.grau}
+                      label='Grau *'
+                      onChange={handleChange}
+                      sx={{
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--verde-esperanca)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'var(--verde-esperanca)',
+                        },
+                      }}
+                    >
+                      {graus.map((grau) => (
+                        <MenuItem
+                          key={grau.value}
+                          value={grau.value}
+                          sx={menuItemStyles}
+                        >
+                          {grau.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {errors.grau && (
+                      <FormHelperText>O grau é obrigatório.</FormHelperText>
+                    )}
+                  </FormControl>
+
+                  {formData.grau && (
+                    <>
+                      <FormControl fullWidth required error={errors.curso}>
+                        <InputLabel
+                          sx={{
+                            '&.Mui-focused': {
+                              color: 'var(--verde-esperanca)',
+                            },
+                          }}
+                        >
+                          Curso
+                        </InputLabel>
+                        <Select
+                          name='curso'
+                          value={formData.curso}
+                          label='Curso *'
+                          onChange={handleChange}
+                          disabled={!formData.grau}
+                          sx={{
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: 'var(--verde-esperanca)',
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: 'var(--verde-esperanca)',
+                            },
+                          }}
+                        >
+                          {cursosFiltrados.map((curso) => (
+                            <MenuItem
+                              key={curso.value}
+                              value={curso.value}
+                              sx={menuItemStyles}
+                            >
+                              {curso.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {errors.curso && (
+                          <FormHelperText>
+                            O curso é obrigatório.
+                          </FormHelperText>
+                        )}
+                      </FormControl>
+
+                      <FormControl fullWidth required error={errors.turma}>
+                        <InputLabel
+                          sx={{
+                            '&.Mui-focused': {
+                              color: 'var(--verde-esperanca)',
+                            },
+                          }}
+                        >
+                          Turma
+                        </InputLabel>
+                        <Select
+                          name='turma'
+                          value={formData.turma}
+                          label='Turma *'
+                          onChange={handleChange}
+                          disabled={!formData.grau}
+                          sx={{
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: 'var(--verde-esperanca)',
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: 'var(--verde-esperanca)',
+                            },
+                          }}
+                        >
+                          {turmasFiltradas.map((turma) => (
+                            <MenuItem
+                              key={turma.value}
+                              value={turma.value}
+                              sx={menuItemStyles}
+                            >
+                              {turma.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {errors.turma && (
+                          <FormHelperText>
+                            A turma é obrigatória.
+                          </FormHelperText>
+                        )}
+                      </FormControl>
+                    </>
+                  )}
+                </Stack>
+              )}
+
+              <FormControl fullWidth required error={errors.categoria}>
+                <InputLabel
+                  sx={{ '&.Mui-focused': { color: 'var(--verde-esperanca)' } }}
+                >
+                  Categoria da Denúncia
+                </InputLabel>
+                <Select
+                  name='categoria'
+                  value={formData.categoria}
+                  label='Categoria da Denúncia *'
+                  onChange={handleChange}
+                  sx={{
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'var(--verde-esperanca)',
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'var(--verde-esperanca)',
+                    },
+                  }}
+                >
+                  {categorias.map((categoria) => (
+                    <MenuItem
+                      key={categoria.value}
+                      value={categoria.value}
+                      sx={menuItemStyles}
+                    >
+                      {categoria.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.categoria && (
+                  <FormHelperText>A categoria é obrigatória.</FormHelperText>
+                )}
+              </FormControl>
+
+              <TextField
+                name='relato'
+                label='Descrição Detalhada '
+                placeholder={`Descreva sua denúncia com o máximo de detalhes possível:
+                            - O que aconteceu?
+                            - Quem são os envolvidos?
+                            - Onde e quando ocorreu?
+                            - Existem testemunhas?
+                            - Qualquer informação adicional é valiosa.`}
+                multiline
+                rows={8}
+                fullWidth
+                required
+                value={formData.relato}
+                onChange={handleChange}
+                error={errors.relato}
+                helperText={
+                  errors.relato
+                    ? 'A descrição é obrigatória e deve ter no mínimo 50 caracteres.'
+                    : `Mínimo: 50 caracteres | Máximo: 500 caracteres (atual: ${formData.relato.length}/500)`
+                }
+                slotProps={{
+                  htmlInput: {
+                    maxLength: 500,
+                  },
+                }}
+                sx={fieldStyles}
+              />
+
+              <Alert
+                severity='info'
+                icon={false}
+                sx={{
+                  backgroundColor: 'var(--verde-esperanca-10)',
+                  color: 'var(--cinza-escuro)',
+                  borderLeft: '4px solid var(--verde-esperanca)',
+                }}
+              >
+                <strong>Sua Segurança é Nossa Prioridade:</strong> Esta denúncia
+                será totalmente anônima. Não coletamos endereços IP, dados
+                pessoais ou qualquer informação que possa identificá-lo.
+              </Alert>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  my: 1,
+                }}
+              >
+                <ReCAPTCHA
+                  sitekey='6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+                  onChange={handleRecaptchaChange}
+                />
+                {errors.recaptcha && (
+                  <FormHelperText error sx={{ mt: 1 }}>
+                    Por favor, complete o desafio.
+                  </FormHelperText>
+                )}
+              </Box>
+
+              <Button
+                variant='contained'
+                size='large'
+                type='submit'
+                fullWidth
+                disabled={submitting}
+                sx={{
+                  py: 1.5,
+                  fontWeight: 'bold',
+                  textTransform: 'none',
+                  fontSize: '1rem',
+                  borderRadius: 2,
+                  backgroundColor: 'var(--verde-esperanca)',
+                  '&:hover': {
+                    backgroundColor: '#257247',
+                  },
+                  '&:disabled': {
+                    backgroundColor: '#ccc',
+                  },
+                }}
+              >
+                {submitting ? (
+                  <>
+                    <CircularProgress size={20} sx={{ mr: 1, color: '#fff' }} />
+                    Enviando...
+                  </>
+                ) : tipoDenuncia === 'anonima' ? (
+                  'Enviar Denúncia de Forma Anônima'
+                ) : (
+                  'Enviar Denúncia Identificada'
+                )}
+              </Button>
+            </Stack>
+          </Paper>
+        )}
       </Container>
     </Box>
   );
