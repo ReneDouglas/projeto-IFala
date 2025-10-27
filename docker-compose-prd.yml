@@ -1,0 +1,227 @@
+# ========================================
+# DOCKER COMPOSE - AMBIENTE DE PRODUÇÃO
+# ========================================
+# Este arquivo configura todos os serviços otimizados para produção
+
+services:
+  # ----------------------------------------
+  # PostgreSQL - Banco de Dados
+  # ----------------------------------------
+  postgres:
+    image: postgres:16
+    container_name: ifala-db-prd
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    command:
+      - 'postgres'
+      - '-c'
+      - 'shared_preload_libraries=pg_stat_statements'
+      - '-c'
+      - 'max_connections=200'
+      - '-c'
+      - 'shared_buffers=256MB'
+      - '-c'
+      - 'effective_cache_size=1GB'
+      - '-c'
+      - 'work_mem=8MB'
+      - '-c'
+      - 'maintenance_work_mem=128MB'
+    volumes:
+      - pgdata_prd:/var/lib/postgresql/data
+      - ./scripts/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ifala-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ----------------------------------------
+  # Backend - Spring Boot API
+  # ----------------------------------------
+  ifala-backend:
+    build:
+      context: ./apps/ifala-backend
+      dockerfile: Dockerfile.prd
+    container_name: ifala-backend-prd
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_PROFILES_ACTIVE: prod
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - ifala-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ----------------------------------------
+  # Frontend - React + NGINX
+  # ----------------------------------------
+  ifala-frontend:
+    build:
+      context: ./apps/ifala-frontend
+      dockerfile: Dockerfile.prd
+    container_name: ifala-frontend-prd
+    restart: always
+    ports:
+      - '8080:80'
+    networks:
+      - ifala-network
+    depends_on:
+      - ifala-backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ----------------------------------------
+  # Keycloak - Autenticação e Autorização
+  # ----------------------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.5
+    container_name: keycloak-prd
+    restart: always
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_HOSTNAME: localhost
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_PROXY: edge
+    volumes:
+      - keycloak_data_prd:/opt/keycloak/data
+    command:
+      - 'start'
+      - '--optimized'
+    networks:
+      - ifala-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ----------------------------------------
+  # Prometheus - Métricas
+  # ----------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: prometheus-prd
+    restart: always
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data_prd:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - ifala-network
+    depends_on:
+      - ifala-backend
+
+  # ----------------------------------------
+  # Grafana - Visualização e Dashboards
+  # ----------------------------------------
+  grafana:
+    image: grafana/grafana-oss:10.4.2
+    container_name: grafana-prd
+    restart: always
+    ports:
+      - '8081:3000'
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
+      GF_INSTALL_PLUGINS: ''
+      GF_SERVER_ROOT_URL: http://localhost:8081
+      GF_ANALYTICS_REPORTING_ENABLED: false
+      GF_ANALYTICS_CHECK_FOR_UPDATES: false
+    volumes:
+      - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/:ro
+      - ./monitoring/grafana/dashboards/:/var/lib/grafana/dashboards/:ro
+      - grafana_data_prd:/var/lib/grafana
+    networks:
+      - ifala-network
+    depends_on:
+      - prometheus
+      - loki
+
+  # ----------------------------------------
+  # Loki - Agregação de Logs
+  # ----------------------------------------
+  loki:
+    image: grafana/loki:2.9.5
+    container_name: loki-prd
+    restart: always
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki_data_prd:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - ifala-network
+
+  # ----------------------------------------
+  # Promtail - Coletor de Logs
+  # ----------------------------------------
+  promtail:
+    image: grafana/promtail:2.9.5
+    container_name: promtail-prd
+    restart: always
+    volumes:
+      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - promtail_positions_prd:/var/lib/promtail
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - ifala-network
+    depends_on:
+      - loki
+
+# ----------------------------------------
+# Networks
+# ----------------------------------------
+networks:
+  ifala-network:
+    driver: bridge
+
+# ----------------------------------------
+# Volumes Persistentes
+# ----------------------------------------
+volumes:
+  pgdata_prd:
+    driver: local
+  keycloak_data_prd:
+    driver: local
+  grafana_data_prd:
+    driver: local
+  loki_data_prd:
+    driver: local
+  promtail_positions_prd:
+    driver: local
+  prometheus_data_prd:
+    driver: local

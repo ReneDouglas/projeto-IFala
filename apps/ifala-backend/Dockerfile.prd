@@ -1,0 +1,50 @@
+# ========================================
+# ESTÁGIO 1: Build Otimizado com Maven
+# ========================================
+FROM maven:3.9.11-amazoncorretto-25-alpine AS builder
+
+WORKDIR /app
+
+# Copiar arquivos de configuração do Maven
+COPY pom.xml .
+COPY checkstyle.xml .
+
+# Baixar dependências (aproveitamento de cache do Docker)
+RUN mvn dependency:go-offline
+
+# Copiar código fonte
+COPY src ./src
+
+# Build da aplicação (skip de testes para acelerar)
+RUN mvn clean package -DskipTests
+
+# ========================================
+# ESTÁGIO 2: Runtime em Produção
+# ========================================
+FROM bellsoft/liberica-runtime-container:jre-25-cds-slim-musl
+
+WORKDIR /app
+
+# Definir profile de produção
+ENV SPRING_PROFILES_ACTIVE=prod
+
+# Expor porta da aplicação
+EXPOSE 8080
+
+# Copiar apenas o JAR da aplicação do estágio de build
+COPY --from=builder /app/target/ifala-0.0.1-SNAPSHOT.jar ifala-api.jar
+
+# Configurações otimizadas para produção:
+# -Xms512m: Memória inicial do heap
+# -Xmx2g: Memória máxima do heap
+# -XX:+UseG1GC: Garbage Collector G1 (recomendado para produção)
+# -XX:MaxGCPauseMillis=200: Pausa máxima do GC
+# -XX:+UseStringDeduplication: Otimização de strings duplicadas
+ENTRYPOINT ["java", \
+    "-Xms512m", \
+    "-Xmx2g", \
+    "-XX:+UseG1GC", \
+    "-XX:MaxGCPauseMillis=200", \
+    "-XX:+UseStringDeduplication", \
+    "-jar", \
+    "ifala-api.jar"]
