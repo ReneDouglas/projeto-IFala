@@ -178,14 +178,14 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public LoginResponseDTO login(LoginRequestDTO req) {
-    String identifier = req.email() != null ? req.email() : req.username();
+    String identifier = req.getEmail() != null ? req.getEmail() : req.getUsername();
     logger.info("Tentativa de login recebida para: {}", identifier);
 
     // 1. Tenta autenticar via Spring Security
     try {
       // Usa o identifier (email ou username) e a senha
       authenticationManager
-          .authenticate(new UsernamePasswordAuthenticationToken(identifier, req.password()));
+          .authenticate(new UsernamePasswordAuthenticationToken(identifier, req.getPassword()));
       logger.info("Autenticação via Spring Security bem-sucedida para: {}", identifier);
 
     } catch (AuthenticationException e) {
@@ -196,8 +196,8 @@ public class AuthServiceImpl implements AuthService {
 
     // 2. Busca o usuário no repositório para a lógica de negócio
     // (mustChangePassword, roles, etc.)
-    Optional<Usuario> userOpt = req.email() != null ? userRepository.findByEmail(req.email())
-        : userRepository.findByUsername(req.username());
+    Optional<Usuario> userOpt = req.getEmail() != null ? userRepository.findByEmail(req.getEmail())
+        : userRepository.findByUsername(req.getUsername());
 
     if (userOpt.isEmpty()) {
       logger.error("Usuário autenticado não encontrado no DB! Email/Username: {}", identifier);

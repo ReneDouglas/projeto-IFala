@@ -46,16 +46,14 @@ function Header({ setSidebarOpen, variant = 'home' }: HeaderProps) {
 
         {/* --- LADO DIREITO DO HEADER --- */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* Mostra o menu hamburger APENAS se for a página inicial */}
-          {variant === 'home' && (
-            <button
-              className='hamburger-menu'
-              onClick={() => setSidebarOpen(true)}
-              aria-label='Abrir menu de navegação'
-            >
-              <span className='material-symbols-outlined'>menu</span>
-            </button>
-          )}
+          {/* Sempre mostra o menu hamburger para navegação */}
+          <button
+            className='hamburger-menu'
+            onClick={() => setSidebarOpen(true)}
+            aria-label='Abrir menu de navegação'
+          >
+            <span className='material-symbols-outlined'>menu</span>
+          </button>
         </div>
       </div>
     </header>

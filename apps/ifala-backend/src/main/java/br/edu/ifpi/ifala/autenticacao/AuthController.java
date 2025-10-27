@@ -49,7 +49,7 @@ public class AuthController {
   @PostMapping("/login")
   public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO req) {
     logger.info("Tentativa de login para identificador: {}",
-        req.email() != null ? req.email() : req.username());
+        req.getEmail() != null ? req.getEmail() : req.getUsername());
     LoginResponseDTO response = authService.login(req);
 
     // Cria cookie HttpOnly de refresh

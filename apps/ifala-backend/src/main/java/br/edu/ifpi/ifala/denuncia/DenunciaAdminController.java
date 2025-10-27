@@ -2,9 +2,11 @@ package br.edu.ifpi.ifala.denuncia;
 
 import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.AtualizarDenunciaDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaAdminResponseDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,7 +15,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.validation.Valid;
+import jakarta.persistence.EntityNotFoundException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +36,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Controller responsável pelos endpoints de ADMINISTRAÇÃO de denúncias. Requer autenticação e
@@ -44,6 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityRequirement(name = "bearerAuth")
 public class DenunciaAdminController {
 
+  private static final Logger log = LoggerFactory.getLogger(DenunciaAdminController.class);
   private final DenunciaService denunciaService;
 
   /**
@@ -56,38 +67,50 @@ public class DenunciaAdminController {
   }
 
   /**
-   * Lista todas as denúncias com filtros opcionais.
+   * Lista todas as denúncias com filtros e paginação.
    *
-   * @param status filtro por status da denúncia
-   * @param categoria filtro por categoria da denúncia
-   * @param pageable informações de paginação
+   * @param status filtro por status (opcional)
+   * @param categoria filtro por categoria (opcional)
+   * @param pageNumber número da página (base 0)
+   * @param size tamanho da página
+   * @param sortDirection direção da ordenação (ASC ou DESC)
    * @return página de denúncias
    */
-  @GetMapping
-  @Operation(summary = "Lista todas as denúncias com filtros",
-      description = "Retorna uma lista paginada de denúncias. "
-          + "Pode ser filtrada por status e/ou categoria.")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Lista de denúncias retornada com sucesso"),
-      @ApiResponse(responseCode = "401",
-          description = "Acesso não autorizado. O token de autenticação (JWT) é inválido ou não foi fornecido.",
-          content = @Content)})
-  public ResponseEntity<Page<DenunciaResponseDto>> listarTodas(
-      @Parameter(
-          description = "Filtrar denúncias por status (ex: ABERTA, EM_ANDAMENTO)") @RequestParam(
-              required = false) Status status,
-      @Parameter(
-          description = "Filtrar denúncias por categoria (ex: ASSÉDIO, BULLYING)") @RequestParam(
-              required = false) Categorias categoria,
-      Pageable pageable) {
 
-    Page<DenunciaResponseDto> denunciasPage =
+  @GetMapping
+  @Operation(summary = "Lista todas as denúncias com filtros e paginação",
+      description = "Retorna lista paginada de denúncias para administração.")
+  @ApiResponses(
+      value = {@ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+          @ApiResponse(responseCode = "401", description = "Não autorizado", content = @Content)})
+  public ResponseEntity<Page<DenunciaAdminResponseDto>> listarTodas(
+      @Parameter(description = "Filtrar por status") @RequestParam(required = false) Status status,
+      @Parameter(description = "Filtrar por categoria") @RequestParam(
+          required = false) Categorias categoria,
+      @Parameter(description = "Número da página (base 0)",
+          example = "0") @RequestParam(defaultValue = "0") int pageNumber,
+      @Parameter(description = "Tamanho da página",
+          example = "10") @RequestParam(defaultValue = "10") int size,
+      @Parameter(description = "Direção da ordenação (ASC ou DESC)",
+          example = "DESC") @RequestParam(defaultValue = "DESC") String sortDirection) {
+    String sortProperty = "id"; // se não for especificado, ordena por ID crescente
+    Sort.Direction direction =
+        sortDirection.equalsIgnoreCase("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC;
+    Pageable pageable = PageRequest.of(pageNumber, size, Sort.by(direction, sortProperty));
+
+    log.info(
+        "Admin requisitou listagem de denúncias: page={}, size={}, sort={}, filtros(status={}, categoria={})",
+        pageNumber, size, sortDirection, status, categoria);
+
+    Page<DenunciaAdminResponseDto> denunciasPage =
         denunciaService.listarTodas(status, categoria, pageable);
+    log.info("Retornadas {} denúncias para a página {}.", denunciasPage.getNumberOfElements(),
+        pageNumber);
     return ResponseEntity.ok(denunciasPage);
   }
 
   /**
-   * Atualiza o status ou categoria de uma denúncia.
+   * Atualiza uma denúncia existente.
    *
    * @param id ID da denúncia a ser atualizada
    * @param dto dados para atualização
@@ -95,26 +118,26 @@ public class DenunciaAdminController {
    * @return denúncia atualizada
    */
   @PatchMapping("/{id}")
-  @Operation(summary = "Atualiza o status ou categoria de uma denúncia",
-      description = "Permite que um administrador altere o status ou a categoria "
-          + "de uma denúncia existente.")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Denúncia atualizada com sucesso",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = DenunciaResponseDto.class))),
-      @ApiResponse(responseCode = "401",
-          description = "Acesso não autorizado. O token de autenticação (JWT) é inválido ou não foi fornecido.",
-          content = @Content),
-      @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
-          content = @Content)})
-  public ResponseEntity<DenunciaResponseDto> atualizarDenuncia(
-      @Parameter(description = "ID da denúncia a ser atualizada",
-          required = true) @PathVariable Long id,
+  @Operation(summary = "Atualiza o status de uma denúncia", description = "...")
+  @ApiResponses(
+      value = {
+          @ApiResponse(responseCode = "200", description = "Atualizada com sucesso",
+              content = @Content(
+                  schema = @Schema(implementation = DenunciaAdminResponseDto.class))),
+          @ApiResponse(responseCode = "401", description = "Não autorizado", content = @Content),
+          @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
+              content = @Content)})
+  public ResponseEntity<DenunciaAdminResponseDto> atualizarDenuncia(
+      @Parameter(description = "ID da denúncia") @PathVariable Long id,
       @Valid @RequestBody AtualizarDenunciaDto dto, Authentication authentication) {
     String adminName = authentication.getName();
+    log.info("Admin {} requisitou atualização da denúncia ID {}", adminName, id);
 
     return denunciaService.atualizarDenuncia(id, dto, adminName).map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
+        .orElseGet(() -> {
+          log.warn("Denúncia ID {} não encontrada para atualização pelo admin {}.", id, adminName);
+          return ResponseEntity.notFound().build();
+        });
   }
 
   /**
@@ -138,8 +161,10 @@ public class DenunciaAdminController {
       description = "ID da denúncia a ser excluída", required = true) @PathVariable Long id) {
     boolean deletado = denunciaService.deletarDenuncia(id);
     if (deletado) {
+      log.info("Denúncia ID {} excluída com sucesso.", id);
       return ResponseEntity.noContent().build();
     } else {
+      log.warn("Denúncia ID {} não encontrada para exclusão.", id);
       return ResponseEntity.notFound().build();
     }
   }
@@ -162,7 +187,10 @@ public class DenunciaAdminController {
           content = @Content)})
   public ResponseEntity<List<AcompanhamentoDto>> listarAcompanhamentos(
       @Parameter(description = "ID da denúncia", required = true) @PathVariable Long id) {
+
+    log.info("Listando acompanhamentos da denúncia ID {}", id);
     List<AcompanhamentoDto> acompanhamentos = denunciaService.listarAcompanhamentosPorId(id);
+    log.info("Retornados {} acompanhamentos para a denúncia ID {}", acompanhamentos.size(), id);
     return ResponseEntity.ok(acompanhamentos);
   }
 
@@ -190,9 +218,11 @@ public class DenunciaAdminController {
   public ResponseEntity<AcompanhamentoDto> adicionarAcompanhamento(
       @Parameter(description = "ID da denúncia", required = true) @PathVariable Long id,
       @Valid @RequestBody AcompanhamentoDto novoAcompanhamento, Authentication authentication) {
+    log.info("Admin requisitou adicionar acompanhamento à denúncia ID {}", id);
     String nomeAdmin = authentication.getName();
     AcompanhamentoDto acompanhamentoSalvo =
         denunciaService.adicionarAcompanhamentoAdmin(id, novoAcompanhamento, nomeAdmin);
+    log.info("Acompanhamento adicionado à denúncia ID {}: {}", id, acompanhamentoSalvo);
     return ResponseEntity.status(HttpStatus.CREATED).body(acompanhamentoSalvo);
   }
 }

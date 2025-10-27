@@ -89,23 +89,35 @@
   cursor: pointer; /* Cursor de ponteiro */
   padding: 0.5rem; /* Espaçamento interno */
   border-radius: 8px; /* Bordas arredondadas */
-  transition: background-color 0.3s ease; /* Transição do fundo */
+  transition: all 0.3s ease; /* Transição completa */
   display: flex; /* Layout flexbox */
   align-items: center; /* Centraliza o ícone */
   justify-content: center; /* Centraliza o ícone */
   color: var(--azul-confianca); /* Cor azul */
+  box-shadow: none; /* Remove shadow padrão */
 }
 
 /* Estado hover do menu hamburger */
 .hamburger-menu:hover {
   background: rgba(26, 78, 138, 0.1); /* Fundo azul claro no hover */
   color: var(--azul-escuro); /* Cor mais escura */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Shadow apenas no hover */
+  transform: translateY(-1px); /* Leve elevação no hover */
 }
 
 /* Estado focus do menu hamburger (acessibilidade) */
 .hamburger-menu:focus {
   outline: 2px solid var(--azul-confianca); /* Borda de foco */
   outline-offset: 2px; /* Espaçamento da borda */
+}
+
+/* Override para remover shadows globais dos botões */
+.hamburger-menu {
+  box-shadow: none !important; /* Force remove shadow */
+}
+
+.hamburger-menu:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; /* Shadow apenas no hover */
 }
 
 /* Ícone do menu hamburger */

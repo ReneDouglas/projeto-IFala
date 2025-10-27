@@ -27,7 +27,7 @@ services:
   ifala-frontend:
     build:
       context: ./apps/ifala-frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: ifala-frontend
     environment:
       - NODE_ENV=development
@@ -153,4 +153,4 @@ volumes:
   grafana-data: {}
   loki-data: {}
   promtail-positions: {}
-  #pmm-data:
+  # pmm-data:

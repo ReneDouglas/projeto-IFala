@@ -7,10 +7,11 @@ package br.edu.ifpi.ifala.shared.enums;
  * @author Renê Morais
  * 
  * @author luisthedevmagician
+ * 
+ * @author luisthedevmagician
  */
 public enum Perfis {
-  ADMIN("admin", "Admin", "Admin"),
-  ANONIMO("anonimo", "Usuário Anônimo", "Usuário Anônimo");
+  ADMIN("admin", "Admin", "Admin"), ANONIMO("anonimo", "Usuário Anônimo", "Usuário Anônimo");
 
   private final String value;
   private final String descricao;

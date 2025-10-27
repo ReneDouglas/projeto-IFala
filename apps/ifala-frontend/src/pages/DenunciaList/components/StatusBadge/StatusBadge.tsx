@@ -10,7 +10,7 @@ export const StatusBadge = ({ status }: StatusBadgeProps) => {
     RESOLVIDO: { label: 'Resolvido', className: 'status-resolvido' },
     REJEITADO: { label: 'Rejeitado', className: 'status-rejeitado' },
     AGUARDANDO_INFORMACOES: {
-      label: 'Aguardando Informações',
+      label: 'Pendente',
       className: 'status-aguardando',
     },
     EM_ANALISE: { label: 'Em Análise', className: 'status-analise' },

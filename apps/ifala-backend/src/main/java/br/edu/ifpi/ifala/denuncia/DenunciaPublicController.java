@@ -18,9 +18,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.CriarDenunciaDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
@@ -39,6 +43,7 @@ import java.util.UUID;
     description = "Endpoints públicos para criar e consultar o andamento de denúncias.")
 public class DenunciaPublicController {
 
+  private static final Logger log = LoggerFactory.getLogger(DenunciaPublicController.class);
   private final DenunciaService denunciaService;
 
   public DenunciaPublicController(DenunciaService denunciaService) {
@@ -57,12 +62,21 @@ public class DenunciaPublicController {
   public ResponseEntity<DenunciaResponseDto> criarDenuncia(
       @Valid @RequestBody CriarDenunciaDto novaDenunciaDto, UriComponentsBuilder uriBuilder) {
 
-    DenunciaResponseDto denunciaSalvaDto = denunciaService.criarDenuncia(novaDenunciaDto);
+    log.info("Recebida requisição para criar nova denúncia pública.");
+    try {
+      DenunciaResponseDto denunciaSalvaDto = denunciaService.criarDenuncia(novaDenunciaDto);
+      URI uri = uriBuilder.path("/api/v1/public/denuncias/{token}")
+          .buildAndExpand(denunciaSalvaDto.tokenAcompanhamento()).toUri();
 
-    URI uri = uriBuilder.path("/api/v1/public/denuncias/{token}")
-        .buildAndExpand(denunciaSalvaDto.getTokenAcompanhamento()).toUri();
+      log.info("Denúncia criada com sucesso. Token de acompanhamento: {}",
+          denunciaSalvaDto.tokenAcompanhamento());
 
-    return ResponseEntity.created(uri).body(denunciaSalvaDto);
+      return ResponseEntity.created(uri).body(denunciaSalvaDto);
+    } catch (Exception e) {
+      log.error("Erro ao criar denúncia: {}", e.getMessage());
+      throw e; // lança a exceção para ser tratada globalmente
+    }
+
   }
 
   @GetMapping("/{tokenAcompanhamento}")
@@ -77,8 +91,12 @@ public class DenunciaPublicController {
   public ResponseEntity<DenunciaResponseDto> consultarPorToken(@Parameter(
       description = "Token de acompanhamento da denúncia", required = true,
       example = "123e4567-e89b-12d3-a456-426614174000") @PathVariable UUID tokenAcompanhamento) {
+    log.info("Recebida requisição de consulta pública por token: {}", tokenAcompanhamento);
     return denunciaService.consultarPorTokenAcompanhamento(tokenAcompanhamento)
-        .map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        .map(ResponseEntity::ok).orElseGet(() -> {
+          log.warn("Denúncia não encontrada (público) para o token: {}", tokenAcompanhamento);
+          return ResponseEntity.notFound().build();
+        });
   }
 
   @GetMapping("/{tokenAcompanhamento}/acompanhamentos")
@@ -91,9 +109,17 @@ public class DenunciaPublicController {
   public ResponseEntity<List<AcompanhamentoDto>> listarAcompanhamentos(
       @Parameter(description = "Token de acompanhamento da denúncia",
           required = true) @PathVariable UUID tokenAcompanhamento) {
-    List<AcompanhamentoDto> acompanhamentos =
-        denunciaService.listarAcompanhamentosPorToken(tokenAcompanhamento);
-    return ResponseEntity.ok(acompanhamentos);
+    log.info("Recebida requisição para listar acompanhamentos (público) por token: {}",
+        tokenAcompanhamento);
+    try {
+      List<AcompanhamentoDto> acompanhamentos =
+          denunciaService.listarAcompanhamentosPorToken(tokenAcompanhamento);
+      return ResponseEntity.ok(acompanhamentos);
+    } catch (EntityNotFoundException e) {
+      log.warn("Denúncia não encontrada (público) ao listar acompanhamentos por token: {}",
+          tokenAcompanhamento);
+      return ResponseEntity.notFound().build();
+    }
   }
 
   @PostMapping("/{tokenAcompanhamento}/acompanhamentos")
@@ -110,9 +136,18 @@ public class DenunciaPublicController {
       @Parameter(description = "Token de acompanhamento da denúncia",
           required = true) @PathVariable UUID tokenAcompanhamento,
       @Valid @RequestBody AcompanhamentoDto novoAcompanhamento) {
-    AcompanhamentoDto acompanhamentoSalvo =
-        denunciaService.adicionarAcompanhamentoDenunciante(tokenAcompanhamento, novoAcompanhamento);
-    return ResponseEntity.status(HttpStatus.CREATED).body(acompanhamentoSalvo);
+    log.info("Recebida requisição para adicionar acompanhamento (público) por token: {}",
+        tokenAcompanhamento);
+    try {
+      AcompanhamentoDto acompanhamentoSalvo = denunciaService
+          .adicionarAcompanhamentoDenunciante(tokenAcompanhamento, novoAcompanhamento);
+      return ResponseEntity.status(HttpStatus.CREATED).body(acompanhamentoSalvo);
+    } catch (EntityNotFoundException e) {
+      log.warn(
+          "Denúncia não encontrada ou finalizada ao adicionar acompanhamento (público) por token: {}",
+          tokenAcompanhamento);
+      return ResponseEntity.notFound().build();
+    }
   }
 
 }

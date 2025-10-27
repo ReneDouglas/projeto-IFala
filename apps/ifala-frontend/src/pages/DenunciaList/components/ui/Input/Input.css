@@ -107,3 +107,54 @@
   font-family: 'Material Symbols Outlined';
   font-size: 1rem;
 }
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .input-label {
+    font-size: 0.85rem;
+  }
+
+  .custom-input {
+    padding: 0.7rem 0.9rem;
+    padding-left: 2.4rem;
+    font-size: 0.95rem;
+  }
+
+  .input-icon,
+  .input-success {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .input-label {
+    font-size: 0.8rem;
+  }
+
+  .custom-input {
+    padding: 0.65rem 0.85rem;
+    padding-left: 2.3rem;
+    font-size: 0.9rem;
+    border-radius: 7px;
+  }
+
+  .input-icon,
+  .input-success {
+    font-size: 1rem;
+    left: 10px;
+  }
+
+  .input-success {
+    right: 10px;
+  }
+
+  .error-message,
+  .success-message {
+    font-size: 0.75rem;
+  }
+
+  .error-message::before,
+  .success-message::before {
+    font-size: 0.9rem;
+  }
+}
