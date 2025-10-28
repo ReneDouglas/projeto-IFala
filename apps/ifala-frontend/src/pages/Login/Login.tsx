@@ -25,6 +25,18 @@ import {
 import ifalaLogo from '../../assets/IFala-logo.png';
 import '../../App.css';
 
+declare global {
+  interface Window {
+    grecaptcha: {
+      ready: (callback: () => void) => void;
+      execute: (
+        siteKey: string,
+        options: { action: string },
+      ) => Promise<string>;
+    };
+  }
+}
+
 export function Login() {
   const navigate = useNavigate();
 
@@ -133,22 +145,44 @@ export function Login() {
     setLoading(true);
     setError('');
 
-    try {
-      // Simular chamada de API
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // TODO: Integrar com a API de autenticação real
-      // Por enquanto, retornar erro de credenciais inválidas
-      setError(
-        'Credenciais inválidas. Integração com API de autenticação pendente.',
-      );
-    } catch {
-      setError(
-        'Erro ao fazer login. Verifique suas credenciais e tente novamente.',
-      );
-    } finally {
+    if (!window.grecaptcha) {
+      setError('Erro ao carregar o reCAPTCHA. Por favor, recarregue a página.');
       setLoading(false);
+      return;
     }
+
+    window.grecaptcha.ready(() => {
+      window.grecaptcha
+        .execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY, { action: 'login' })
+        .then(async (token) => {
+          if (!token) {
+            setError('Falha ao obter o token do reCAPTCHA. Tente novamente.');
+            setLoading(false);
+            return;
+          }
+
+          const loginData = {
+            ...formData,
+            recaptchaToken: token,
+          };
+
+          try {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            console.log('Dados que seriam enviados para a API:', loginData);
+
+            setError(
+              'Credenciais inválidas. Integração com API de autenticação pendente.',
+            );
+          } catch {
+            setError(
+              'Erro ao fazer login. Verifique suas credenciais e tente novamente.',
+            );
+          } finally {
+            setLoading(false);
+          }
+        });
+    });
   };
 
   return (

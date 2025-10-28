@@ -13,6 +13,18 @@ import { useNavigate } from 'react-router-dom';
 import '../../App.css';
 import ifalaLogo from '../../assets/IFala-logo.png';
 
+declare global {
+  interface Window {
+    grecaptcha: {
+      ready: (callback: () => void) => void;
+      execute: (
+        siteKey: string,
+        options: { action: string },
+      ) => Promise<string>;
+    };
+  }
+}
+
 export function ResetPassword() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -49,15 +61,38 @@ export function ResetPassword() {
       return;
     }
 
-    // caso todas as validações passem
-    console.log(
-      'Simulando redefinição de senha para o email:',
-      email,
-      'com nova senha:',
-      password,
-    );
-    alert('Senha redefinida com sucesso!');
-    navigate('/'); // Simula o retorno para a página inicial
+    // Validação reCAPTCHA
+    if (!window.grecaptcha) {
+      setError('Erro ao carregar o reCAPTCHA. Por favor, recarregue a página.');
+      return;
+    }
+
+    window.grecaptcha.ready(() => {
+      window.grecaptcha
+        .execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY, {
+          action: 'reset_password',
+        })
+        .then(async (token) => {
+          if (!token) {
+            setError('Falha ao obter o token do reCAPTCHA. Tente novamente.');
+            return;
+          }
+
+          const resetData = {
+            email,
+            password,
+            recaptchaToken: token,
+          };
+
+          // caso todas as validações passem
+          console.log(
+            'Simulando redefinição de senha com os dados:',
+            resetData,
+          );
+          alert('Senha redefinida com sucesso!');
+          navigate('/');
+        });
+    });
   };
 
   return (

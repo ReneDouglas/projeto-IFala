@@ -182,7 +182,7 @@ export function Denuncia() {
     event.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    const newErrors = {
+    const validationErrors = {
       nome: tipoDenuncia === 'identificada' && formData.nome.trim() === '',
       email:
         tipoDenuncia === 'identificada' && !emailRegex.test(formData.email),
@@ -200,17 +200,15 @@ export function Denuncia() {
       recaptcha: !recaptchaToken,
     };
 
-    setErrors(newErrors);
-    const hasErrors = Object.values(newErrors).some((error) => error === true);
+    setErrors(validationErrors);
+
+    const hasErrors = Object.values(validationErrors).some((error) => error);
 
     if (hasErrors) {
       let errorMessage = 'Por favor, preencha todos os campos obrigatórios.';
-      if (newErrors.relato) {
+      if (validationErrors.relato) {
         errorMessage =
           'Por favor, preencha todos os campos obrigatórios e garanta que a descrição tenha no mínimo 50 caracteres.';
-      }
-      if (newErrors.recaptcha) {
-        errorMessage = 'Por favor, complete o desafio "Não sou um robô".';
       }
       alert(errorMessage);
       return;
@@ -235,7 +233,7 @@ export function Denuncia() {
             : undefined,
         descricaoDetalhada: formData.relato,
         categoriaDaDenuncia: formData.categoria,
-        'g-recaptcha-response': recaptchaToken || undefined,
+        recaptchaToken: recaptchaToken,
       };
 
       const response = await criarDenuncia(payload);
@@ -364,7 +362,9 @@ export function Denuncia() {
                     control={
                       <Radio
                         sx={{
-                          '&.Mui-checked': { color: 'var(--verde-esperanca)' },
+                          '&.Mui-checked': {
+                            color: 'var(--verde-esperanca)',
+                          },
                         }}
                       />
                     }
@@ -375,7 +375,9 @@ export function Denuncia() {
                     control={
                       <Radio
                         sx={{
-                          '&.Mui-checked': { color: 'var(--verde-esperanca)' },
+                          '&.Mui-checked': {
+                            color: 'var(--verde-esperanca)',
+                          },
                         }}
                       />
                     }
@@ -566,7 +568,9 @@ export function Denuncia() {
 
               <FormControl fullWidth required error={errors.categoria}>
                 <InputLabel
-                  sx={{ '&.Mui-focused': { color: 'var(--verde-esperanca)' } }}
+                  sx={{
+                    '&.Mui-focused': { color: 'var(--verde-esperanca)' },
+                  }}
                 >
                   Categoria da Denúncia
                 </InputLabel>
@@ -603,11 +607,11 @@ export function Denuncia() {
                 name='relato'
                 label='Descrição Detalhada '
                 placeholder={`Descreva sua denúncia com o máximo de detalhes possível:
-                            - O que aconteceu?
-                            - Quem são os envolvidos?
-                            - Onde e quando ocorreu?
-                            - Existem testemunhas?
-                            - Qualquer informação adicional é valiosa.`}
+                          - O que aconteceu?
+                          - Quem são os envolvidos?
+                          - Onde e quando ocorreu?
+                          - Existem testemunhas?
+                          - Qualquer informação adicional é valiosa.`}
                 multiline
                 rows={8}
                 fullWidth
@@ -651,7 +655,7 @@ export function Denuncia() {
                 }}
               >
                 <ReCAPTCHA
-                  sitekey='6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+                  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
                   onChange={handleRecaptchaChange}
                 />
                 {errors.recaptcha && (
