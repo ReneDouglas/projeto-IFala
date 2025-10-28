@@ -57,12 +57,16 @@ public class DenunciaService {
 
   public DenunciaResponseDto criarDenuncia(CriarDenunciaDto dto) {
 
+    log.info("Iniciando validação do reCAPTCHA para nova denúncia.");
+
     boolean isRecaptchaValid = recaptchaService.validarToken(dto.getRecaptchaToken(), "denuncia", 0.5);
 
     if (!isRecaptchaValid) {
-
+      log.warn("Falha na validação do reCAPTCHA para nova denúncia.");
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Falha na validação do ReCaptcha.");
     }
+
+    log.info("reCAPTCHA validado com sucesso para nova denúncia.");
 
     Denuncia novaDenuncia = new Denuncia();
     novaDenuncia.setDescricao(dto.getDescricao());

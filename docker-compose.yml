@@ -29,10 +29,10 @@ services:
       context: ./apps/ifala-frontend
       dockerfile: Dockerfile.dev
     container_name: ifala-frontend
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://ifala-backend:8080
-      - VITE_RECAPTCHA_SITE_KEY="chave_site_recaptcha_aqui"
     ports:
       - '5173:5173'
     volumes:
@@ -44,8 +44,9 @@ services:
       context: ./apps/ifala-backend
       dockerfile: Dockerfile
     container_name: ifala-backend
+    env_file:
+      - .env
     environment:
-      RECAPTCHA_SECRET_KEY: 'chave_secreta_recaptcha_aqui'
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ifala
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
