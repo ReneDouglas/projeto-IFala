@@ -4,6 +4,7 @@
 # Script de Deploy INTERATIVO - Producao
 # ========================================
 # Terminal interativo com menu, confirmacoes e avisos
+# atualizado linux
 
 set -e
 
