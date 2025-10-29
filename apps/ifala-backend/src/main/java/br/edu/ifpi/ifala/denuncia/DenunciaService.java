@@ -25,8 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Classe de serviço responsável por manipular operações relacionadas a
- * denúncias.
+ * Classe de serviço responsável por manipular operações relacionadas a denúncias.
  *
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
@@ -117,12 +116,9 @@ public class DenunciaService {
   }
 
   /*
-   * tipo Page é uma interface do Spring Data que encapsula uma página de dados
-   * Pageable é uma
-   * interface que define a paginação e ordenação Specification é uma interface do
-   * Spring Data JPA
-   * que permite construir consultas dinamicamente predicate é uma condição usada
-   * em consultas para
+   * tipo Page é uma interface do Spring Data que encapsula uma página de dados Pageable é uma
+   * interface que define a paginação e ordenação Specification é uma interface do Spring Data JPA
+   * que permite construir consultas dinamicamente predicate é uma condição usada em consultas para
    * filtrar resultados
    */
 
@@ -192,8 +188,9 @@ public class DenunciaService {
   @Transactional(readOnly = true)
   public List<AcompanhamentoDto> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
     log.info("Listando acompanhamentos (público) para o token: {}", tokenAcompanhamento);
-    Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
-        () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
+    Denuncia denuncia =
+        denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
+            () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
 
     return denuncia.getAcompanhamentos().stream().map(this::mapToAcompanhamentoResponseDto)
         .collect(Collectors.toList());
@@ -209,11 +206,13 @@ public class DenunciaService {
         .collect(Collectors.toList());
   }
 
-  public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento, AcompanhamentoDto dto) {
+  public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento,
+      AcompanhamentoDto dto) {
     log.info("Adicionando acompanhamento (público) para o token: {}", tokenAcompanhamento);
     Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
         .filter(d -> d.getStatus() != Status.RESOLVIDO && d.getStatus() != Status.REJEITADO)
-        .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada, finalizada ou token inválido."));
+        .orElseThrow(() -> new EntityNotFoundException(
+            "Denúncia não encontrada, finalizada ou token inválido."));
 
     Acompanhamento novoAcompanhamento = new Acompanhamento();
     novoAcompanhamento.setMensagem(policy.sanitize(dto.mensagem()));
@@ -252,27 +251,18 @@ public class DenunciaService {
   }
 
   private DenunciaResponseDto mapToDenunciaResponseDto(Denuncia denuncia) {
-    return new DenunciaResponseDto(
-        denuncia.getTokenAcompanhamento(),
-        denuncia.getStatus(),
-        denuncia.getCategoria(),
-        denuncia.getCriadoEm());
+    return new DenunciaResponseDto(denuncia.getTokenAcompanhamento(), denuncia.getStatus(),
+        denuncia.getCategoria(), denuncia.getCriadoEm());
   }
 
   private DenunciaAdminResponseDto mapToDenunciaAdminResponseDto(Denuncia denuncia) {
-    return new DenunciaAdminResponseDto(
-        denuncia.getId(),
-        denuncia.getTokenAcompanhamento(),
-        denuncia.getStatus(),
-        denuncia.getCategoria(),
-        denuncia.getCriadoEm());
+    return new DenunciaAdminResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
+        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm());
   }
 
   private AcompanhamentoDto mapToAcompanhamentoResponseDto(Acompanhamento acompanhamento) {
-    return new AcompanhamentoDto(
-        acompanhamento.getMensagem(),
-        acompanhamento.getAutor(),
-        acompanhamento.getDataEnvio());
+    return new AcompanhamentoDto(acompanhamento.getId(), acompanhamento.getMensagem(),
+        acompanhamento.getAutor(), acompanhamento.getDataEnvio());
   }
 
 }
