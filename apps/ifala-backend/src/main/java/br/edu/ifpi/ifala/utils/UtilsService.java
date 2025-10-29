@@ -14,12 +14,11 @@ import org.springframework.stereotype.Service;
 /**
  * Serviço que fornece métodos para converter enumerações Java para DTOs.
  * 
- * Converte os enums do sistema para EnumDTO para exposição via API.
- * Implementação corrigida para usar enums Java conforme especificação da Task
- * #74.
+ * Converte os enums do sistema para EnumDTO para exposição via API. Implementação corrigida para
+ * usar enums Java conforme especificação da Task #74.
  *
  * @author luisthedevmagician
- * @author GitHub Copilot (correção)
+ * @author Guilherme Alves (correção)
  */
 @Service
 public class UtilsService {
@@ -40,8 +39,7 @@ public class UtilsService {
 
   // Converte todos os valores do enum Grau para EnumDTO
   public List<EnumDTO> getAllGraus() {
-    return Arrays.stream(Grau.values())
-        .map(grau -> new EnumDTO(grau.name(), grau.getDisplayName()))
+    return Arrays.stream(Grau.values()).map(grau -> new EnumDTO(grau.name(), grau.getDisplayName()))
         .collect(Collectors.toList());
   }
 
