@@ -20,13 +20,13 @@ import jakarta.validation.constraints.Size;
 @Schema(name = "Criar Denúncia", description = "Dados necessários para registrar uma nova denúncia.")
 public record CriarDenunciaDto(
 
-    Boolean desejaSeIdentificar,
+        Boolean desejaSeIdentificar,
 
-    @Schema(description = "Dados de identificação (obrigatório se desejaSeIdentificar for true)") @Valid DadosDeIdentificacaoDto dadosDeIdentificacao,
+        @Schema(description = "Dados de identificação (obrigatório se desejaSeIdentificar for true)") @Valid DadosDeIdentificacaoDto dadosDeIdentificacao,
 
-    @JsonProperty("descricaoDetalhada") @Schema(description = "Descrição detalhada da denúncia.", minLength = 50, maxLength = 5000, requiredMode = Schema.RequiredMode.REQUIRED) @NotBlank(message = "A descrição não pode ser vazia") @Size(min = 50, max = 5000, message = "A descrição deve ter entre 50 e 5000 caracteres") String descricao,
+        @JsonProperty("descricaoDetalhada") @Schema(description = "Descrição detalhada da denúncia.", minLength = 50, maxLength = 5000, requiredMode = Schema.RequiredMode.REQUIRED) @NotBlank(message = "A descrição não pode ser vazia") @Size(min = 50, max = 5000, message = "A descrição deve ter entre 50 e 5000 caracteres") String descricao,
 
-    @JsonProperty("categoriaDaDenuncia") @Schema(description = "Categoria da denúncia.", example = "BULLYING", requiredMode = Schema.RequiredMode.REQUIRED) @NotNull(message = "A categoria não pode ser nula") Categorias categoria,
+        @JsonProperty("categoriaDaDenuncia") @Schema(description = "Categoria da denúncia.", example = "BULLYING", requiredMode = Schema.RequiredMode.REQUIRED) @NotNull(message = "A categoria não pode ser nula") Categorias categoria,
 
-    @JsonProperty("g-recaptcha-response") @Schema(description = "Token do Google ReCaptcha v2 (opcional por enquanto)") String recaptchaToken) {
+        @JsonProperty("recaptchaToken") @Schema(description = "Token do Google ReCaptcha v3") String recaptchaToken) {
 }

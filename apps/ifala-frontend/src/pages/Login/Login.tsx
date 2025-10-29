@@ -132,23 +132,55 @@ export function Login() {
 
     setLoading(true);
     setError('');
+    /*
+    const grecaptcha = window.grecaptcha;
+    if (!grecaptcha) {
+      setError('Erro ao carregar o reCAPTCHA. Por favor, recarregue a página.');
+      setLoading(false);
+      return;
+    }
 
     try {
-      // Simular chamada de API
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      if (typeof grecaptcha.ready === 'function') {
+        await new Promise<void>((resolve) =>
+          grecaptcha.ready!(() => resolve()),
+        );
+      }
+      const token = await grecaptcha.execute(
+        import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+        { action: 'login' },
+      );
+      if (!token) {
+        setError('Falha ao obter o token do reCAPTCHA. Tente novamente.');
+        setLoading(false);
+        return;
+      }
 
-      // TODO: Integrar com a API de autenticação real
-      // Por enquanto, retornar erro de credenciais inválidas
-      setError(
-        'Credenciais inválidas. Integração com API de autenticação pendente.',
-      );
+      const loginData = {
+        ...formData,
+        recaptchaToken: token,
+      };
+
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        console.log('Dados que seriam enviados para a API:', loginData);
+
+        setError(
+          'Credenciais inválidas. Integração com API de autenticação pendente.',
+        );
+      } catch {
+        setError(
+          'Erro ao fazer login. Verifique suas credenciais e tente novamente.',
+        );
+      } finally {
+        setLoading(false);
+      }
     } catch {
-      setError(
-        'Erro ao fazer login. Verifique suas credenciais e tente novamente.',
-      );
+      setError('Erro ao gerar token do reCAPTCHA. Tente novamente.');
     } finally {
       setLoading(false);
-    }
+    }*/
   };
 
   return (
