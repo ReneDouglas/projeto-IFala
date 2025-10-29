@@ -35,16 +35,13 @@ EXPOSE 8080
 COPY --from=builder /app/target/ifala-0.0.1-SNAPSHOT.jar ifala-api.jar
 
 # Configurações otimizadas para produção:
-# -Xms512m: Memória inicial do heap
-# -Xmx2g: Memória máxima do heap
-# -XX:+UseG1GC: Garbage Collector G1 (recomendado para produção)
-# -XX:MaxGCPauseMillis=200: Pausa máxima do GC
+# -Xms1g: Memória inicial do heap (mesmo valor que Xmx para melhor performance)
+# -Xmx1g: Memória máxima do heap
 # -XX:+UseStringDeduplication: Otimização de strings duplicadas
+# Nota: Java 25 já usa o melhor GC disponível por padrão (não precisa especificar UseG1GC)
 ENTRYPOINT ["java", \
-    "-Xms512m", \
-    "-Xmx2g", \
-    "-XX:+UseG1GC", \
-    "-XX:MaxGCPauseMillis=200", \
+    "-Xms1g", \
+    "-Xmx1g", \
     "-XX:+UseStringDeduplication", \
     "-jar", \
     "ifala-api.jar"]

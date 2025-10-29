@@ -81,8 +81,6 @@ services:
       dockerfile: Dockerfile.prd
     container_name: ifala-frontend-prd
     restart: always
-    ports:
-      - '8080:80'
     networks:
       - ifala-network
     depends_on:
@@ -151,13 +149,11 @@ services:
     image: grafana/grafana-oss:10.4.2
     container_name: grafana-prd
     restart: always
-    ports:
-      - '8081:3000'
     environment:
       GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER}
       GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
       GF_INSTALL_PLUGINS: ''
-      GF_SERVER_ROOT_URL: http://localhost:8081
+      GF_SERVER_ROOT_URL: http://localhost/grafana
       GF_ANALYTICS_REPORTING_ENABLED: false
       GF_ANALYTICS_CHECK_FOR_UPDATES: false
     volumes:
@@ -201,6 +197,29 @@ services:
       - ifala-network
     depends_on:
       - loki
+
+  # ----------------------------------------
+  # NGINX Gateway - Ponto único de entrada
+  # ----------------------------------------
+  nginx-gateway:
+    image: nginx:1.27-alpine
+    container_name: nginx-gateway-prd
+    restart: always
+    ports:
+      - '80:80'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - ifala-network
+    depends_on:
+      - ifala-frontend
+      - ifala-backend
+      - grafana
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 # ----------------------------------------
 # Networks
