@@ -20,7 +20,7 @@ export function ResetPassword() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
 
@@ -49,15 +49,38 @@ export function ResetPassword() {
       return;
     }
 
-    // caso todas as validações passem
-    console.log(
-      'Simulando redefinição de senha para o email:',
-      email,
-      'com nova senha:',
-      password,
-    );
-    alert('Senha redefinida com sucesso!');
-    navigate('/'); // Simula o retorno para a página inicial
+    // Validação reCAPTCHA
+    /*const grecaptcha = window.grecaptcha;
+    if (!grecaptcha) {
+      setError('Erro ao carregar o reCAPTCHA. Por favor, recarregue a página.');
+      return;
+    }
+
+    try {
+      if (typeof grecaptcha.ready === 'function') {
+        await new Promise<void>((resolve) =>
+          grecaptcha.ready!(() => resolve()),
+        );
+      }
+      const token = await grecaptcha.execute(
+        import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+        { action: 'reset_password' },
+      );
+      if (!token) {
+        setError('Falha ao obter o token do reCAPTCHA. Tente novamente.');
+        return;
+      }
+
+      const resetData = { email, password, recaptchaToken: token };
+
+      // caso todas as validações passem
+      console.log('Simulando redefinição de senha com os dados:', resetData);
+      alert('Simulação: Senha redefinida com sucesso!');
+      navigate('/');
+    } catch {
+      setError('Erro ao gerar token do reCAPTCHA. Tente novamente.');
+    }
+  */
   };
 
   return (

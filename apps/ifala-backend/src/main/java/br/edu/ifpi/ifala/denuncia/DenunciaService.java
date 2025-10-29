@@ -23,6 +23,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import br.edu.ifpi.ifala.security.recaptcha.RecaptchaService;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 /**
  * Classe de serviço responsável por manipular operações relacionadas a denúncias.
@@ -39,6 +42,7 @@ public class DenunciaService {
 
   private final DenunciaRepository denunciaRepository;
   private final AcompanhamentoRepository acompanhamentoRepository;
+  private final RecaptchaService recaptchaService;
   private final PolicyFactory policy;
 
   // A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO
@@ -53,23 +57,25 @@ public class DenunciaService {
   // }
 
   public DenunciaService(DenunciaRepository denunciaRepository,
-      AcompanhamentoRepository acompanhamentoRepository) {
+      AcompanhamentoRepository acompanhamentoRepository, RecaptchaService recaptchaService) {
     this.denunciaRepository = denunciaRepository;
     this.acompanhamentoRepository = acompanhamentoRepository;
+    this.recaptchaService = recaptchaService;
     this.policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
   }
 
   public DenunciaResponseDto criarDenuncia(CriarDenunciaDto dto) {
 
-    // Validação do reCAPTCHA - A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER
-    // FUNCIONANDO EM PRODUÇÃO
+    log.info("Iniciando validação do reCAPTCHA para nova denúncia.");
 
-    // boolean isRecaptchaValid =
-    // recaptchaService.validarToken(dto.getRecaptchaToken()).block();
+    boolean isRecaptchaValid = recaptchaService.validarToken(dto.recaptchaToken(), "denuncia", 0.5);
 
-    // if (!isRecaptchaValid) {
-    // throw new RuntimeException("Falha na validação do ReCaptcha.");
-    // }
+    if (!isRecaptchaValid) {
+      log.warn("Falha na validação do reCAPTCHA para nova denúncia.");
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Falha na validação do ReCaptcha.");
+    }
+
+    log.info("reCAPTCHA validado com sucesso para nova denúncia.");
 
     Denuncia novaDenuncia = new Denuncia();
     novaDenuncia.setDescricao(policy.sanitize(dto.descricao()));
