@@ -20,7 +20,7 @@ import {
   CircularProgress,
   type SelectChangeEvent,
 } from '@mui/material';
-import ReCAPTCHA from 'react-google-recaptcha';
+//import ReCAPTCHA from 'react-google-recaptcha';
 import '../../styles/theme.css';
 import {
   getCategorias,
@@ -30,6 +30,20 @@ import {
   criarDenuncia,
 } from '../../services/api';
 import type { EnumOption, ApiError } from '../../types/denuncia';
+/*
+declare global {
+  interface Window {
+    grecaptcha: {
+      ready?: (cb: () => void) => void;
+      execute: (
+        siteKey: string,
+        options?: { action?: string },
+      ) => Promise<string>;
+      reset?: () => void;
+    };
+  }
+}
+export {};*/
 
 export function Denuncia() {
   // Estados para dados carregados da API
@@ -55,7 +69,7 @@ export function Denuncia() {
     relato: '',
   });
   const [tipoDenuncia, setTipoDenuncia] = useState('anonima');
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  //const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [errors, setErrors] = useState({
     nome: false,
     email: false,
@@ -64,7 +78,7 @@ export function Denuncia() {
     turma: false,
     categoria: false,
     relato: false,
-    recaptcha: false,
+    //recaptcha: false,
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -197,7 +211,7 @@ export function Denuncia() {
         formData.turma.trim() === '',
       categoria: formData.categoria.trim() === '',
       relato: formData.relato.trim().length < 50,
-      recaptcha: !recaptchaToken,
+      //recaptcha: !recaptchaToken,
     };
 
     setErrors(validationErrors);
@@ -219,6 +233,30 @@ export function Denuncia() {
     setApiError(null);
 
     try {
+      const grecaptcha = window.grecaptcha;
+      if (grecaptcha && typeof grecaptcha.ready === 'function') {
+        await new Promise<void>((resolve) =>
+          grecaptcha.ready!(() => resolve()),
+        );
+      }
+
+      if (!grecaptcha || typeof grecaptcha.execute !== 'function') {
+        alert('reCAPTCHA não disponível. Tente novamente mais tarde.');
+        setSubmitting(false);
+        return;
+      }
+
+      // gera token v3 acao: 'denuncia'
+      const recaptchaTokenV3 = await grecaptcha.execute(
+        import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+        { action: 'denuncia' },
+      );
+
+      if (!recaptchaTokenV3) {
+        throw new Error(
+          'Falha ao obter o token do reCAPTCHA. Tente novamente.',
+        );
+      }
       const payload = {
         desejaSeIdentificar: tipoDenuncia === 'identificada',
         dadosDeIdentificacao:
@@ -233,7 +271,7 @@ export function Denuncia() {
             : undefined,
         descricaoDetalhada: formData.relato,
         categoriaDaDenuncia: formData.categoria,
-        recaptchaToken: recaptchaToken,
+        recaptchaToken: recaptchaTokenV3,
       };
 
       const response = await criarDenuncia(payload);
@@ -265,12 +303,12 @@ export function Denuncia() {
     }
   };
 
-  const handleRecaptchaChange = (token: string | null) => {
+  /* const handleRecaptchaChange = (token: string | null) => {
     setRecaptchaToken(token);
     if (token) {
       setErrors((prevErrors) => ({ ...prevErrors, recaptcha: false }));
     }
-  };
+  }; */
 
   const fieldStyles = {
     '& .MuiOutlinedInput-root': {
@@ -607,11 +645,11 @@ export function Denuncia() {
                 name='relato'
                 label='Descrição Detalhada '
                 placeholder={`Descreva sua denúncia com o máximo de detalhes possível:
-                          - O que aconteceu?
-                          - Quem são os envolvidos?
-                          - Onde e quando ocorreu?
-                          - Existem testemunhas?
-                          - Qualquer informação adicional é valiosa.`}
+                            - O que aconteceu?
+                            - Quem são os envolvidos?
+                            - Onde e quando ocorreu?
+                            - Existem testemunhas?
+                            - Qualquer informação adicional é valiosa.`}
                 multiline
                 rows={8}
                 fullWidth
@@ -646,7 +684,7 @@ export function Denuncia() {
                 pessoais ou qualquer informação que possa identificá-lo.
               </Alert>
 
-              <Box
+              {/*<Box
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -664,6 +702,7 @@ export function Denuncia() {
                   </FormHelperText>
                 )}
               </Box>
+              */}
 
               <Button
                 variant='contained'
