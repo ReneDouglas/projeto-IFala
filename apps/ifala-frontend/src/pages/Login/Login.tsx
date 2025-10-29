@@ -25,18 +25,6 @@ import {
 import ifalaLogo from '../../assets/IFala-logo.png';
 import '../../App.css';
 
-declare global {
-  interface Window {
-    grecaptcha: {
-      ready: (callback: () => void) => void;
-      execute: (
-        siteKey: string,
-        options: { action: string },
-      ) => Promise<string>;
-    };
-  }
-}
-
 export function Login() {
   const navigate = useNavigate();
 
@@ -144,45 +132,55 @@ export function Login() {
 
     setLoading(true);
     setError('');
-
-    if (!window.grecaptcha) {
+    /*
+    const grecaptcha = window.grecaptcha;
+    if (!grecaptcha) {
       setError('Erro ao carregar o reCAPTCHA. Por favor, recarregue a página.');
       setLoading(false);
       return;
     }
 
-    window.grecaptcha.ready(() => {
-      window.grecaptcha
-        .execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY, { action: 'login' })
-        .then(async (token) => {
-          if (!token) {
-            setError('Falha ao obter o token do reCAPTCHA. Tente novamente.');
-            setLoading(false);
-            return;
-          }
+    try {
+      if (typeof grecaptcha.ready === 'function') {
+        await new Promise<void>((resolve) =>
+          grecaptcha.ready!(() => resolve()),
+        );
+      }
+      const token = await grecaptcha.execute(
+        import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+        { action: 'login' },
+      );
+      if (!token) {
+        setError('Falha ao obter o token do reCAPTCHA. Tente novamente.');
+        setLoading(false);
+        return;
+      }
 
-          const loginData = {
-            ...formData,
-            recaptchaToken: token,
-          };
+      const loginData = {
+        ...formData,
+        recaptchaToken: token,
+      };
 
-          try {
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
-            console.log('Dados que seriam enviados para a API:', loginData);
+        console.log('Dados que seriam enviados para a API:', loginData);
 
-            setError(
-              'Credenciais inválidas. Integração com API de autenticação pendente.',
-            );
-          } catch {
-            setError(
-              'Erro ao fazer login. Verifique suas credenciais e tente novamente.',
-            );
-          } finally {
-            setLoading(false);
-          }
-        });
-    });
+        setError(
+          'Credenciais inválidas. Integração com API de autenticação pendente.',
+        );
+      } catch {
+        setError(
+          'Erro ao fazer login. Verifique suas credenciais e tente novamente.',
+        );
+      } finally {
+        setLoading(false);
+      }
+    } catch {
+      setError('Erro ao gerar token do reCAPTCHA. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }*/
   };
 
   return (
