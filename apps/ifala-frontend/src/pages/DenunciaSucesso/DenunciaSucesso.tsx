@@ -177,7 +177,7 @@ export function DenunciaSucesso() {
           <Button
             variant='contained'
             color='success'
-            onClick={() => navigate('/acompanhamento', { state: { token } })}
+            onClick={() => navigate(`/acompanhamento/${token}`)}
             sx={{
               width: { xs: '100%', sm: 'auto' },
               minWidth: { xs: '100%', sm: 220 },
