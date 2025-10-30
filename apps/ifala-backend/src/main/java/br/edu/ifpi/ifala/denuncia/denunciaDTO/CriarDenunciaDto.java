@@ -34,6 +34,6 @@ public record CriarDenunciaDto(
         example = "BULLYING", requiredMode = Schema.RequiredMode.REQUIRED) @NotNull(
             message = "A categoria não pode ser nula") Categorias categoria,
 
-    @JsonProperty("g-recaptcha-response") @Schema(
-        description = "Token do Google ReCaptcha v2 (opcional por enquanto)") String recaptchaToken) {
+    @JsonProperty("recaptchaToken") @Schema(
+        description = "Token do Google ReCaptcha v3") String recaptchaToken) {
 }

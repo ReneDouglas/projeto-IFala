@@ -29,6 +29,8 @@ services:
       context: ./apps/ifala-frontend
       dockerfile: Dockerfile.dev
     container_name: ifala-frontend
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
     ports:
@@ -42,6 +44,8 @@ services:
       context: ./apps/ifala-backend
       dockerfile: Dockerfile
     container_name: ifala-backend
+    env_file:
+      - .env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ifala
       SPRING_DATASOURCE_USERNAME: postgres

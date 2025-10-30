@@ -20,7 +20,7 @@ import {
   CircularProgress,
   type SelectChangeEvent,
 } from '@mui/material';
-import ReCAPTCHA from 'react-google-recaptcha';
+//import ReCAPTCHA from 'react-google-recaptcha';
 import '../../styles/theme.css';
 import {
   getCategorias,
@@ -30,6 +30,20 @@ import {
   criarDenuncia,
 } from '../../services/api';
 import type { EnumOption, ApiError } from '../../types/denuncia';
+/*
+declare global {
+  interface Window {
+    grecaptcha: {
+      ready?: (cb: () => void) => void;
+      execute: (
+        siteKey: string,
+        options?: { action?: string },
+      ) => Promise<string>;
+      reset?: () => void;
+    };
+  }
+}
+export {};*/
 
 export function Denuncia() {
   // Estados para dados carregados da API
@@ -55,7 +69,7 @@ export function Denuncia() {
     relato: '',
   });
   const [tipoDenuncia, setTipoDenuncia] = useState('anonima');
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  //const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [errors, setErrors] = useState({
     nome: false,
     email: false,
@@ -64,7 +78,7 @@ export function Denuncia() {
     turma: false,
     categoria: false,
     relato: false,
-    recaptcha: false,
+    //recaptcha: false,
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -182,7 +196,7 @@ export function Denuncia() {
     event.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    const newErrors = {
+    const validationErrors = {
       nome: tipoDenuncia === 'identificada' && formData.nome.trim() === '',
       email:
         tipoDenuncia === 'identificada' && !emailRegex.test(formData.email),
@@ -197,20 +211,18 @@ export function Denuncia() {
         formData.turma.trim() === '',
       categoria: formData.categoria.trim() === '',
       relato: formData.relato.trim().length < 50,
-      recaptcha: !recaptchaToken,
+      //recaptcha: !recaptchaToken,
     };
 
-    setErrors(newErrors);
-    const hasErrors = Object.values(newErrors).some((error) => error === true);
+    setErrors(validationErrors);
+
+    const hasErrors = Object.values(validationErrors).some((error) => error);
 
     if (hasErrors) {
       let errorMessage = 'Por favor, preencha todos os campos obrigatórios.';
-      if (newErrors.relato) {
+      if (validationErrors.relato) {
         errorMessage =
           'Por favor, preencha todos os campos obrigatórios e garanta que a descrição tenha no mínimo 50 caracteres.';
-      }
-      if (newErrors.recaptcha) {
-        errorMessage = 'Por favor, complete o desafio "Não sou um robô".';
       }
       alert(errorMessage);
       return;
@@ -221,6 +233,30 @@ export function Denuncia() {
     setApiError(null);
 
     try {
+      const grecaptcha = window.grecaptcha;
+      if (grecaptcha && typeof grecaptcha.ready === 'function') {
+        await new Promise<void>((resolve) =>
+          grecaptcha.ready!(() => resolve()),
+        );
+      }
+
+      if (!grecaptcha || typeof grecaptcha.execute !== 'function') {
+        alert('reCAPTCHA não disponível. Tente novamente mais tarde.');
+        setSubmitting(false);
+        return;
+      }
+
+      // gera token v3 acao: 'denuncia'
+      const recaptchaTokenV3 = await grecaptcha.execute(
+        import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+        { action: 'denuncia' },
+      );
+
+      if (!recaptchaTokenV3) {
+        throw new Error(
+          'Falha ao obter o token do reCAPTCHA. Tente novamente.',
+        );
+      }
       const payload = {
         desejaSeIdentificar: tipoDenuncia === 'identificada',
         dadosDeIdentificacao:
@@ -235,7 +271,7 @@ export function Denuncia() {
             : undefined,
         descricaoDetalhada: formData.relato,
         categoriaDaDenuncia: formData.categoria,
-        'g-recaptcha-response': recaptchaToken || undefined,
+        recaptchaToken: recaptchaTokenV3,
       };
 
       const response = await criarDenuncia(payload);
@@ -267,12 +303,12 @@ export function Denuncia() {
     }
   };
 
-  const handleRecaptchaChange = (token: string | null) => {
+  /* const handleRecaptchaChange = (token: string | null) => {
     setRecaptchaToken(token);
     if (token) {
       setErrors((prevErrors) => ({ ...prevErrors, recaptcha: false }));
     }
-  };
+  }; */
 
   const fieldStyles = {
     '& .MuiOutlinedInput-root': {
@@ -364,7 +400,9 @@ export function Denuncia() {
                     control={
                       <Radio
                         sx={{
-                          '&.Mui-checked': { color: 'var(--verde-esperanca)' },
+                          '&.Mui-checked': {
+                            color: 'var(--verde-esperanca)',
+                          },
                         }}
                       />
                     }
@@ -375,7 +413,9 @@ export function Denuncia() {
                     control={
                       <Radio
                         sx={{
-                          '&.Mui-checked': { color: 'var(--verde-esperanca)' },
+                          '&.Mui-checked': {
+                            color: 'var(--verde-esperanca)',
+                          },
                         }}
                       />
                     }
@@ -566,7 +606,9 @@ export function Denuncia() {
 
               <FormControl fullWidth required error={errors.categoria}>
                 <InputLabel
-                  sx={{ '&.Mui-focused': { color: 'var(--verde-esperanca)' } }}
+                  sx={{
+                    '&.Mui-focused': { color: 'var(--verde-esperanca)' },
+                  }}
                 >
                   Categoria da Denúncia
                 </InputLabel>
@@ -642,7 +684,7 @@ export function Denuncia() {
                 pessoais ou qualquer informação que possa identificá-lo.
               </Alert>
 
-              <Box
+              {/*<Box
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -651,7 +693,7 @@ export function Denuncia() {
                 }}
               >
                 <ReCAPTCHA
-                  sitekey='6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+                  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
                   onChange={handleRecaptchaChange}
                 />
                 {errors.recaptcha && (
@@ -660,6 +702,7 @@ export function Denuncia() {
                   </FormHelperText>
                 )}
               </Box>
+              */}
 
               <Button
                 variant='contained'

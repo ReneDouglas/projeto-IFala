@@ -2,6 +2,7 @@ package br.edu.ifpi.ifala.shared.exceptions;
 
 // Imports combinados de ambas as versões
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -84,6 +85,15 @@ public class GlobalExceptionHandler {
     });
     log.warn("Erro de validação nos dados da requisição (DTO): {}", errors);
     return errors;
+  }
+
+  @ExceptionHandler(ResponseStatusException.class)
+  public ResponseEntity<Map<String, Object>> handleResponseStatusException(ResponseStatusException ex) {
+    log.warn("Exceção de status de resposta capturada: {}", ex.getReason());
+    Map<String, Object> body = Map.of(
+        "error", ex.getReason(),
+        "status", ex.getStatusCode().value());
+    return new ResponseEntity<>(body, ex.getStatusCode());
   }
 
   @ExceptionHandler(HttpMessageNotReadableException.class)
