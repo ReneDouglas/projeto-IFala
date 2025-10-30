@@ -8,6 +8,12 @@ import org.springframework.data.jpa.repository.Lock;
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
 
+/**
+ * Repositório para gerenciar operações de persistência relacionadas a RefreshTokens.
+ * 
+ * @author Phaola
+ */
+
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
 
   /**

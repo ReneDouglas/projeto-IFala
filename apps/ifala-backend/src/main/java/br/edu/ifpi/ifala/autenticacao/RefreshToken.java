@@ -3,6 +3,13 @@ package br.edu.ifpi.ifala.autenticacao;
 import jakarta.persistence.*;
 import java.time.Instant;
 
+/**
+ * Entidade que representa um Refresh Token para autenticação. Um Refresh Token é usado para obter
+ * novos tokens de acesso sem a necessidade de reautenticação completa.
+ * 
+ * @author Phaola
+ */
+
 @Entity
 @Table(name = "refresh_tokens")
 public class RefreshToken {

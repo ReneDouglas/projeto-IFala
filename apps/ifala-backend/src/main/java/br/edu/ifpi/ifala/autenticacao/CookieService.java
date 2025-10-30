@@ -4,6 +4,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
+/**
+ * Serviço para manipulação de cookies relacionados à autenticação.
+ * 
+ * @author Phaola
+ */
+
 @Service
 public class CookieService {
 

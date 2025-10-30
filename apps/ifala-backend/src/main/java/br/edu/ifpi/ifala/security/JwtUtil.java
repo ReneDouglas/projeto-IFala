@@ -13,6 +13,12 @@ import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Utilitário para criação e validação de tokens JWT.
+ * 
+ * @author Phaola
+ */
+
 @Component
 public class JwtUtil {
 
@@ -42,8 +48,6 @@ public class JwtUtil {
   }
 
   public Claims extractClaims(String token) {
-    // IMPORTANTE: O parser do JJWT verifica a expiração automaticamente neste
-    // ponto.
     return Jwts.parserBuilder().setSigningKey(signingKey).build().parseClaimsJws(token).getBody();
   }
 
@@ -60,10 +64,8 @@ public class JwtUtil {
   }
 
   /**
-   * Valida se o token pode ser usado para refresh. Permite tokens expirados para
-   * que possam ser
-   * renovados.
-   * * @param token o token JWT
+   * Valida se o token pode ser usado para refresh. Permite tokens expirados para que possam ser
+   * renovados. * @param token o token JWT
    * 
    * @return true se o token é válido (mesmo que expirado)
    */
@@ -83,8 +85,7 @@ public class JwtUtil {
   }
 
   /**
-   * Extrai o username de um token mesmo que esteja expirado. Útil para o processo
-   * de refresh token.
+   * Extrai o username de um token mesmo que esteja expirado. Útil para o processo de refresh token.
    * * @param token o token JWT
    * 
    * @return o username do token

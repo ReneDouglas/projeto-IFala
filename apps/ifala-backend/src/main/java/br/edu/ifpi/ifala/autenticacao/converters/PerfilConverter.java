@@ -5,6 +5,12 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import java.sql.SQLException;
 
+/**
+ * Conversor JPA para mapear o enum Perfis para o tipo de dado personalizado no PostgreSQL.
+ *
+ * @author Phaola
+ */
+
 @Converter(autoApply = true)
 public class PerfilConverter implements AttributeConverter<Perfis, Object> {
 

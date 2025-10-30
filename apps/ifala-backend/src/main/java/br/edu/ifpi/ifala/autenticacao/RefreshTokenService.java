@@ -11,6 +11,12 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Serviço para gerenciar Refresh Tokens.
+ * 
+ * @author Phaola
+ */
+
 @Service
 public class RefreshTokenService {
   private static final Logger logger = LoggerFactory.getLogger(RefreshTokenService.class);

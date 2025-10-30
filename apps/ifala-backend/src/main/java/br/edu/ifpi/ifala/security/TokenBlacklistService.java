@@ -5,6 +5,13 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Serviço para gerenciar uma blacklist de tokens JWT. Permite adicionar tokens à blacklist e
+ * verificar se um token está na blacklist.
+ * 
+ * @author Phaola
+ */
+
 @Service
 public class TokenBlacklistService {
   private final ConcurrentHashMap<String, Instant> blacklist = new ConcurrentHashMap<>();

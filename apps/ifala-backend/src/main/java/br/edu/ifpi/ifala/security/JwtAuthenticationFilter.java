@@ -17,6 +17,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * Filtro de autenticação JWT que intercepta requisições HTTP para validar o Access Token (Bearer).
+ * Este filtro verifica o cabeçalho Authorization para um token JWT válido, autentica o usuário
+ * correspondente e popula o contexto de segurança. Rotas públicas, como /login e /refresh, são
+ * ignoradas por este filtro.
+ * 
+ * @author Phaola
+ */
+
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
@@ -35,11 +44,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   // Lista de endpoints que não exigem Access Token (Bearer) e, portanto, pulam a
   // lógica do filtro.
   private boolean shouldSkipFilter(String path) {
-    return path != null && (path.equals("/api/v1/auth/login") ||
-        path.equals("/api/v1/auth/refresh") ||
-        path.equals("/api/v1/auth/redefinir-senha") ||
-        path.startsWith("/swagger-ui/") ||
-        path.startsWith("/v3/api-docs/"));
+    return path != null && (path.equals("/api/v1/auth/login") || path.equals("/api/v1/auth/refresh")
+        || path.equals("/api/v1/auth/redefinir-senha") || path.startsWith("/swagger-ui/")
+        || path.startsWith("/v3/api-docs/"));
   }
 
   @Override
@@ -82,7 +89,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         java.util.Date exp = jwtUtil.extractClaims(token).getExpiration();
         logger.debug("Token expira em: {} (now={})", exp, new java.util.Date());
       } catch (Exception e) {
-        logger.debug("Não foi possível extrair claims para logging de expiração: {}", e.getMessage());
+        logger.debug("Não foi possível extrair claims para logging de expiração: {}",
+            e.getMessage());
       }
 
       if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -90,8 +98,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         boolean valido = jwtUtil.validateToken(token, userDetails.getUsername());
 
         if (valido) {
-          UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
-              null, userDetails.getAuthorities());
+          UsernamePasswordAuthenticationToken authentication =
+              new UsernamePasswordAuthenticationToken(userDetails, null,
+                  userDetails.getAuthorities());
           authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
           SecurityContextHolder.getContext().setAuthentication(authentication);

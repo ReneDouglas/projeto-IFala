@@ -6,6 +6,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+/**
+ * Serviço personalizado para carregar detalhes do usuário durante a autenticação. Permite login
+ * tanto por e-mail quanto por nome de usuário.
+ * 
+ * @author Phaola
+ */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 

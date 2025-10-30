@@ -14,6 +14,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+/**
+ * Configuração de segurança da aplicação. Define as regras de autenticação e autorização para as
+ * rotas da API.
+ *
+ * @author Phaola
+ */
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -26,17 +33,12 @@ public class SecurityConfig {
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
-            // Rotas públicas - não requerem autenticação ou JWT. O Controller fará a
-            // validação do Refresh Token.
-            .requestMatchers("/api/v1/auth/login", "/actuator/**", "/api/v1/auth/redefinir-senha",
-                "/api/v1/public/**", "/api/v1/auth/refresh", "/swagger-ui/**", "/v3/api-docs/**",
-                "/swagger-ui.html", "/webjars/**", "/swagger-resources/**")
+            .requestMatchers("/api/v1/auth/login", "/actuator/**",
+                "/api/v1/auth/redefinir-senha/**", "/api/v1/public/**", "/api/v1/auth/refresh",
+                "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/webjars/**",
+                "/swagger-resources/**")
             .permitAll()
-            // Rotas protegidas - requerem autenticação com token válido
-            .requestMatchers("/api/v1/auth/sair", "/api/v1/auth/admin/registrar-usuario",
-                "/api/v1/utils/**")
-            .authenticated()
-            // Todas as outras rotas requerem autenticação
+            // Todas as outras rotas necessitam de autenticação
             .anyRequest().authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

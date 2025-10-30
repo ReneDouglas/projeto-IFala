@@ -16,27 +16,26 @@ public interface AuthService {
    * @param registroRequest dados do usuário a ser registrado.
    * @return DTO com informações não-sensíveis do usuário criado.
    * @throws IllegalArgumentException se o e-mail ou username já estiverem em uso.
+   * 
+   * @author Phaola
    */
   UsuarioResponseDTO registrarUsuario(RegistroRequestDTO registroRequest);
 
   /**
-   * Gera um token de redefinição de senha e envia um e-mail ao usuário. * @param
-   * user A entidade do
+   * Gera um token de redefinição de senha e envia um e-mail ao usuário. * @param user A entidade do
    * usuário para quem o e-mail será enviado.
    */
   void sendPasswordReset(Usuario user);
 
   /**
-   * Realiza o processo de login e gera os tokens. * @param req O DTO de
-   * requisição de login.
+   * Realiza o processo de login e gera os tokens. * @param req O DTO de requisição de login.
    * 
    * @return O DTO de resposta de login contendo tokens e redirecionamento.
    */
   LoginResponseDTO login(LoginRequestDTO req);
 
   /**
-   * Altera a senha do usuário. * @param req O DTO de requisição de mudança de
-   * senha (via senha
+   * Altera a senha do usuário. * @param req O DTO de requisição de mudança de senha (via senha
    * atual ou token).
    * 
    * @return O DTO de resposta de login com novos tokens após a mudança de senha.
@@ -44,8 +43,7 @@ public interface AuthService {
   LoginResponseDTO changePassword(MudarSenhaRequestDTO req);
 
   /**
-   * Gera um novo Access Token usando um Refresh Token válido. * @param req O DTO
-   * de requisição de
+   * Gera um novo Access Token usando um Refresh Token válido. * @param req O DTO de requisição de
    * Refresh Token.
    * 
    * @return O DTO de resposta de login com novos tokens.
@@ -53,8 +51,7 @@ public interface AuthService {
   LoginResponseDTO refreshToken(RefreshTokenRequestDTO req);
 
   /**
-   * Realiza o processo de logout e blacklists o token de acesso. * @param request
-   * A requisição HTTP
+   * Realiza o processo de logout e blacklists o token de acesso. * @param request A requisição HTTP
    * para extrair o token do header.
    */
   void logout(HttpServletRequest request);

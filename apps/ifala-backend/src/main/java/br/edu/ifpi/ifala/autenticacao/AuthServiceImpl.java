@@ -43,6 +43,12 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Implementação do serviço de autenticação.
+ * 
+ * @author Phaola
+ */
+
 @Service
 public class AuthServiceImpl implements AuthService {
   private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);

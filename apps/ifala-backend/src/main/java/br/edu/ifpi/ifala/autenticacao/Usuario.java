@@ -25,6 +25,12 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Entidade que representa um usuário no sistema.
+ * 
+ * @author Phaola
+ */
+
 @Entity
 @Table(name = "usuarios")
 @NoArgsConstructor

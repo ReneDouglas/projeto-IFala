@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Controlador de Autenticação responsável por receber requisições HTTP e delegar a lógica de
  * negócio para o AuthService.
+ * 
+ * @author Phaola
  */
 @RestController
 @RequestMapping("/api/v1/auth")
