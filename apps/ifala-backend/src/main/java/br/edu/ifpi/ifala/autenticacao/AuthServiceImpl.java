@@ -282,15 +282,14 @@ public class AuthServiceImpl implements AuthService {
 
     logger.info("Senha alterada com sucesso para o usuário: {}", user.getEmail());
 
-    // Gera novos tokens de acesso após a mudança de senha
+    // Gera novo token de acesso após a mudança de senha
     TokenDataDTO tokenData = jwtUtil.generateToken(user.getEmail());
-    RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
     String redirect = determineRedirect(user);
 
     logger.info("Redefinição de senha finalizada. Novo redirecionamento: {}", redirect);
 
     return new LoginResponseDTO(tokenData.token(), tokenData.issuedAt(), tokenData.expirationTime(),
-        refreshToken.getToken(), false, redirect, null);
+        null, false, redirect, null);
   }
 
   // LÓGICA DE REFRESH TOKEN
