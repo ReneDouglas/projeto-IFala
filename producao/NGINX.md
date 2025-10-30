@@ -4,6 +4,11 @@
 
 O NGINX atua como **gateway unico de entrada** para toda a aplicacao IFala em producao. Ele centraliza o acesso aos servicos (frontend, backend, Grafana) e elimina problemas de CORS entre frontend e backend.
 
+**Existem DOIS arquivos NGINX distintos:**
+
+1. **`nginx/nginx.conf`** - Gateway principal (reverse proxy)
+2. **`apps/ifala-frontend/nginx.conf`** - Servidor interno do frontend (SPA)
+
 ## Arquitetura
 
 ```
@@ -12,15 +17,290 @@ Cliente (Navegador)
         | http://localhost
         v
     NGINX Gateway (porta 80)
+    [nginx/nginx.conf]
         |
-        +---> / -----------> Frontend (React + NGINX interno)
+        +---> / -----------> Frontend Container
+        |                    [NGINX interno - apps/ifala-frontend/nginx.conf]
+        |                    Serve arquivos React buildados
         |
         +---> /api --------> Backend (Spring Boot:8080)
         |
         +---> /grafana ----> Grafana (Dashboard:3000)
 ```
 
-## Estrutura do Arquivo nginx.conf
+---
+
+## NGINX Frontend (apps/ifala-frontend/nginx.conf)
+
+Este arquivo configura o **NGINX interno** que roda dentro do container do frontend para servir a aplicacao React buildada.
+
+### Configuracao Completa
+
+```nginx
+server {
+    listen 80;
+    server_name localhost;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Configuração para SPA (Single Page Application)
+    # Qualquer rota não encontrada será redirecionada para index.html
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Cache para assets estáticos (JS, CSS, imagens)
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Desabilitar cache para index.html (sempre buscar nova versão)
+    location = /index.html {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires "0";
+    }
+
+    # Configuração de compressão
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript 
+               application/javascript application/xml+rss application/json;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+}
+```
+
+### Explicacao das Diretivas
+
+#### 1. Configuracao Basica
+
+```nginx
+listen 80;
+server_name localhost;
+root /usr/share/nginx/html;
+index index.html;
+```
+
+- **listen 80**: NGINX escuta na porta 80 DENTRO do container
+- **root**: Diretorio onde estao os arquivos buildados do React (gerados por `npm run build`)
+- **index**: Arquivo padrao a servir
+
+#### 2. SPA Routing (React Router)
+
+```nginx
+location / {
+    try_files $uri $uri/ /index.html;
+}
+```
+
+**O que faz:**
+- Tenta servir arquivo exato (`$uri`)
+- Se nao existir, tenta como diretorio (`$uri/`)
+- Se nao existir, serve `index.html`
+
+**Por que e importante:**
+- React Router usa rotas como `/login`, `/dashboard`, `/denuncias`
+- Essas rotas NAO existem como arquivos fisicos no servidor
+- Sem isso: erro 404 ao acessar `http://localhost/login` diretamente
+- Com isso: sempre serve `index.html`, React Router faz o roteamento client-side
+
+**Exemplo:**
+```
+Usuario acessa: http://localhost/denuncias/123
+Arquivo existe? Nao
+NGINX serve: index.html
+React Router le: /denuncias/123
+React renderiza: componente de denuncia
+```
+
+#### 3. Cache de Assets Estaticos
+
+```nginx
+location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+    expires 30d;
+    add_header Cache-Control "public, immutable";
+}
+```
+
+**O que faz:**
+- Regex `~*` = case-insensitive
+- Captura arquivos com extensoes: `.js`, `.css`, `.png`, etc.
+- `expires 30d` = navegador pode cachear por 30 dias
+- `Cache-Control: public, immutable` = arquivo NUNCA muda (build hash no nome)
+
+**Beneficio:**
+- Arquivo `main.abc123.js` cacheado no navegador
+- Novo build gera `main.def456.js` (hash diferente)
+- Navegador baixa novo arquivo automaticamente
+- Visitas subsequentes: 0 requisicoes ao servidor para assets
+
+**Performance:**
+- Primeiro acesso: ~2MB de download
+- Proximos acessos: ~10KB (apenas index.html)
+
+#### 4. Cache do index.html
+
+```nginx
+location = /index.html {
+    add_header Cache-Control "no-cache, no-store, must-revalidate";
+    add_header Pragma "no-cache";
+    add_header Expires "0";
+}
+```
+
+**Por que NAO cachear index.html:**
+- `index.html` referencia os assets: `<script src="main.abc123.js">`
+- Novo deploy muda o hash: `<script src="main.def456.js">`
+- Se index.html estiver cacheado, navegador carrega JS antigo
+- Resultado: aplicacao quebrada
+
+**Headers:**
+- `no-cache` = sempre revalida com servidor
+- `no-store` = nao armazena copia
+- `must-revalidate` = nao serve versao obsoleta
+- `Pragma: no-cache` = compatibilidade HTTP/1.0
+- `Expires: 0` = expirou (nao cachear)
+
+#### 5. Compressao Gzip
+
+```nginx
+gzip on;
+gzip_vary on;
+gzip_min_length 1024;
+gzip_types text/plain text/css text/xml text/javascript 
+           application/javascript application/xml+rss application/json;
+```
+
+**Tipos comprimidos:**
+- HTML, CSS, JavaScript
+- JSON (respostas de API)
+- XML
+
+**NAO comprime:**
+- Imagens (PNG, JPEG) - ja sao comprimidas
+- Videos
+- Fontes WOFF2 - ja comprimidas
+
+**Economia tipica:**
+- `main.js` (500KB) → 120KB (76% reducao)
+- `styles.css` (100KB) → 20KB (80% reducao)
+
+#### 6. Security Headers
+
+```nginx
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-XSS-Protection "1; mode=block" always;
+```
+
+**X-Frame-Options: SAMEORIGIN**
+- Previne clickjacking
+- Pagina so pode ser carregada em `<iframe>` do mesmo dominio
+- Bloqueia sites maliciosos de embedar sua aplicacao
+
+**X-Content-Type-Options: nosniff**
+- Previne MIME-type sniffing
+- Navegador respeita Content-Type do servidor
+- Evita executar `.txt` como JavaScript
+
+**X-XSS-Protection: 1; mode=block**
+- Ativa protecao XSS do navegador
+- `mode=block` = bloqueia pagina se XSS detectado
+- Camada extra de seguranca (navegadores modernos ja tem)
+
+### Integracao com Dockerfile.prd
+
+```dockerfile
+FROM nginx:1.27-alpine
+
+# Remover configuração padrão
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copiar NOSSA configuração
+COPY nginx.conf /etc/nginx/conf.d/
+
+# Copiar arquivos buildados do React
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+**Fluxo:**
+1. Build do React gera `/app/dist` (HTML, JS, CSS)
+2. Copia `nginx.conf` para `/etc/nginx/conf.d/`
+3. Copia arquivos buildados para `/usr/share/nginx/html`
+4. NGINX serve arquivos conforme configuracao
+
+### Comparacao: Gateway vs Frontend NGINX
+
+| Aspecto | Gateway (`nginx/nginx.conf`) | Frontend (`apps/ifala-frontend/nginx.conf`) |
+|---------|------------------------------|---------------------------------------------|
+| **Funcao** | Reverse proxy (roteamento) | Servidor de arquivos estaticos |
+| **Porta** | 80 (host) | 80 (interno container) |
+| **Contexto** | main, events, http, server | Apenas server |
+| **Proxy** | Sim (proxy_pass para backend) | Nao (serve arquivos locais) |
+| **Cache** | Pode cachear respostas API | Cacheia assets estaticos |
+| **SSL** | Futuramente (termination) | Nao necessario (interno) |
+| **Localizacao** | Container dedicado nginx-gateway | Dentro container ifala-frontend |
+
+### Teste de Configuracao
+
+Dentro do container frontend:
+
+```bash
+# Entrar no container
+docker exec -it ifala-frontend-prd sh
+
+# Testar sintaxe
+nginx -t
+
+# Ver configuracao carregada
+cat /etc/nginx/conf.d/nginx.conf
+
+# Ver arquivos servidos
+ls -la /usr/share/nginx/html/
+
+# Recarregar (se alterar config)
+nginx -s reload
+```
+
+### Troubleshooting
+
+#### Erro 404 em rotas do React
+
+**Problema**: `http://localhost/dashboard` retorna 404
+**Causa**: Falta `try_files $uri $uri/ /index.html;`
+**Solucao**: Adicionar location / com try_files
+
+#### Assets nao atualizando apos deploy
+
+**Problema**: JavaScript antigo carregando apos deploy
+**Causa**: `index.html` cacheado no navegador
+**Solucao**: Garantir que index.html tem `Cache-Control: no-cache`
+
+#### Erro "File not found" no log
+
+**Problema**: NGINX nao encontra arquivos
+**Causa**: Arquivos nao foram copiados para `/usr/share/nginx/html`
+**Verificar**:
+```bash
+docker exec ifala-frontend-prd ls /usr/share/nginx/html/
+```
+
+---
+
+## NGINX Gateway (nginx/nginx.conf)
+
+Este arquivo configura o **NGINX principal** que atua como reverse proxy e ponto unico de entrada.
+
+### Estrutura do Arquivo
 
 ### 1. Contexto Main (Global)
 
