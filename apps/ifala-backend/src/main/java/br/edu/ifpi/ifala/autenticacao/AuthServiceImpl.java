@@ -1,12 +1,12 @@
 package br.edu.ifpi.ifala.autenticacao;
 
-import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDto;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDto;
+import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDto;
+import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDto;
+import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDto;
+import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDto;
+import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDto;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
 import br.edu.ifpi.ifala.security.JwtUtil;
 import br.edu.ifpi.ifala.security.TokenBlacklistService;
@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
  * Implementação do serviço de autenticação.
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 
 @Service
@@ -79,7 +80,8 @@ public class AuthServiceImpl implements AuthService {
   }
 
   /**
-   * Determina o caminho de redirecionamento do usuário após o login, baseado em seus perfis.
+   * Determina o caminho de redirecionamento do usuário após o login, baseado em
+   * seus perfis.
    */
   private String determineRedirect(Usuario user) {
     String rolesList = user.getRoles().stream().map(Perfis::name).collect(Collectors.joining(", "));
@@ -100,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   @Transactional
-  public UsuarioResponseDTO registrarUsuario(RegistroRequestDTO registroRequest) {
+  public UsuarioResponseDto registrarUsuario(RegistroRequestDto registroRequest) {
     logger.info("Tentativa de registro de usuário: {}", registroRequest.email());
 
     // Valida se o e-mail já está em uso
@@ -142,7 +144,7 @@ public class AuthServiceImpl implements AuthService {
 
     logger.info("Usuário registrado com sucesso: {}", usuario.getEmail());
 
-    return new UsuarioResponseDTO(usuario.getNome(), usuario.getEmail(), usuario.getUsername(),
+    return new UsuarioResponseDto(usuario.getNome(), usuario.getEmail(), usuario.getUsername(),
         usuario.getRoles());
   }
 
@@ -183,7 +185,7 @@ public class AuthServiceImpl implements AuthService {
   // LÓGICA DE LOGIN
 
   @Override
-  public LoginResponseDTO login(LoginRequestDTO req) {
+  public LoginResponseDto login(LoginRequestDto req) {
     String identifier = req.getEmail() != null ? req.getEmail() : req.getUsername();
     logger.info("Tentativa de login recebida para: {}", identifier);
 
@@ -220,19 +222,19 @@ public class AuthServiceImpl implements AuthService {
           user.getEmail());
       sendPasswordReset(user);
 
-      return new LoginResponseDTO(null, null, null, null, true, null,
+      return new LoginResponseDto(null, null, null, null, true, null,
           "É necessário alterar a senha. Um e-mail de redefinição foi enviado.");
     }
 
     // 4. Gera e retorna tokens
-    TokenDataDTO tokenData = jwtUtil.generateToken(user.getEmail());
+    TokenDataDto tokenData = jwtUtil.generateToken(user.getEmail());
     // Cria e persiste um refresh token rotativo (UUID) no banco
     RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
     String redirect = determineRedirect(user);
 
     logger.info("Login finalizado para {}. Redirecionamento: {}", user.getEmail(), redirect);
 
-    return new LoginResponseDTO(tokenData.token(), tokenData.issuedAt(), tokenData.expirationTime(),
+    return new LoginResponseDto(tokenData.token(), tokenData.issuedAt(), tokenData.expirationTime(),
         refreshToken.getToken(), false, redirect, null);
   }
 
@@ -240,7 +242,7 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   @Transactional
-  public LoginResponseDTO changePassword(MudarSenhaRequestDTO req) {
+  public LoginResponseDto changePassword(MudarSenhaRequestDto req) {
     logger.info("Tentativa de mudança de senha recebida para o e-mail: {}", req.email());
 
     Optional<Usuario> userOpt = userRepository.findByEmail(req.email());
@@ -283,19 +285,19 @@ public class AuthServiceImpl implements AuthService {
     logger.info("Senha alterada com sucesso para o usuário: {}", user.getEmail());
 
     // Gera novo token de acesso após a mudança de senha
-    TokenDataDTO tokenData = jwtUtil.generateToken(user.getEmail());
+    TokenDataDto tokenData = jwtUtil.generateToken(user.getEmail());
     String redirect = determineRedirect(user);
 
     logger.info("Redefinição de senha finalizada. Novo redirecionamento: {}", redirect);
 
-    return new LoginResponseDTO(tokenData.token(), tokenData.issuedAt(), tokenData.expirationTime(),
+    return new LoginResponseDto(tokenData.token(), tokenData.issuedAt(), tokenData.expirationTime(),
         null, false, redirect, null);
   }
 
   // LÓGICA DE REFRESH TOKEN
   @Override
   @Transactional
-  public LoginResponseDTO refreshToken(RefreshTokenRequestDTO req) {
+  public LoginResponseDto refreshToken(RefreshTokenRequestDto req) {
     String oldRefreshToken = req.token();
     logger.info("Tentativa de refresh de token recebida (fluxo opaco DB)");
 
@@ -326,18 +328,17 @@ public class AuthServiceImpl implements AuthService {
 
     // 4. Gera novo access token e NOVO refresh token
     Usuario user = stored.getUsuario();
-    TokenDataDTO accessTokenData = jwtUtil.generateToken(user.getEmail());
+    TokenDataDto accessTokenData = jwtUtil.generateToken(user.getEmail());
 
     // A criação do novo token DEVE acontecer *APÓS* a deleção do antigo
     // Preserva o expiry absoluto do token antigo para que a rotação não estenda
     // a validade além do tempo originalmente emitido.
-    RefreshToken newRefreshToken =
-        refreshTokenService.createRefreshToken(user.getEmail(), stored.getDataExpiracao());
+    RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user.getEmail(), stored.getDataExpiracao());
     String redirect = determineRedirect(user);
 
     logger.info("Tokens renovados com sucesso para: {}", user.getEmail());
 
-    return new LoginResponseDTO(accessTokenData.token(), accessTokenData.issuedAt(),
+    return new LoginResponseDto(accessTokenData.token(), accessTokenData.issuedAt(),
         accessTokenData.expirationTime(), newRefreshToken.getToken(), false, redirect,
         "Tokens renovados com sucesso.");
   }
