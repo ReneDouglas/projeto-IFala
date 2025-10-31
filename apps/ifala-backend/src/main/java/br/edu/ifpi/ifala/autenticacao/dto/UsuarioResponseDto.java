@@ -9,7 +9,7 @@ import br.edu.ifpi.ifala.shared.enums.Perfis;
  * 
  * @author Phaola
  */
-public record UsuarioResponseDTO(String nome, String email, String username, List<Perfis> roles) {
+public record UsuarioResponseDto(String nome, String email, String username, List<Perfis> roles) {
 }
 package br.edu.ifpi.ifala.autenticacao.dto;
 
