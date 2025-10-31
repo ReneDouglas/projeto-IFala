@@ -2,127 +2,154 @@ package br.edu.ifpi.ifala.notificacao;
 
 import br.edu.ifpi.ifala.denuncia.Denuncia;
 import br.edu.ifpi.ifala.notificacao.enums.TiposNotificacao;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import java.io.Serializable;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
- * Classe que representa uma notificação no sistema. Esta entidade armazena informações sobre
- * notificações enviadas aos usuários, incluindo seu conteúdo, tipo, denúncia relacionada e status
- * de leitura.
- *
- * @author Renê Morais
+ * Entidade que representa uma notificação no sistema.
  */
 @Entity
-public class Notificacao implements Serializable {
-
-  private static final long serialVersionUID = 1L;
+@Table(name = "notificacao")
+public class Notificacao {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private String conteudo;
+  private String titulo;
+
+  private String mensagem;
+
+  @Enumerated(EnumType.STRING)
   private TiposNotificacao tipo;
 
-  @ManyToOne
+  @Column(name = "criado_em", updatable = false, nullable = false)
+  private LocalDateTime criadoEm;
+
+  @ManyToOne(fetch = FetchType.LAZY, optional = true)
+  @JoinColumn(name = "denuncia_id")
   private Denuncia denuncia;
 
-  private Boolean lida;
-  private String lidaPor;
-  private LocalDateTime dataEnvio;
+  public Notificacao() {
+    // Default constructor for JPA
+  }
+
+  @PrePersist
+  protected void onCreate() {
+    if (this.criadoEm == null) {
+      this.criadoEm = LocalDateTime.now();
+    }
+  }
 
   /**
-   * Construtor padrão da classe Notificacao.
+   * Retorna o identificador da notificação.
+   *
+   * @return id da notificação
    */
-  public Notificacao() {}
-
   public Long getId() {
     return id;
   }
 
+  /**
+   * Define o identificador da notificação.
+   *
+   * @param id identificador a ser definido
+   */
   public void setId(Long id) {
     this.id = id;
   }
 
-  public String getConteudo() {
-    return conteudo;
+  /**
+   * Retorna o título da notificação.
+   *
+   * @return título
+   */
+  public String getTitulo() {
+    return titulo;
   }
 
-  public void setConteudo(String conteudo) {
-    this.conteudo = conteudo;
+  /**
+   * Define o título da notificação.
+   *
+   * @param titulo título a ser definido
+   */
+  public void setTitulo(String titulo) {
+    this.titulo = titulo;
   }
 
+  /**
+   * Retorna a mensagem da notificação.
+   *
+   * @return mensagem
+   */
+  public String getMensagem() {
+    return mensagem;
+  }
+
+  /**
+   * Define a mensagem da notificação.
+   *
+   * @param mensagem mensagem a ser definida
+   */
+  public void setMensagem(String mensagem) {
+    this.mensagem = mensagem;
+  }
+
+  /**
+   * Retorna o tipo da notificação.
+   *
+   * @return tipo de notificação
+   */
   public TiposNotificacao getTipo() {
     return tipo;
   }
 
+  /**
+   * Define o tipo da notificação.
+   *
+   * @param tipo tipo a ser definido
+   */
   public void setTipo(TiposNotificacao tipo) {
     this.tipo = tipo;
   }
 
+  /**
+   * Retorna a data/hora de criação da notificação.
+   *
+   * @return data/hora de criação
+   */
+  public LocalDateTime getCriadoEm() {
+    return criadoEm;
+  }
+
+  // Intencionalmente sem setter para criadoEm porque o valor é gerenciado pelo JPA (@PrePersist)
+
+  /**
+   * Retorna a denúncia relacionada a esta notificação (se houver).
+   *
+   * @return denúncia relacionada ou null
+   */
   public Denuncia getDenuncia() {
     return denuncia;
   }
 
+  /**
+   * Define a denúncia relacionada a esta notificação.
+   *
+   * @param denuncia denúncia a ser associada
+   */
   public void setDenuncia(Denuncia denuncia) {
     this.denuncia = denuncia;
   }
-
-  public Boolean getLida() {
-    return lida;
-  }
-
-  public void setLida(Boolean lida) {
-    this.lida = lida;
-  }
-
-  public String getLidaPor() {
-    return lidaPor;
-  }
-
-  public void setLidaPor(String lidaPor) {
-    this.lidaPor = lidaPor;
-  }
-
-  public LocalDateTime getDataEnvio() {
-    return dataEnvio;
-  }
-
-  public void setDataEnvio(LocalDateTime dataEnvio) {
-    this.dataEnvio = dataEnvio;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof Notificacao)) {
-      return false;
-    }
-    Notificacao other = (Notificacao) o;
-    return id != null && id.equals(other.getId());
-  }
-
-  @Override
-  public int hashCode() {
-    return getClass().hashCode();
-  }
-
-  @Override
-  public String toString() {
-    // O campo 'denuncia' foi trocado por 'denunciaId' para evitar
-    // um loop infinito de logs (StackOverflowError).
-    Long denunciaId = (denuncia != null) ? denuncia.getId() : null;
-
-    return "Notificacao{" + "id=[" + id + "]" + ", conteudo=[" + conteudo + "]" + ", tipo=[" + tipo
-        + "]" + ", denunciaId=[" + denunciaId + "]" + ", lida=[" + lida + "]" + ", lidaPor=["
-        + lidaPor + "]" + ", dataEnvio=[" + dataEnvio + "]" + "}";
-  }
-
 }
