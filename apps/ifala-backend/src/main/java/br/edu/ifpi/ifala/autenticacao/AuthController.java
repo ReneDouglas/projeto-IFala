@@ -1,200 +1,146 @@
 package br.edu.ifpi.ifala.autenticacao;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
+import br.edu.ifpi.ifala.shared.exceptions.RefreshTokenException;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.HttpHeaders;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import br.edu.ifpi.ifala.autenticacao.dto.TokenResponseDTO;
-import br.edu.ifpi.ifala.shared.exceptions.AuthException;
-import br.edu.ifpi.ifala.autenticacao.dto.AuthResponseDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.LogoutRequestDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.PrimeiroAcessoRequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Controller responsável pelos endpoints de autenticação.
+ * Controlador de Autenticação responsável por receber requisições HTTP e delegar a lógica de
+ * negócio para o AuthService.
  * 
- * @author Sistema AvaliaIF
+ * @author Phaola
  */
-
 @RestController
-@RequestMapping("/auth")
-@Tag(name = "Autenticação",
-    description = "Endpoints para login, logout e primeiro acesso de usuários.")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
+  private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+  private final AuthService authService;
+  private final CookieService cookieService;
 
-  private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+  public AuthController(AuthService authService, CookieService cookieService) {
+    this.authService = authService;
+    this.cookieService = cookieService;
+  }
 
-  @Autowired
-  private AuthService authService;
-
-  /**
-   * Endpoint para primeiro acesso de usuários. Valida credenciais temporárias antes de enviar email
-   * para redefinição de senha definitiva.
-   * 
-   * @param request Credenciais temporárias do usuário (username + senha temporária)
-   * @return Resposta da validação e envio do email
-   */
-
-
-
-  @PostMapping("primeiro-acesso")
-  @Operation(summary = "Realiza o fluxo de primeiro acesso",
-      description = "Valida credenciais temporárias de um usuário e dispara o envio de e-mail para definição de senha definitiva.")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200",
-          description = "Credenciais validadas e e-mail enviado com sucesso",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = AuthResponseDTO.class))),
-      @ApiResponse(responseCode = "401", description = "Credenciais temporárias inválidas",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = AuthResponseDTO.class))),
-      @ApiResponse(responseCode = "400",
-          description = "Erro na requisição ou falha ao enviar o e-mail",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = AuthResponseDTO.class))),
-      @ApiResponse(responseCode = "500", description = "Erro interno do servidor",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = AuthResponseDTO.class)))})
-
-  public ResponseEntity<AuthResponseDTO> primeiroAcesso(
-      @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "Credenciais temporárias do usuário (username + senha).", required = true,
-          content = @Content(schema = @Schema(
-              implementation = PrimeiroAcessoRequestDTO.class))) @RequestBody PrimeiroAcessoRequestDTO request) {
-    try {
-      // 1. Tenta validar credenciais temporárias
-      TokenResponseDTO tokenResponse =
-          authService.authenticateUser(request.getUsername(), request.getPassword());
-
-      if (tokenResponse == null) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-            new AuthResponseDTO(null, null, false, null, "Credenciais temporárias inválidas."));
-      }
-
-      // 2. Se credenciais temporárias válidas, envia email para definir senha definitiva
-      authService.sendPasswordResetEmail(request.getUsername());
-
-      return ResponseEntity.ok(new AuthResponseDTO(null, null, true, null,
-          "Credenciais temporárias validadas. Email enviado para definição de senha definitiva."));
-
-    } catch (AuthException e) {
-      // Verifica se é erro de "conta não totalmente configurada" - isso é esperado no primeiro
-      // acesso
-      if (e.getMessage().contains("Account is not fully set up")) {
-        try {
-          // Credenciais válidas mas conta precisa ser configurada - envia email
-          authService.sendPasswordResetEmail(request.getUsername());
-          return ResponseEntity.ok(new AuthResponseDTO(null, null, true, null,
-              "Credenciais temporárias validadas. Email enviado para definição de senha definitiva."));
-        } catch (AuthException emailError) {
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-              .body(new AuthResponseDTO(null, null, false, null, emailError.getMessage()));
-        }
-      }
-
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(new AuthResponseDTO(null, null, false, null, e.getMessage()));
-    } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new AuthResponseDTO(null,
-          null, false, null, "Erro interno do servidor: " + e.getMessage()));
-    }
+  @PostMapping("/admin/registrar-usuario")
+  public ResponseEntity<?> registerUser(@Valid @RequestBody RegistroRequestDTO registroRequest) {
+    logger.info("Requisição de registro recebida para e-mail: {}", registroRequest.email());
+    UsuarioResponseDTO usuarioResponse = authService.registrarUsuario(registroRequest);
+    return ResponseEntity.status(201).body(usuarioResponse);
   }
 
   /**
-   * Endpoint para autenticação de usuários.
-   * 
-   * @param request Credenciais de login
-   * @return Resposta da autenticação com tokens
+   * Endpoint para login e obtenção de tokens de acesso/refresh.
    */
   @PostMapping("/login")
-  @Operation(summary = "Autentica um usuário",
-      description = "Realiza o login de um usuário com credenciais definitivas e retorna os tokens de acesso e refresh.")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Login bem-sucedido",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = AuthResponseDTO.class))),
-      @ApiResponse(responseCode = "401", description = "Credenciais inválidas",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = AuthResponseDTO.class))),
-      @ApiResponse(responseCode = "500", description = "Erro interno do servidor",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = AuthResponseDTO.class)))})
+  public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO req) {
+    logger.info("Tentativa de login para identificador: {}",
+        req.getEmail() != null ? req.getEmail() : req.getUsername());
+    LoginResponseDTO response = authService.login(req);
 
-  public ResponseEntity<AuthResponseDTO> login(
-      @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "Credenciais de login (username + senha).", required = true,
-          content = @Content(schema = @Schema(
-              implementation = LoginRequestDTO.class))) @RequestBody LoginRequestDTO request) {
+    // Cria cookie HttpOnly de refresh
+    ResponseCookie cookie = cookieService.createRefreshTokenCookie(response.refreshToken());
     try {
-      // 1. Autentica no Keycloak e obtém os tokens
-      TokenResponseDTO tokenResponse =
-          authService.authenticateUser(request.getUsername(), request.getPassword());
-
-      if (tokenResponse != null) {
-        // 2. URL de redirecionamento padrão - frontend determina dashboard específico
-        String redirectUrl = "/dashboard";
-
-        // 3. Retorna ambos os tokens e a URL de redirecionamento
-        return ResponseEntity
-            .ok(new AuthResponseDTO(tokenResponse.getAccessToken(), tokenResponse.getRefreshToken(),
-                true, redirectUrl, "Login bem-sucedido. Redirecionando para: " + redirectUrl));
-      } else {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(new AuthResponseDTO(null, null, false, null, "Credenciais inválidas."));
-      }
-    } catch (AuthException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(new AuthResponseDTO(null, null, false, null, e.getMessage()));
+      String masked = response.refreshToken() != null && response.refreshToken().length() > 8
+          ? response.refreshToken().substring(0, 8) + "..."
+          : response.refreshToken();
+      logger.info("Enviando Set-Cookie de refresh token: {} (len={})", masked,
+          response.refreshToken() != null ? response.refreshToken().length() : 0);
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new AuthResponseDTO(null,
-          null, false, null, "Erro interno do servidor: " + e.getMessage()));
+      logger.debug("Erro ao mascarar refresh token para log: {}", e.getMessage());
+    }
+    LoginResponseDTO sanitized =
+        new LoginResponseDTO(response.token(), response.issuedAt(), response.expirationTime(), null,
+            response.passwordChangeRequired(), response.redirect(), response.message());
+    return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(sanitized);
+  }
+
+  /**
+   * Endpoint para redefinir a senha (via token de e-mail) ou mudar a senha (via senha atual).
+   */
+  @PostMapping("/redefinir-senha")
+  public ResponseEntity<LoginResponseDTO> changePassword(
+      @Valid @RequestBody MudarSenhaRequestDTO req) {
+    logger.info("Tentativa de redefinição/mudança de senha para o e-mail: {}", req.email());
+    LoginResponseDTO response = authService.changePassword(req);
+    return ResponseEntity.ok(response);
+  }
+
+
+  @PostMapping("/refresh")
+  public ResponseEntity<LoginResponseDTO> refreshToken(
+      @CookieValue(name = "refreshToken", required = false) String refreshToken,
+      @RequestBody(required = false) RefreshTokenRequestDTO body) {
+    // 1. Tenta obter o token do cookie (padrão de segurança)
+    String tokenToUse = refreshToken;
+
+    if (tokenToUse == null || tokenToUse.isEmpty()) {
+      if (body != null && body.token() != null && !body.token().isEmpty()) {
+        tokenToUse = body.token();
+        logger.warn("Refresh token não encontrado no cookie - usando fallback do corpo.");
+      } else {
+        logger.warn("Tentativa de refresh sem refresh token.");
+        ResponseCookie logoutCookie = cookieService.createLogoutCookie();
+        return ResponseEntity.status(401).header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
+            .body(new LoginResponseDTO(null, null, null, null, false, null,
+                "Refresh token não fornecido. Faça login novamente."));
+      }
+    }
+
+    try {
+      LoginResponseDTO response = authService.refreshToken(new RefreshTokenRequestDTO(tokenToUse));
+
+      // Atualiza o cookie HttpOnly com o novo refresh token (roteamento seguro)
+      ResponseCookie cookie = cookieService.createRefreshTokenCookie(response.refreshToken());
+      LoginResponseDTO sanitized =
+          new LoginResponseDTO(response.token(), response.issuedAt(), response.expirationTime(),
+              null, response.passwordChangeRequired(), response.redirect(), response.message());
+
+      return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(sanitized);
+
+    } catch (RefreshTokenException e) {
+      logger.warn("Falha no refresh token para {}. Motivo: {}", tokenToUse, e.getMessage());
+      ResponseCookie logoutCookie = cookieService.createLogoutCookie();
+
+      String errorMessage = "Sessão expirada ou token inválido. " + e.getMessage();
+
+      return ResponseEntity.status(401).header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
+          .body(new LoginResponseDTO(null, null, null, null, false, null, errorMessage));
+
+    } catch (Exception e) {
+      logger.error("Erro interno inesperado durante o refresh de token.", e);
+      ResponseCookie logoutCookie = cookieService.createLogoutCookie();
+      return ResponseEntity.status(500).header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
+          .body(new LoginResponseDTO(null, null, null, null, false, null,
+              "Erro interno ao renovar a sessão."));
     }
   }
 
   /**
-   * Endpoint para logout de usuários.
-   * 
-   * @param request Token de refresh para invalidar sessão
-   * @return Resposta do logout
+   * Endpoint para invalidar o Access Token (logout)
    */
-  @PostMapping("/logout")
-  @Operation(summary = "Realiza o logout do usuário",
-      description = "Invalida a sessão do usuário no provedor de identidade (Keycloak) usando o refresh token.")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Logout bem-sucedido",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = AuthResponseDTO.class))),
-      @ApiResponse(responseCode = "400",
-          description = "Erro ao realizar o logout (ex: token inválido)",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = AuthResponseDTO.class)))})
-
-
-  public ResponseEntity<AuthResponseDTO> logout(
-      @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "Refresh token do usuário para invalidar a sessão.", required = true,
-          content = @Content(schema = @Schema(
-              implementation = LogoutRequestDTO.class))) @RequestBody LogoutRequestDTO request) {
-    try {
-      authService.performKeycloakLogout(request.getRefreshToken());
-      return ResponseEntity
-          .ok(new AuthResponseDTO(null, null, true, "/login", "Logout global bem-sucedido."));
-
-    } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponseDTO(null, null,
-          false, null, "Erro ao encerrar sessão no servidor: " + e.getMessage()));
-    }
+  @PostMapping("/sair")
+  public ResponseEntity<?> logout(HttpServletRequest request) {
+    authService.logout(request);
+    // Limpa o cookie de refresh
+    ResponseCookie cookie = cookieService.createLogoutCookie();
+    return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+        .body("Logout realizado com sucesso.");
   }
 }

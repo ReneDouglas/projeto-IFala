@@ -26,14 +26,18 @@ public record AcompanhamentoDto(
             message = "A mensagem não pode ser vazia.") @Size(min = 1, max = 2000,
                 message = "A mensagem deve ter entre 1 e 2000 caracteres.") String mensagem,
 
-    @Schema(
-        description = "Nome do autor da mensagem (pode ser 'DENUNCIANTE', o nome do denunciante ou o nome do administrador).",
-        example = "Admin User", accessMode = Schema.AccessMode.READ_ONLY) String autor,
+    @Schema(description = "Nome do autor da mensagem.", example = "Admin User",
+        accessMode = Schema.AccessMode.READ_ONLY) String autor,
 
     @Schema(description = "Data e hora em que a mensagem foi enviada.",
         example = "2025-10-17T14:30:00",
         accessMode = Schema.AccessMode.READ_ONLY) LocalDateTime dataEnvio) {
 
+  /**
+   * Construtor simplificado que recebe apenas a mensagem.
+   *
+   * @param mensagem Conteúdo da mensagem
+   */
   public AcompanhamentoDto(String mensagem) {
     this(null, mensagem, null, null);
   }

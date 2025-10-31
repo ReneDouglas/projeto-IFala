@@ -2,13 +2,10 @@ package br.edu.ifpi.ifala;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.web.client.RestTemplate;
+
 
 /**
- * Classe principal da aplicação Ifala. Responsável por iniciar o contexto
- * Spring Boot.
+ * Classe principal da aplicação Ifala. Responsável por iniciar o contexto Spring Boot.
  *
  * @author Renê Morais
  */
@@ -22,18 +19,5 @@ public class IfalaApplication {
    */
   public static void main(String[] args) {
     SpringApplication.run(IfalaApplication.class, args);
-  }
-
-  /**
-   * Bean para permitir injeção de RestTemplate nos serviços.
-   */
-  @Bean
-  public RestTemplate restTemplate() {
-    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-    factory.setConnectTimeout(30000);
-    factory.setReadTimeout(30000);
-
-    RestTemplate restTemplate = new RestTemplate(factory);
-    return restTemplate;
   }
 }
