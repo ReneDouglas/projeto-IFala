@@ -1,0 +1,104 @@
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: fit-content;
+  flex-shrink: 0;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+}
+
+.status-resolvido {
+  background: #4caf50;
+  color: #f8f8f8;
+  border: 1px solid #4caf50;
+}
+
+.status-rejeitado {
+  background: #f44336;
+  color: #fffefc;
+  border: 1px solid #f44336;
+}
+
+.status-aguardando {
+  background: #ff9800;
+  color: #fefdfd;
+  border: 1px solid #ff9800;
+}
+
+.status-analise {
+  background: #eae304;
+  color: #fefdfd;
+  border: 1px solid #eae304;
+}
+
+.status-receptado {
+  background: #2e7d32;
+  color: #f8f8f8;
+  border: 1px solid #2e7d32;
+}
+
+.status-default {
+  background: #9e9e9e;
+  color: #f8f8f8;
+  border: 1px solid #9e9e9e;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .status-badge {
+    padding: 3px 6px;
+    font-size: 0.55rem;
+    border-radius: 10px;
+    min-height: 1.4rem;
+    align-items: center;
+    max-width: 100px;
+    flex-shrink: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .status-badge {
+    padding: 3px 5px;
+    font-size: 0.5rem;
+    border-radius: 8px;
+    letter-spacing: 0.2px;
+    min-height: 1.3rem;
+    align-items: center;
+    text-align: center;
+    max-width: 90px;
+    flex-shrink: 1;
+  }
+}
+
+@media (max-width: 360px) {
+  .status-badge {
+    padding: 2px 4px;
+    font-size: 0.45rem;
+    border-radius: 6px;
+    letter-spacing: 0.1px;
+    min-height: 1.2rem;
+    max-width: 75px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+  }
+}
+
+@media (max-width: 320px) {
+  .status-badge {
+    padding: 2px 3px;
+    font-size: 0.4rem;
+    max-width: 65px;
+    min-height: 1.1rem;
+  }
+}

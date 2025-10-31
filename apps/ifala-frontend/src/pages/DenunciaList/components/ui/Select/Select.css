@@ -1,0 +1,160 @@
+.select-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.select-label {
+  font-weight: 600;
+  color: var(--cinza-escuro);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.select-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.select-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--cinza-medio);
+  font-size: 1.2rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 12px;
+  color: var(--cinza-medio);
+  font-size: 1.2rem;
+  z-index: 2;
+  pointer-events: none;
+  transition: transform 0.3s ease;
+}
+
+.select-success {
+  position: absolute;
+  right: 40px;
+  color: #4caf50;
+  font-size: 1.2rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.custom-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+  border: 2px solid var(--cinza-claro);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: var(--branco);
+  cursor: pointer;
+  appearance: none;
+  font-family: inherit;
+}
+
+.custom-select.with-icon {
+  padding-left: 2.5rem;
+}
+
+.custom-select:focus {
+  outline: none;
+  border-color: var(--azul-confianca);
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+  transform: translateY(-1px);
+}
+
+.custom-select:focus + .select-arrow {
+  transform: rotate(180deg);
+  color: var(--azul-confianca);
+}
+
+.custom-select.error {
+  border-color: #f44336;
+  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+}
+
+.custom-select.placeholder {
+  color: var(--cinza-medio);
+}
+
+.custom-select.disabled {
+  background-color: var(--cinza-claro);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.custom-select option {
+  padding: 0.5rem;
+  background: var(--branco);
+  color: var(--cinza-escuro);
+}
+
+.custom-select option:hover {
+  background: var(--azul-confianca);
+  color: var(--branco);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .select-label {
+    font-size: 0.85rem;
+  }
+
+  .custom-select {
+    padding: 0.7rem 0.9rem;
+    padding-left: 2.4rem;
+    padding-right: 2.4rem;
+    font-size: 0.95rem;
+  }
+
+  .select-icon,
+  .select-arrow,
+  .select-success {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .select-label {
+    font-size: 0.8rem;
+  }
+
+  .custom-select {
+    padding: 0.65rem 0.85rem;
+    padding-left: 2.3rem;
+    padding-right: 2.3rem;
+    font-size: 0.9rem;
+    border-radius: 7px;
+  }
+
+  .select-icon {
+    left: 10px;
+    font-size: 1rem;
+  }
+
+  .select-arrow {
+    right: 10px;
+    font-size: 1rem;
+  }
+
+  .select-success {
+    right: 35px;
+    font-size: 1rem;
+  }
+
+  .custom-select option {
+    padding: 0.4rem;
+    font-size: 0.9rem;
+  }
+}

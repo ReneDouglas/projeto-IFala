@@ -3,6 +3,7 @@ package br.edu.ifpi.ifala;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+
 /**
  * Classe principal da aplicação Ifala. Responsável por iniciar o contexto Spring Boot.
  *
@@ -19,5 +20,4 @@ public class IfalaApplication {
   public static void main(String[] args) {
     SpringApplication.run(IfalaApplication.class, args);
   }
-
 }
