@@ -29,9 +29,11 @@ public class Notificacao {
 
   private String titulo;
 
+  @Column(length = 500)
   private String mensagem;
 
   @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
   private TiposNotificacao tipo;
 
   @Column(name = "criado_em", updatable = false, nullable = false)

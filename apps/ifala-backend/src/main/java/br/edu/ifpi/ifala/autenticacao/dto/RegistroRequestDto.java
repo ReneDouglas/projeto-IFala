@@ -16,7 +16,7 @@ import java.util.List;
  * @author Phaola
  */
 
-public record RegistroRequestDTO(@NotBlank(message = "O nome é obrigatório.") String nome,
+public record RegistroRequestDto(@NotBlank(message = "O nome é obrigatório.") String nome,
 
     @Email(message = "O e-mail deve ser válido.") @NotBlank(
         message = "O e-mail é obrigatório.") String email,

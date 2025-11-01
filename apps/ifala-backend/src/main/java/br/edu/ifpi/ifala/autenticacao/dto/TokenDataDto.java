@@ -12,5 +12,5 @@ import java.time.Instant;
  * @author Phaola
  */
 
-public record TokenDataDTO(String token, Instant issuedAt, Instant expirationTime) {
+public record TokenDataDto(String token, Instant issuedAt, Instant expirationTime) {
 }

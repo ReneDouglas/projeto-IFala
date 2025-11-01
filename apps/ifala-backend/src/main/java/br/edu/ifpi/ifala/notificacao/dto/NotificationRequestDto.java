@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Size;
 public class NotificationRequestDto {
 
   @NotBlank(message = "O título é obrigatório")
-  @Size(min = 3, max = 100, message = "O título deve ter entre 3 e 100 caracteres") 
+  @Size(min = 3, max = 100, message = "O título deve ter entre 3 e 100 caracteres")
   private String titulo;
 
   @NotBlank(message = "A mensagem é obrigatória")

@@ -13,7 +13,7 @@ public enum TiposNotificacao {
      * Notificação externa (por email, etc).
      */
     EXTERNO,
-    
+
     /**
      * Notificação de alerta/urgente.
      */
