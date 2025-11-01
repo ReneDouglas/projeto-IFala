@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 
 /**
  * Serviço responsável pelo envio de notificações por e-mail.
- * Gerencia o envio de e-mails para notificações externas.
+ * Gerencia o envio de e-mails para notificações externas do sistema IFala.
+ * Este serviço utiliza o JavaMailSender para realizar o envio dos e-mails
+ * de forma assíncrona e confiável.
  */
 @Service
 public class NotificationEmailService {

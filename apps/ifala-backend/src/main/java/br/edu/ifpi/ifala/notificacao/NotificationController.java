@@ -83,3 +83,9 @@ public class NotificationController {
     return ResponseEntity.noContent().build();
   }
 }
+/**
+ * Controlador responsável por gerenciar as notificações.
+ * Fornece endpoints para criar, listar, atualizar e deletar notificações.
+ *
+ * @author Lua
+ */
