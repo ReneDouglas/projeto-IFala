@@ -17,7 +17,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.json();
 }
 
-// ENDPOINT PARA CONSULTAR DENÚNCIA POR TOKEN
+// ENDPOINT PARA CONSULTAR DENNCIA POR TOKEN
 
 export async function consultarDenunciaPorToken(
   token: string,
@@ -52,4 +52,52 @@ export async function enviarMensagem(
   });
 
   return handleResponse<MensagemAcompanhamento>(response);
+}
+
+// ENDPOINT ADMIN PARA ENVIAR MENSAGEM (sem restrição de flood)
+
+export async function enviarMensagemAdmin(
+  denunciaId: number,
+  mensagem: string,
+): Promise<MensagemAcompanhamento> {
+  const token = localStorage.getItem('access_token');
+
+  const response = await fetch(
+    `/api/v1/admin/denuncias/${denunciaId}/acompanhamentos`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ mensagem }),
+    },
+  );
+
+  return handleResponse<MensagemAcompanhamento>(response);
+}
+
+// ENDPOINT ADMIN PARA ALTERAR STATUS DA DENÚNCIA
+
+export async function alterarStatusDenuncia(
+  denunciaId: number,
+  novoStatus: string,
+): Promise<void> {
+  const token = localStorage.getItem('access_token');
+
+  const response = await fetch(`/api/v1/admin/denuncias/${denunciaId}/status`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ status: novoStatus }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({
+      message: 'Erro ao alterar status',
+    }));
+    throw error;
+  }
 }

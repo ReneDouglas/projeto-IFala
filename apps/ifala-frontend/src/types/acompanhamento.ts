@@ -1,4 +1,5 @@
 export interface AcompanhamentoDetalhes {
+  id: number;
   tokenAcompanhamento: string;
   status: string;
   categoria: string;
