@@ -1,7 +1,10 @@
 package br.edu.ifpi.ifala.acompanhamento;
 
 import br.edu.ifpi.ifala.denuncia.Denuncia;
+import br.edu.ifpi.ifala.shared.enums.Perfis;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,7 +29,9 @@ public class Acompanhamento implements Serializable {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private String autor; // pode ser o denunciante ou o administrador
+  @Enumerated(EnumType.STRING)
+  private Perfis autor; // pode ser ADMIN ou ANONIMO
+
   private String mensagem;
 
   @ManyToOne
@@ -49,11 +54,11 @@ public class Acompanhamento implements Serializable {
     this.id = id;
   }
 
-  public String getAutor() {
+  public Perfis getAutor() {
     return autor;
   }
 
-  public void setAutor(String autor) {
+  public void setAutor(Perfis autor) {
     this.autor = autor;
   }
 
