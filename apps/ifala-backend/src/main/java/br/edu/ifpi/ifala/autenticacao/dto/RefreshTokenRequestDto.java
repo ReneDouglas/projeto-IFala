@@ -7,5 +7,5 @@ import jakarta.validation.constraints.NotBlank;
  * 
  * @author Phaola
  */
-public record RefreshTokenRequestDto(@NotBlank(message = "O token é obrigatório.") String token) {
+public record RefreshTokenRequestDTO(@NotBlank(message = "O token é obrigatório.") String token) {
 }

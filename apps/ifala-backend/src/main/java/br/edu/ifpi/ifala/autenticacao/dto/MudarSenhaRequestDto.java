@@ -5,12 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 
 /**
  * DTO para mudança de senha.
- *
- * Author: Phaola
+ * 
+ * @author Phaola
  */
 
 // DTO para receber os dados de mudança de senha
-public record MudarSenhaRequestDto(
+public record MudarSenhaRequestDTO(
     @NotBlank(message = "O e-mail é obrigatório.") @Email(
         message = "O e-mail deve ser válido.") String email,
     String currentPassword, @NotBlank(message = "A nova senha é obrigatória.") String newPassword,

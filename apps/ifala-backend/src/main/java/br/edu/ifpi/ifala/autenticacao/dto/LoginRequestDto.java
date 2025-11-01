@@ -10,11 +10,11 @@ import jakarta.validation.constraints.Size;
 
 /**
  * DTO para requisições de login, suportando autenticação por email ou username (matrícula/usuário).
- *
- * Author: Phaola
+ * 
+ * @author Phaola
  */
 @Schema(name = "Requisição de Login", description = "Dados necessários para autenticar um usuário.")
-public class LoginRequestDto implements Serializable {
+public class LoginRequestDTO implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
@@ -37,9 +37,9 @@ public class LoginRequestDto implements Serializable {
       requiredMode = Schema.RequiredMode.REQUIRED)
   private String password;
 
-  public LoginRequestDto() {}
+  public LoginRequestDTO() {}
 
-  public LoginRequestDto(String email, String username, @NotBlank String password) {
+  public LoginRequestDTO(String email, String username, @NotBlank String password) {
     this.email = email;
     this.username = username;
     this.password = password;
@@ -88,7 +88,7 @@ public class LoginRequestDto implements Serializable {
       return true;
     if (o == null || getClass() != o.getClass())
       return false;
-    LoginRequestDto that = (LoginRequestDto) o;
+    LoginRequestDTO that = (LoginRequestDTO) o;
     return Objects.equals(email, that.email) && Objects.equals(username, that.username);
   }
 

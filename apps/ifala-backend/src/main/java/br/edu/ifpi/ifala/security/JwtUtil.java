@@ -1,6 +1,6 @@
 package br.edu.ifpi.ifala.security;
 
-import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDto;
+import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -37,14 +37,14 @@ public class JwtUtil {
     this.signingKey = Keys.hmacShaKeyFor(secretKey.getBytes());
   }
 
-  public TokenDataDto generateToken(String username) {
+  public TokenDataDTO generateToken(String username) {
     Date issuedAt = new Date();
 
     Date expiration = new Date(System.currentTimeMillis() + (expirationSeconds * 1000));
     String token = Jwts.builder().setSubject(username).setIssuedAt(issuedAt)
         .setExpiration(expiration).signWith(signingKey, SignatureAlgorithm.HS256).compact();
     logger.info("Gerando JWT para {}: issuedAt={}, expiration={}", username, issuedAt, expiration);
-    return new TokenDataDto(token, issuedAt.toInstant(), expiration.toInstant());
+    return new TokenDataDTO(token, issuedAt.toInstant(), expiration.toInstant());
   }
 
   public Claims extractClaims(String token) {

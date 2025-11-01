@@ -1,11 +1,11 @@
 package br.edu.ifpi.ifala.autenticacao;
 
-import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDto;
-import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDto;
-import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDto;
-import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDto;
-import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDto;
-import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDto;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
 import br.edu.ifpi.ifala.shared.exceptions.RefreshTokenException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseCookie;
@@ -39,9 +39,9 @@ public class AuthController {
   }
 
   @PostMapping("/admin/registrar-usuario")
-  public ResponseEntity<?> registerUser(@Valid @RequestBody RegistroRequestDto registroRequest) {
+  public ResponseEntity<?> registerUser(@Valid @RequestBody RegistroRequestDTO registroRequest) {
     logger.info("Requisição de registro recebida para e-mail: {}", registroRequest.email());
-    UsuarioResponseDto usuarioResponse = authService.registrarUsuario(registroRequest);
+    UsuarioResponseDTO usuarioResponse = authService.registrarUsuario(registroRequest);
     return ResponseEntity.status(201).body(usuarioResponse);
   }
 
@@ -49,10 +49,10 @@ public class AuthController {
    * Endpoint para login e obtenção de tokens de acesso/refresh.
    */
   @PostMapping("/login")
-  public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto req) {
+  public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO req) {
     logger.info("Tentativa de login para identificador: {}",
         req.getEmail() != null ? req.getEmail() : req.getUsername());
-    LoginResponseDto response = authService.login(req);
+    LoginResponseDTO response = authService.login(req);
 
     // Cria cookie HttpOnly de refresh
     ResponseCookie cookie = cookieService.createRefreshTokenCookie(response.refreshToken());
@@ -65,9 +65,9 @@ public class AuthController {
     } catch (Exception e) {
       logger.debug("Erro ao mascarar refresh token para log: {}", e.getMessage());
     }
-  LoginResponseDto sanitized =
-    new LoginResponseDto(response.token(), response.issuedAt(), response.expirationTime(), null,
-      response.passwordChangeRequired(), response.redirect(), response.message());
+    LoginResponseDTO sanitized =
+        new LoginResponseDTO(response.token(), response.issuedAt(), response.expirationTime(), null,
+            response.passwordChangeRequired(), response.redirect(), response.message());
     return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(sanitized);
   }
 
@@ -75,18 +75,18 @@ public class AuthController {
    * Endpoint para redefinir a senha (via token de e-mail) ou mudar a senha (via senha atual).
    */
   @PostMapping("/redefinir-senha")
-  public ResponseEntity<LoginResponseDto> changePassword(
-      @Valid @RequestBody MudarSenhaRequestDto req) {
+  public ResponseEntity<LoginResponseDTO> changePassword(
+      @Valid @RequestBody MudarSenhaRequestDTO req) {
     logger.info("Tentativa de redefinição/mudança de senha para o e-mail: {}", req.email());
-    LoginResponseDto response = authService.changePassword(req);
+    LoginResponseDTO response = authService.changePassword(req);
     return ResponseEntity.ok(response);
   }
 
 
   @PostMapping("/refresh")
-  public ResponseEntity<LoginResponseDto> refreshToken(
-    @CookieValue(name = "refreshToken", required = false) String refreshToken,
-    @RequestBody(required = false) RefreshTokenRequestDto body) {
+  public ResponseEntity<LoginResponseDTO> refreshToken(
+      @CookieValue(name = "refreshToken", required = false) String refreshToken,
+      @RequestBody(required = false) RefreshTokenRequestDTO body) {
     // 1. Tenta obter o token do cookie (padrão de segurança)
     String tokenToUse = refreshToken;
 
@@ -96,21 +96,21 @@ public class AuthController {
         logger.warn("Refresh token não encontrado no cookie - usando fallback do corpo.");
       } else {
         logger.warn("Tentativa de refresh sem refresh token.");
-      ResponseCookie logoutCookie = cookieService.createLogoutCookie();
-      return ResponseEntity.status(401).header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
-        .body(new LoginResponseDto(null, null, null, null, false, null,
-          "Refresh token não fornecido. Faça login novamente."));
+        ResponseCookie logoutCookie = cookieService.createLogoutCookie();
+        return ResponseEntity.status(401).header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
+            .body(new LoginResponseDTO(null, null, null, null, false, null,
+                "Refresh token não fornecido. Faça login novamente."));
       }
     }
 
     try {
-  LoginResponseDto response = authService.refreshToken(new RefreshTokenRequestDto(tokenToUse));
+      LoginResponseDTO response = authService.refreshToken(new RefreshTokenRequestDTO(tokenToUse));
 
       // Atualiza o cookie HttpOnly com o novo refresh token (roteamento seguro)
       ResponseCookie cookie = cookieService.createRefreshTokenCookie(response.refreshToken());
-    LoginResponseDto sanitized =
-      new LoginResponseDto(response.token(), response.issuedAt(), response.expirationTime(),
-        null, response.passwordChangeRequired(), response.redirect(), response.message());
+      LoginResponseDTO sanitized =
+          new LoginResponseDTO(response.token(), response.issuedAt(), response.expirationTime(),
+              null, response.passwordChangeRequired(), response.redirect(), response.message());
 
       return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(sanitized);
 
@@ -120,15 +120,15 @@ public class AuthController {
 
       String errorMessage = "Sessão expirada ou token inválido. " + e.getMessage();
 
-    return ResponseEntity.status(401).header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
-      .body(new LoginResponseDto(null, null, null, null, false, null, errorMessage));
+      return ResponseEntity.status(401).header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
+          .body(new LoginResponseDTO(null, null, null, null, false, null, errorMessage));
 
     } catch (Exception e) {
       logger.error("Erro interno inesperado durante o refresh de token.", e);
       ResponseCookie logoutCookie = cookieService.createLogoutCookie();
-    return ResponseEntity.status(500).header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
-      .body(new LoginResponseDto(null, null, null, null, false, null,
-        "Erro interno ao renovar a sessão."));
+      return ResponseEntity.status(500).header(HttpHeaders.SET_COOKIE, logoutCookie.toString())
+          .body(new LoginResponseDTO(null, null, null, null, false, null,
+              "Erro interno ao renovar a sessão."));
     }
   }
 
