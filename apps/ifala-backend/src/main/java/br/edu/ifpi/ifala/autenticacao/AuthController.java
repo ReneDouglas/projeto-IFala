@@ -1,9 +1,9 @@
 package br.edu.ifpi.ifala.autenticacao;
 
-import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDto;
-import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDto;
-import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDto;
-import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDto;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDto;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDto;
 import br.edu.ifpi.ifala.shared.exceptions.RefreshTokenException;
@@ -21,8 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Controlador de Autenticação responsável por receber requisições HTTP e
- * delegar a lógica de
+ * Controlador de Autenticação responsável por receber requisições HTTP e delegar a lógica de
  * negócio para o AuthService.
  * 
  * @author Phaola
@@ -51,10 +50,10 @@ public class AuthController {
    * Endpoint para login e obtenção de tokens de acesso/refresh.
    */
   @PostMapping("/login")
-  public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto req) {
+  public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO req) {
     logger.info("Tentativa de login para identificador: {}",
         req.getEmail() != null ? req.getEmail() : req.getUsername());
-    LoginResponseDto response = authService.login(req);
+    LoginResponseDTO response = authService.login(req);
 
     // Cria cookie HttpOnly de refresh
     ResponseCookie cookie = cookieService.createRefreshTokenCookie(response.refreshToken());
@@ -67,15 +66,14 @@ public class AuthController {
     } catch (Exception e) {
       logger.debug("Erro ao mascarar refresh token para log: {}", e.getMessage());
     }
-    LoginResponseDto sanitized = new LoginResponseDto(response.token(), response.issuedAt(), response.expirationTime(),
-        null,
-        response.passwordChangeRequired(), response.redirect(), response.message());
+    LoginResponseDTO sanitized =
+        new LoginResponseDTO(response.token(), response.issuedAt(), response.expirationTime(), null,
+            response.passwordChangeRequired(), response.redirect(), response.message());
     return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(sanitized);
   }
 
   /**
-   * Endpoint para redefinir a senha (via token de e-mail) ou mudar a senha (via
-   * senha atual).
+   * Endpoint para redefinir a senha (via token de e-mail) ou mudar a senha (via senha atual).
    */
   @PostMapping("/redefinir-senha")
   public ResponseEntity<LoginResponseDto> changePassword(
@@ -110,9 +108,9 @@ public class AuthController {
 
       // Atualiza o cookie HttpOnly com o novo refresh token (roteamento seguro)
       ResponseCookie cookie = cookieService.createRefreshTokenCookie(response.refreshToken());
-      LoginResponseDto sanitized = new LoginResponseDto(response.token(), response.issuedAt(),
-          response.expirationTime(),
-          null, response.passwordChangeRequired(), response.redirect(), response.message());
+      LoginResponseDto sanitized =
+          new LoginResponseDto(response.token(), response.issuedAt(), response.expirationTime(),
+              null, response.passwordChangeRequired(), response.redirect(), response.message());
 
       return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(sanitized);
 
