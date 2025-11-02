@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
   Typography,
@@ -6,63 +7,160 @@ import {
   TextField,
   Stack,
   Paper,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Button,
   Chip,
+  CircularProgress,
+  Alert,
+  MenuItem,
+  Menu,
 } from '@mui/material';
-import type { SelectChangeEvent } from '@mui/material';
-
-const simulado_dados = {
-  token: 'GUARD-XXXX-0002',
-  creationDate: '06/10/2025',
-  category: 'bullying e assédio',
-  initialStatus: 'Resolvido',
-  status: '',
-  motivo_rejeicao: '',
-};
-
-const simulado_mensagens = [
-  { autor: 'admin', texto: 'Olá, tudo bem?', data: '10:00' },
-  { autor: 'user', texto: 'Sim, obrigado!', data: '10:01' },
-  { autor: 'admin', texto: 'Você pode fornecer mais detalhes?', data: '10:02' },
-  {
-    autor: 'user',
-    texto: 'Claro, o incidente ocorreu na escola.',
-    data: '10:05',
-  },
-  {
-    autor: 'admin',
-    texto: 'Entendido, obrigado pela informação.',
-    data: '10:06',
-  },
-  { autor: 'user', texto: 'De nada!', data: '10:07' },
-];
+import {
+  consultarDenunciaPorToken,
+  listarMensagens,
+  enviarMensagem,
+  enviarMensagemAdmin,
+  alterarStatusDenuncia,
+} from '../../services/acompanhamento-api';
+import type {
+  AcompanhamentoDetalhes,
+  MensagemAcompanhamento,
+} from '../../types/acompanhamento';
+import { useAuth } from '../../hooks/useAuth';
 
 const statusColorMap = (status: string) => {
-  switch (status) {
-    case 'Em Análise':
+  switch (status.toUpperCase()) {
+    case 'EM_ANALISE':
       return 'warning';
-    case 'Recebido':
+    case 'RECEBIDO':
       return 'success';
-    case 'Finalizado':
-      return 'secondary';
+    case 'RESOLVIDO':
+      return 'success';
+    case 'REJEITADO':
+      return 'error';
+    case 'AGUARDANDO':
+      return 'warning';
     default:
       return 'default';
   }
 };
 
+const formatarStatus = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    RECEBIDO: 'Recebido',
+    EM_ANALISE: 'Em Análise',
+    RESOLVIDO: 'Resolvido',
+    REJEITADO: 'Rejeitado',
+    AGUARDANDO: 'Aguardando Informações',
+  };
+  return statusMap[status.toUpperCase()] || status;
+};
+
+const formatarCategoria = (categoria: string): string => {
+  const categoriaMap: Record<string, string> = {
+    BULLYING_ASSEDIO: 'Bullying e Assédio',
+    DISCRIMINACAO: 'Discriminação',
+    VIOLENCIA_FISICA: 'Violência Física',
+    ABUSO_AUTORIDADE: 'Abuso de Autoridade',
+    VANDALISMO: 'Vandalismo',
+    OUTRO: 'Outro',
+  };
+  return categoriaMap[categoria.toUpperCase()] || categoria;
+};
+
+const formatarData = (dataISO: string): string => {
+  const data = new Date(dataISO);
+  return data.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+};
+
+const formatarHora = (dataISO: string): string => {
+  const data = new Date(dataISO);
+  return data.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
 export function Acompanhamento() {
-  const [currentStatus, setCurrentStatus] = useState(
-    simulado_dados.initialStatus,
-  );
+  const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
+  const { user, isLoggedIn } = useAuth();
+
+  const [detalhes, setDetalhes] = useState<AcompanhamentoDetalhes | null>(null);
+  const [mensagens, setMensagens] = useState<MensagemAcompanhamento[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [details] = useState(simulado_dados);
-  const [mensagens, setMensagens] = useState(simulado_mensagens);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [alterandoStatus, setAlterandoStatus] = useState(false);
+  const [avisoFlood, setAvisoFlood] = useState(false);
+  const [anchorElStatus, setAnchorElStatus] = useState<null | HTMLElement>(
+    null,
+  );
 
   const mensagensBoxRef = useRef<HTMLDivElement>(null);
+
+  const isAdmin = isLoggedIn && user?.perfil === 'ADMIN';
+  const statusMenuAberto = Boolean(anchorElStatus);
+
+  const handleAbrirMenuStatus = (event: React.MouseEvent<HTMLElement>) => {
+    if (isAdmin) {
+      setAnchorElStatus(event.currentTarget);
+    }
+  };
+
+  const handleFecharMenuStatus = () => {
+    setAnchorElStatus(null);
+  };
+
+  const handleAlterarStatus = async (novoStatus: string) => {
+    if (!detalhes || !isAdmin) return;
+
+    handleFecharMenuStatus();
+    setAlterandoStatus(true);
+    try {
+      await alterarStatusDenuncia(detalhes.id, novoStatus);
+
+      // Atualizar o status localmente
+      setDetalhes({ ...detalhes, status: novoStatus });
+
+      await carregarMensagens();
+
+      setError(null);
+    } catch (err) {
+      console.error('Erro ao alterar status:', err);
+      setError('Erro ao alterar o status da denúncia.');
+    } finally {
+      setAlterandoStatus(false);
+    }
+  };
+
+  // Função para carregar mensagens
+  const carregarMensagens = async () => {
+    if (!token) return;
+    try {
+      const mensagensData = await listarMensagens(token);
+      setMensagens(mensagensData);
+    } catch (err) {
+      console.error('Erro ao carregar mensagens:', err);
+    }
+  };
+
+  // Verifica se a mensagem pertence ao usuário atual
+  const ehMinhaMensagem = (mensagemId: number, autor: string): boolean => {
+    if (!token) return false;
+
+    // Se é admin autenticado
+    if (isAdmin) {
+      return autor === 'Admin';
+    }
+
+    // Todas as mensagens do "Usuário Anônimo" são dele
+    return autor === 'Usuário Anônimo';
+  };
 
   useEffect(() => {
     if (mensagensBoxRef.current) {
@@ -70,64 +168,154 @@ export function Acompanhamento() {
     }
   }, [mensagens]);
 
+  // Carregar dados da denúncia e mensagens
   useEffect(() => {
-    const token = details.token;
-    fetch(`/api/v1/public/denuncias/${token}/acompanhamento`)
-      .then((res) => res.json())
-      .then(() => {
-        // TODO: Implementar tratamento dos dados da API
-      });
+    if (!token) {
+      setError('Token não fornecido');
+      setLoading(false);
+      return;
+    }
 
-    fetch(`/api/v1/public/denuncias/${token}/acompanhamento/mensagens`)
-      .then((res) => res.json())
-      .then(() => {
-        // TODO: Implementar tratamento das mensagens da API
-      });
-  }, [details.token]);
+    const carregarDados = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  const handleStatusChange = (event: SelectChangeEvent) => {
-    setCurrentStatus(event.target.value);
+        // Carregar detalhes da denúncia e mensagens em paralelo
+        const [denunciaData, mensagensData] = await Promise.all([
+          consultarDenunciaPorToken(token),
+          listarMensagens(token),
+        ]);
+
+        setDetalhes(denunciaData);
+        setMensagens(mensagensData);
+      } catch (err) {
+        console.error('Erro ao carregar dados:', err);
+        setError(
+          (err as { message?: string }).message ||
+            'Erro ao carregar dados. Token pode ser inválido.',
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarDados();
+  }, [token]);
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !token) return;
+
+    try {
+      setSending(true);
+      setAvisoFlood(false);
+
+      let novaMensagem: MensagemAcompanhamento;
+
+      // Admin usa endpoint diferente (sem restrição de flood)
+      if (isAdmin && detalhes?.id) {
+        novaMensagem = await enviarMensagemAdmin(
+          detalhes.id,
+          newMessage.trim(),
+        );
+      } else {
+        novaMensagem = await enviarMensagem(token, newMessage.trim());
+      }
+
+      setMensagens([...mensagens, novaMensagem]);
+      setNewMessage('');
+      setError(null);
+    } catch (err: unknown) {
+      console.error('Erro ao enviar mensagem:', err);
+
+      const error = err as { message?: string; status?: number };
+      const errorMessage = error?.message || '';
+
+      if (
+        errorMessage.includes('aguardar') ||
+        errorMessage.includes('administrador') ||
+        error?.status === 403
+      ) {
+        setAvisoFlood(true);
+        setTimeout(() => setAvisoFlood(false), 5000);
+      } else {
+        // Outros erros mostram como erro real
+        setError(errorMessage || 'Erro ao enviar mensagem. Tente novamente.');
+      }
+    } finally {
+      setSending(false);
+    }
   };
 
-  const handleUpdateStatus = () => {
-    alert(
-      `Status atualizado localmente para: ${currentStatus}. ação da api simulada`,
+  const podeEnviarMensagem = (): boolean => {
+    // Admin sempre pode enviar mensagens
+    if (isAdmin) return true;
+
+    // Verificar se a denúncia está finalizada (Resolvida ou Rejeitada)
+    if (detalhes) {
+      const statusFinal = detalhes.status.toUpperCase();
+      if (statusFinal === 'RESOLVIDO' || statusFinal === 'REJEITADO') {
+        // Usuário comum não pode enviar mensagens em denúncias finalizadas
+        return false;
+      }
+    }
+
+    // Se não há mensagens ainda, não pode enviar
+    if (mensagens.length === 0) return false;
+
+    const ultimaMensagem = mensagens[mensagens.length - 1];
+    // Denunciante pode enviar se a última mensagem NÃO for dele
+    return !ehMinhaMensagem(ultimaMensagem.id, ultimaMensagem.autor);
+  };
+
+  const usuarioPodeEnviar = podeEnviarMensagem();
+
+  // Verificar se denúncia está finalizada (para exibir aviso)
+  const denunciaFinalizada =
+    detalhes &&
+    (detalhes.status.toUpperCase() === 'RESOLVIDO' ||
+      detalhes.status.toUpperCase() === 'REJEITADO');
+
+  // Estado de carregamento
+  if (loading) {
+    return (
+      <Container maxWidth='sm' sx={{ py: 8, textAlign: 'center' }}>
+        <CircularProgress size={60} />
+        <Typography variant='h6' sx={{ mt: 3, color: 'text.secondary' }}>
+          Carregando informações...
+        </Typography>
+      </Container>
     );
-  };
+  }
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() === '') return;
-    const now = new Date();
-    const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(
-      now.getMinutes(),
-    ).padStart(2, '0')}`;
-    setMensagens([
-      ...mensagens,
-      { autor: 'user', texto: newMessage.trim(), data: timeString },
-    ]);
-    setNewMessage('');
-  };
-
-  if (details.status === 'Rejeitado' || details.status === 'Resolvido') {
+  // Estado de erro
+  if (error || !detalhes) {
     return (
       <Container maxWidth='sm' sx={{ py: 8 }}>
         <Paper
           elevation={3}
           sx={{ p: 5, borderRadius: 3, textAlign: 'center' }}
         >
-          <Typography variant='h5' sx={{ fontWeight: 700 }}>
-            {details.status}
+          <Alert severity='error' sx={{ mb: 3 }}>
+            {error || 'Denúncia não encontrada'}
+          </Alert>
+          <Typography variant='body1' sx={{ mb: 3 }}>
+            Verifique se o token está correto ou se a denúncia ainda existe no
+            sistema.
           </Typography>
-          {details.status === 'Rejeitado' && (
-            <Typography variant='body1' sx={{ mt: 2 }}>
-              Motivo: {details.motivo_rejeicao}
-            </Typography>
-          )}
+          <Button
+            variant='contained'
+            color='primary'
+            onClick={() => navigate('/')}
+          >
+            Voltar ao Início
+          </Button>
         </Paper>
       </Container>
     );
   }
 
+  // Interface principal de acompanhamento
   return (
     <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh' }}>
       <Container maxWidth='lg' sx={{ py: 4 }}>
@@ -138,36 +326,163 @@ export function Acompanhamento() {
             gap: 4,
           }}
         >
+          {/* Painel de Detalhes da Denúncia */}
           <Paper
             elevation={3}
-            sx={{ p: 5, borderRadius: 3, height: 'fit-content' }}
+            sx={{
+              p: 5,
+              borderRadius: 3,
+              height: 'fit-content',
+            }}
           >
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 2,
-              }}
-            >
-              <Typography variant='h6' sx={{ fontWeight: 600 }}>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant='h6' sx={{ fontWeight: 600, mb: 2 }}>
                 Detalhes da Denúncia
               </Typography>
+
+              {isAdmin && !denunciaFinalizada && (
+                <Typography
+                  variant='caption'
+                  sx={{ color: 'text.secondary', display: 'block', mb: 1 }}
+                >
+                  Clique para alterar o status
+                </Typography>
+              )}
+
+              {/* Aviso de denúncia finalizada (apenas admin) */}
+              {isAdmin && denunciaFinalizada && (
+                <Alert severity='info' sx={{ mb: 2 }}>
+                  <Typography variant='body2' sx={{ fontWeight: 600 }}>
+                    Status Final
+                  </Typography>
+                  <Typography variant='body2' sx={{ mt: 0.5 }}>
+                    Esta denúncia foi{' '}
+                    {detalhes.status.toUpperCase() === 'RESOLVIDO'
+                      ? 'resolvida'
+                      : 'rejeitada'}{' '}
+                    e seu status não pode mais ser alterado.
+                  </Typography>
+                </Alert>
+              )}
+
+              {/* Badge de Status - Interativo para admin (se não finalizada), estático para usuário */}
               <Chip
-                label={currentStatus}
-                color={statusColorMap(currentStatus)}
+                label={formatarStatus(detalhes.status)}
+                color={statusColorMap(detalhes.status)}
                 icon={
                   <span className='material-symbols-outlined'>schedule</span>
                 }
-                sx={{ fontWeight: 'bold' }}
+                onClick={
+                  isAdmin && !denunciaFinalizada
+                    ? handleAbrirMenuStatus
+                    : undefined
+                }
+                sx={{
+                  fontWeight: 'bold',
+                  mb: 2,
+                  cursor:
+                    isAdmin && !denunciaFinalizada ? 'pointer' : 'default',
+                  opacity: denunciaFinalizada ? 0.8 : 1,
+                  '&:hover':
+                    isAdmin && !denunciaFinalizada
+                      ? {
+                          opacity: 0.8,
+                          transform: 'scale(1.02)',
+                          transition: 'all 0.2s',
+                        }
+                      : {},
+                }}
               />
+
+              {/* Menu dropdown de status (apenas admin) */}
+              <Menu
+                anchorEl={anchorElStatus}
+                open={statusMenuAberto}
+                onClose={handleFecharMenuStatus}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'left',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'left',
+                }}
+              >
+                <MenuItem
+                  onClick={() => handleAlterarStatus('RECEBIDO')}
+                  disabled={detalhes.status === 'RECEBIDO'}
+                >
+                  <Chip
+                    label='Recebido'
+                    color='success'
+                    size='small'
+                    sx={{ mr: 1 }}
+                  />
+                </MenuItem>
+                <MenuItem
+                  onClick={() => handleAlterarStatus('EM_ANALISE')}
+                  disabled={detalhes.status === 'EM_ANALISE'}
+                >
+                  <Chip
+                    label='Em Análise'
+                    color='warning'
+                    size='small'
+                    sx={{ mr: 1 }}
+                  />
+                </MenuItem>
+                <MenuItem
+                  onClick={() => handleAlterarStatus('AGUARDANDO')}
+                  disabled={detalhes.status === 'AGUARDANDO'}
+                >
+                  <Chip
+                    label='Aguardando Informações'
+                    color='warning'
+                    size='small'
+                    sx={{ mr: 1 }}
+                  />
+                </MenuItem>
+                <MenuItem
+                  onClick={() => handleAlterarStatus('RESOLVIDO')}
+                  disabled={detalhes.status === 'RESOLVIDO'}
+                >
+                  <Chip
+                    label='Resolvido'
+                    color='success'
+                    size='small'
+                    sx={{ mr: 1 }}
+                  />
+                </MenuItem>
+                <MenuItem
+                  onClick={() => handleAlterarStatus('REJEITADO')}
+                  disabled={detalhes.status === 'REJEITADO'}
+                >
+                  <Chip
+                    label='Rejeitado'
+                    color='error'
+                    size='small'
+                    sx={{ mr: 1 }}
+                  />
+                </MenuItem>
+              </Menu>
+
+              {/* Indicador de carregamento durante alteração */}
+              {alterandoStatus && (
+                <Typography
+                  variant='caption'
+                  sx={{ color: 'primary.main', display: 'block', mb: 2 }}
+                >
+                  Alterando status...
+                </Typography>
+              )}
             </Box>
+
             <Typography
               variant='subtitle2'
               sx={{ color: 'text.secondary', mb: 2 }}
             >
-              Visualize e atualize as informações principais
+              Informações da denúncia
             </Typography>
+
             <Stack spacing={2}>
               <Box>
                 <Typography variant='caption' sx={{ color: 'text.secondary' }}>
@@ -177,7 +492,7 @@ export function Acompanhamento() {
                   variant='body1'
                   sx={{ fontFamily: 'monospace', fontWeight: 500 }}
                 >
-                  {details.token}
+                  {detalhes.tokenAcompanhamento}
                 </Typography>
               </Box>
               <Box>
@@ -185,7 +500,7 @@ export function Acompanhamento() {
                   Data de Criação
                 </Typography>
                 <Typography variant='body1' sx={{ fontWeight: 500 }}>
-                  {details.creationDate}
+                  {formatarData(detalhes.criadoEm)}
                 </Typography>
               </Box>
               <Box>
@@ -196,39 +511,13 @@ export function Acompanhamento() {
                   variant='body1'
                   sx={{ fontWeight: 700, color: 'primary.main' }}
                 >
-                  {details.category}
+                  {formatarCategoria(detalhes.categoria)}
                 </Typography>
               </Box>
-              <FormControl fullWidth size='small'>
-                <InputLabel id='status-select-label'>
-                  Status da Denúncia
-                </InputLabel>
-                <Select
-                  labelId='status-select-label'
-                  id='status-select'
-                  value={currentStatus}
-                  label='Status da Denúncia'
-                  onChange={handleStatusChange}
-                  sx={{ borderRadius: 2 }}
-                >
-                  <MenuItem value='Em Análise'>Em Análise</MenuItem>
-                  <MenuItem value='Recebido'>Recebido</MenuItem>
-                  <MenuItem value='Resolvido'>Resolvido</MenuItem>
-                  <MenuItem value='Aguardando'>Pendente</MenuItem>
-                  <MenuItem value='Rejeitado'>Rejeitado</MenuItem>
-                </Select>
-              </FormControl>
-              <Button
-                variant='contained'
-                color='success'
-                onClick={handleUpdateStatus}
-                sx={{ mt: 2, fontWeight: 700 }}
-              >
-                Atualizar Status
-              </Button>
             </Stack>
           </Paper>
 
+          {/* Painel de Chat */}
           <Paper
             elevation={3}
             sx={{
@@ -255,9 +544,11 @@ export function Acompanhamento() {
                 variant='subtitle2'
                 sx={{ color: 'text.secondary', mt: 1 }}
               >
-                Converse com o denunciante para obter mais informações
+                Converse com os administradores sobre sua denúncia
               </Typography>
             </Box>
+
+            {/* Área de Mensagens */}
             <Box
               ref={mensagensBoxRef}
               sx={{
@@ -267,75 +558,159 @@ export function Acompanhamento() {
                 display: 'flex',
                 flexDirection: 'column',
                 height: '400px',
+                backgroundColor: '#fafafa',
               }}
             >
-              {mensagens.map((msg, idx) => (
+              {mensagens.length === 0 ? (
                 <Box
-                  key={idx}
                   sx={{
-                    mb: 2,
-                    p: 2,
-                    borderRadius: 2,
-                    background: msg.autor === 'admin' ? '#e3f6ea' : '#f5f5f5',
-                    alignSelf:
-                      msg.autor === 'admin' ? 'flex-end' : 'flex-start',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100%',
                   }}
                 >
-                  <Typography variant='body2'>{msg.texto}</Typography>
-                  <Typography
-                    variant='caption'
-                    sx={{ color: 'gray' }}
-                  >{`${msg.data}`}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Nenhuma mensagem ainda. Envie a primeira!
+                  </Typography>
                 </Box>
-              ))}
+              ) : (
+                mensagens.map((msg) => {
+                  // Determinar se é minha mensagem (considerando admin ou denunciante)
+                  const minhaMsg = ehMinhaMensagem(msg.id, msg.autor);
+
+                  return (
+                    <Box
+                      key={msg.id}
+                      sx={{
+                        mb: 2,
+                        p: 2,
+                        borderRadius: 2,
+                        background: minhaMsg ? '#e3f6ea' : '#f5f5f5',
+                        alignSelf: minhaMsg ? 'flex-end' : 'flex-start',
+                        maxWidth: '75%',
+                      }}
+                    >
+                      <Typography
+                        variant='caption'
+                        sx={{ fontWeight: 600, color: 'text.secondary' }}
+                      >
+                        {minhaMsg ? 'Você' : msg.autor}
+                      </Typography>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          mt: 0.5,
+                          wordBreak: 'break-word',
+                          overflowWrap: 'break-word',
+                        }}
+                      >
+                        {msg.mensagem}
+                      </Typography>
+                      <Typography
+                        variant='caption'
+                        sx={{ color: 'gray', mt: 1 }}
+                      >
+                        {formatarHora(msg.dataEnvio)}
+                      </Typography>
+                    </Box>
+                  );
+                })
+              )}
             </Box>
+
+            {/* Área de Envio de Mensagem */}
             <Box
               sx={{
                 p: 3,
                 borderTop: '1px solid #eee',
-                display: 'flex',
-                alignItems: 'flex-end',
                 background: 'background.paper',
                 borderBottomLeftRadius: 12,
                 borderBottomRightRadius: 12,
               }}
             >
-              <TextField
-                fullWidth
-                multiline
-                rows={1}
-                maxRows={4}
-                placeholder='Escreva uma mensagem para solicitar mais informações...'
-                variant='outlined'
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
+              {avisoFlood && (
+                <Alert
+                  severity='warning'
+                  sx={{ mb: 2 }}
+                  onClose={() => setAvisoFlood(false)}
+                >
+                  Você precisa aguardar a resposta do administrador antes de
+                  enviar outra mensagem.
+                </Alert>
+              )}
+
+              {/* Aviso de denúncia finalizada (apenas para usuário comum) */}
+              {denunciaFinalizada && !isAdmin && (
+                <Alert severity='info' sx={{ mb: 2 }}>
+                  <Typography variant='body2' sx={{ fontWeight: 600 }}>
+                    Esta denúncia foi{' '}
+                    {detalhes.status.toUpperCase() === 'RESOLVIDO'
+                      ? 'resolvida'
+                      : 'rejeitada'}
+                    .
+                  </Typography>
+                  <Typography variant='body2' sx={{ mt: 0.5 }}>
+                    Você pode visualizar o histórico de mensagens, mas não pode
+                    mais enviar novas mensagens.
+                  </Typography>
+                </Alert>
+              )}
+
+              {/* Aviso de aguardar resposta do admin (regra de flood) */}
+              {!usuarioPodeEnviar && !isAdmin && !denunciaFinalizada && (
+                <Alert severity='info' sx={{ mb: 2 }}>
+                  Aguarde a resposta do administrador para enviar outra
+                  mensagem.
+                </Alert>
+              )}
+              <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={1}
+                  maxRows={4}
+                  placeholder={
+                    usuarioPodeEnviar
+                      ? 'Escreva uma mensagem...'
+                      : 'Aguardando resposta do administrador...'
                   }
-                }}
-                sx={{
-                  mr: 2,
-                  background: 'background.default',
-                  borderRadius: 2,
-                }}
-                InputProps={{
-                  style: { borderRadius: '12px', padding: '10px' },
-                }}
-              />
-              <Button
-                variant='contained'
-                color='success'
-                onClick={handleSendMessage}
-                disabled={!newMessage.trim()}
-                sx={{ py: 1.5, px: 3, borderRadius: 2, fontWeight: 700 }}
-                endIcon={
-                  <span className='material-symbols-outlined'>send</span>
-                }
-              >
-                Enviar
-              </Button>
+                  variant='outlined'
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey && usuarioPodeEnviar) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  disabled={sending || !usuarioPodeEnviar}
+                  sx={{
+                    mr: 2,
+                    background: 'background.default',
+                    borderRadius: 2,
+                  }}
+                  InputProps={{
+                    style: { borderRadius: '12px', padding: '10px' },
+                  }}
+                />
+                <Button
+                  variant='contained'
+                  color='success'
+                  onClick={handleSendMessage}
+                  disabled={!newMessage.trim() || sending || !usuarioPodeEnviar}
+                  sx={{ py: 1.5, px: 3, borderRadius: 2, fontWeight: 700 }}
+                  endIcon={
+                    sending ? (
+                      <CircularProgress size={20} color='inherit' />
+                    ) : (
+                      <span className='material-symbols-outlined'>send</span>
+                    )
+                  }
+                >
+                  {sending ? 'Enviando...' : 'Enviar'}
+                </Button>
+              </Box>
             </Box>
           </Paper>
         </Box>

@@ -101,9 +101,9 @@ const getFilteredCategoria = (filtroCategoria: string): string => {
 
 const getFilteredStatus = (filtroStatus: string): string => {
   const statusList = [
-    'RECEPTADO',
+    'RECEBIDO',
     'EM_ANALISE',
-    'AGUARDANDO_INFORMACOES',
+    'AGUARDANDO',
     'RESOLVIDO',
     'REJEITADO',
   ];

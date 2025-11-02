@@ -30,9 +30,9 @@ export const Filters = ({
 
   const statusOptions = [
     { value: '', label: 'Todos os status' },
-    { value: 'RECEPTADO', label: 'Receptado' },
+    { value: 'RECEBIDO', label: 'Recebido' },
     { value: 'EM_ANALISE', label: 'Em Análise' },
-    { value: 'AGUARDANDO_INFORMACOES', label: 'Pendente' },
+    { value: 'AGUARDANDO', label: 'Aguardando Informações' },
     { value: 'RESOLVIDO', label: 'Resolvido' },
     { value: 'REJEITADO', label: 'Rejeitado' },
   ];
