@@ -7,105 +7,75 @@ import br.edu.ifpi.ifala.notificacao.dto.NotificationResponseDto;
 import br.edu.ifpi.ifala.notificacao.enums.TiposNotificacao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-/**
- * Implementação dos serviços de notificação.
- */
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
-  private static final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
-  private final NotificationRepository repository;
-  private final NotificationEmailService emailService;
+    private final NotificationRepository repository;
+    private final NotificationEmailService emailService;
 
-  /**
-   * Construtor que injeta os serviços necessários.
-   *
-   * @param repository repositório de notificações
-   * @param emailService serviço de e-mail
-   */
-  @Autowired
-  public NotificationServiceImpl(NotificationRepository repository, NotificationEmailService emailService) {
-    this.repository = repository;
-    this.emailService = emailService;
-  }
-
-  /**
-   * Cria uma nova notificação e dispara envio de e-mail se for do tipo EXTERNO.
-   *
-   * @param dto dados da notificação
-   * @return DTO de resposta representando a entidade criada
-   */
-  @Override
-  public NotificationResponseDto create(NotificationRequestDto dto) {
-    Notificacao notificacao = new Notificacao();
-    notificacao.setTitulo(dto.getTitulo());
-    notificacao.setMensagem(dto.getMensagem());
-    notificacao.setTipo(dto.getTipo());
-
-    Notificacao saved = repository.save(notificacao);
-
-    if (saved.getTipo() == TiposNotificacao.EXTERNO) {
-      log.info("Enviando e-mail para nova denúncia cadastrada (tipo EXTERNO)");
-      emailService.sendNewDenunciaEmail(saved);
-    } else {
-      log.info("Notificação interna criada (sem envio de e-mail).");
+    public NotificationServiceImpl(NotificationRepository repository,
+                                   NotificationEmailService emailService) {
+        this.repository = repository;
+        this.emailService = emailService;
     }
 
-    return NotificationResponseDto.fromEntity(saved);
-  }
+    @Override
+    public NotificationResponseDto create(NotificationRequestDto dto) {
+        Notificacao n = new Notificacao();
+        n.setTitulo(dto.getTitulo());
+        n.setMensagem(dto.getMensagem());
+        n.setTipo(dto.getTipo());
 
-  /**
-   * Recupera todas as notificações persistidas.
-   *
-   * @return lista de DTOs de notificação
-   */
-  @Override
-  public List<NotificationResponseDto> findAll() {
-    return repository.findAll()
-      .stream()
-      .map(NotificationResponseDto::fromEntity)
-      .collect(Collectors.toList());
-  }
+        Notificacao saved = repository.save(n);
 
-  /**
-   * Atualiza uma notificação existente.
-   *
-   * @param id identificador da notificação
-   * @param dto dados a atualizar
-   * @return DTO com os dados atualizados
-   */
-  @Override
-  public NotificationResponseDto update(Long id, NotificationRequestDto dto) {
-    Notificacao notificacao = repository.findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Notificação não encontrada"));
-
-    notificacao.setTitulo(dto.getTitulo());
-    notificacao.setMensagem(dto.getMensagem());
-    notificacao.setTipo(dto.getTipo());
-    Notificacao updated = repository.save(notificacao);
-    return NotificationResponseDto.fromEntity(updated);
-  }
-
-  /**
-   * Remove uma notificação pelo seu id.
-   * Se a notificação não existir, nenhuma ação será executada.
-   *
-   * @param id identificador da notificação a ser removida
-   */
-  @Override
-  public void delete(Long id) {
-    if (repository.existsById(id)) {
-      repository.deleteById(id);
-      log.info("Notificação {} removida com sucesso", id);
-    } else {
-      log.warn("Tentativa de remover notificação inexistente: {}", id);
+        if (saved.getTipo() == TiposNotificacao.EXTERNO) {
+            log.info("Enviando e-mail (tipo EXTERNO)");
+            // Em produção, buscar destinatários reais.
+            emailService.sendNewDenunciaEmail(saved, "sistema-ifala-development@gmail.com");
+        }
+        return NotificationResponseDto.fromEntity(saved);
     }
-  }
+
+    @Override
+    public NotificationResponseDto findById(Long id) {
+        Notificacao n = repository.findById(id).orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notificação não encontrada")
+        );
+        return NotificationResponseDto.fromEntity(n);
+    }
+
+    @Override
+    public List<NotificationResponseDto> findAll() {
+        return repository.findAll()
+                .stream()
+                .map(NotificationResponseDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public NotificationResponseDto update(Long id, NotificationRequestDto dto) {
+        Notificacao n = repository.findById(id).orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notificação não encontrada")
+        );
+        if (dto.getTitulo() != null) n.setTitulo(dto.getTitulo());
+        if (dto.getMensagem() != null) n.setMensagem(dto.getMensagem());
+        if (dto.getTipo() != null) n.setTipo(dto.getTipo());
+
+        Notificacao updated = repository.save(n);
+        return NotificationResponseDto.fromEntity(updated);
+    }
+
+    @Override
+    public void delete(Long id) {
+        if (!repository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Notificação não encontrada");
+        }
+        repository.deleteById(id);
+    }
 }

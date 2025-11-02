@@ -5,69 +5,51 @@ import br.edu.ifpi.ifala.notificacao.enums.TiposNotificacao;
 import java.time.LocalDateTime;
 
 /**
- * DTO para retornar informações de notificações em respostas.
+ * DTO de resposta para exibição de notificações.
  */
 public class NotificationResponseDto {
 
-  private Long id;
-  private String titulo; 
-  private String mensagem;
-  private TiposNotificacao tipo;
-  private LocalDateTime criadoEm;
+    private Long id;
+    private String titulo;
+    private String mensagem;
+    private TiposNotificacao tipo;
+    private LocalDateTime criadoEm;
 
-  /**
-   * Converte uma entidade Notificacao para NotificationResponseDto.
-   *
-   * @param entity A entidade a ser convertida
-   * @return O DTO correspondente 
-   */
-  public static NotificationResponseDto fromEntity(Notificacao entity) {
-    NotificationResponseDto dto = new NotificationResponseDto();
-    dto.setId(entity.getId());
-    dto.setTitulo(entity.getTitulo());
-    dto.setMensagem(entity.getMensagem());
-    dto.setTipo(entity.getTipo());
-    dto.setCriadoEm(entity.getCriadoEm());
-    return dto;
-  }
+    public NotificationResponseDto(Long id, String titulo, String mensagem, TiposNotificacao tipo, LocalDateTime criadoEm) {
+        this.id = id;
+        this.titulo = titulo;
+        this.mensagem = mensagem;
+        this.tipo = tipo;
+        this.criadoEm = criadoEm;
+    }
 
-  public Long getId() {
-    return id;
-  }
+    public static NotificationResponseDto fromEntity(Notificacao n) {
+        return new NotificationResponseDto(
+                n.getId(),
+                n.getTitulo(),
+                n.getMensagem(),
+                n.getTipo(),
+                n.getCriadoEm()
+        );
+    }
 
-  public void setId(Long id) {
-    this.id = id;
-  }
+    public Long getId() {
+        return id;
+    }
 
-  public String getTitulo() {
-    return titulo;
-  }
+    public String getTitulo() {
+        return titulo;
+    }
 
-  public void setTitulo(String titulo) {
-    this.titulo = titulo;
-  }
+    public String getMensagem() {
+        return mensagem;
+    }
 
-  public String getMensagem() {
-    return mensagem;
-  }
+    public TiposNotificacao getTipo() {
+        return tipo;
+    }
 
-  public void setMensagem(String mensagem) {
-    this.mensagem = mensagem;
-  }
-
-  public TiposNotificacao getTipo() {
-    return tipo;
-  }
-
-  public void setTipo(TiposNotificacao tipo) {
-    this.tipo = tipo;
-  }
-
-  public LocalDateTime getCriadoEm() {
-    return criadoEm;
-  }
-
-  public void setCriadoEm(LocalDateTime criadoEm) {
-    this.criadoEm = criadoEm;
-  }
+    public LocalDateTime getCriadoEm() {
+        return criadoEm;
+    }
 }
