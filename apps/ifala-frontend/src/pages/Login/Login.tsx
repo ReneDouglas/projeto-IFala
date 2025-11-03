@@ -298,7 +298,7 @@ export function Login() {
                 fullWidth
                 name='matricula'
                 label='Usuário ou Email Institucional'
-                placeholder='Digite su usuário ou email institucional'
+                placeholder='Digite seu usuário ou email institucional'
                 value={formData.matricula}
                 onChange={handleInputChange}
                 error={!!errors.matricula}
