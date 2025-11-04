@@ -45,7 +45,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   // lógica do filtro.
   private boolean shouldSkipFilter(String path) {
     return path != null && (path.equals("/api/v1/auth/login") || path.equals("/api/v1/auth/refresh")
-        || path.equals("/api/v1/auth/redefinir-senha") || path.startsWith("/swagger-ui/")
+    // permite pular tanto /api/v1/auth/redefinir-senha quanto /api/v1/auth/redefinir-senha/{token}
+        || path.equals("/api/v1/auth/redefinir-senha")
+        || path.startsWith("/api/v1/auth/redefinir-senha") || path.startsWith("/swagger-ui/")
         || path.startsWith("/v3/api-docs/"));
   }
 

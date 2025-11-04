@@ -61,15 +61,15 @@ services:
       postgres:
         condition: service_healthy
 
-  pmm-server:
-    image: percona/pmm-server:2
-    container_name: pmm-server
-    restart: unless-stopped
-    ports:
-      - '8081:80'
-      - '8444:443'
-    #volumes:
-    #- pmm-data:/srv
+  #pmm-server:
+  #image: percona/pmm-server:2
+  #container_name: pmm-server
+  #restart: unless-stopped
+  #ports:
+  #- '8081:80'
+  #- '8444:443'
+  #volumes:
+  #- pmm-data:/srv
 
   # pmm-client:
   #   image: percona/pmm-client:2

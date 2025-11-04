@@ -6,6 +6,7 @@ ADD COLUMN password_reset_token VARCHAR(255),
 ADD COLUMN password_reset_expires TIMESTAMP,
 ADD COLUMN username VARCHAR(25) UNIQUE NOT NULL;
 
+
 -- Adiciona a restrição NOT NULL
 ALTER TABLE usuarios
     ALTER COLUMN nome SET NOT NULL,

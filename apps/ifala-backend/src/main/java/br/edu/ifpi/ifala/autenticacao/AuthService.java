@@ -55,4 +55,6 @@ public interface AuthService {
    * para extrair o token do header.
    */
   void logout(HttpServletRequest request);
+
+  // void isResetTokenValid(String token);
 }

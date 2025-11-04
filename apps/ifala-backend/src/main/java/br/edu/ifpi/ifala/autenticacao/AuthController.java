@@ -6,6 +6,10 @@ import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.PasswordResetTokenCheckDTO;
+import org.springframework.web.bind.annotation.PathVariable;
+import java.time.Instant;
+import java.util.Optional;
 import br.edu.ifpi.ifala.shared.exceptions.RefreshTokenException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseCookie;
@@ -15,8 +19,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +38,13 @@ public class AuthController {
   private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
   private final AuthService authService;
   private final CookieService cookieService;
+  private final UsuarioRepository usuarioRepository;
 
-  public AuthController(AuthService authService, CookieService cookieService) {
+  public AuthController(AuthService authService, CookieService cookieService,
+      UsuarioRepository usuarioRepository) {
     this.authService = authService;
     this.cookieService = cookieService;
+    this.usuarioRepository = usuarioRepository;
   }
 
   @PostMapping("/admin/registrar-usuario")
@@ -74,12 +83,55 @@ public class AuthController {
   /**
    * Endpoint para redefinir a senha (via token de e-mail) ou mudar a senha (via senha atual).
    */
-  @PostMapping("/redefinir-senha")
+  @PutMapping("/redefinir-senha")
   public ResponseEntity<LoginResponseDTO> changePassword(
       @Valid @RequestBody MudarSenhaRequestDTO req) {
     logger.info("Tentativa de redefinição/mudança de senha para o e-mail: {}", req.email());
     LoginResponseDTO response = authService.changePassword(req);
     return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/redefinir-senha/{token:.+}")
+  public ResponseEntity<PasswordResetTokenCheckDTO> validateResetToken(@PathVariable String token) {
+    logger.info("Validação de token de redefinição de senha: {}", token);
+
+    Optional<Usuario> userOpt = usuarioRepository.findByPasswordResetToken(token);
+    if (userOpt.isEmpty()) {
+      logger.warn("Token de redefinição não encontrado: {}", token);
+      return ResponseEntity.notFound().build();
+    }
+
+    Usuario user = userOpt.get();
+    if (user.getPasswordResetExpires() == null
+        || user.getPasswordResetExpires().isBefore(Instant.now())) {
+      logger.warn("Token expirado ou inválido para usuário {}", user.getEmail());
+      return ResponseEntity.notFound().build();
+    }
+
+    PasswordResetTokenCheckDTO dto =
+        new PasswordResetTokenCheckDTO(user.getEmail(), user.getUsername());
+    return ResponseEntity.ok(dto);
+  }
+
+  @PostMapping("/redefinir-senha")
+  public ResponseEntity<?> requestPasswordReset(
+      @Valid @RequestBody br.edu.ifpi.ifala.autenticacao.dto.PasswordResetRequestDTO body) {
+    String email = body.email();
+    logger.info("Solicitação de redefinição de senha para e-mail: {}", email);
+
+    Optional<Usuario> userOpt = usuarioRepository.findByEmail(email);
+    if (userOpt.isPresent()) {
+      try {
+        authService.sendPasswordReset(userOpt.get());
+      } catch (Exception e) {
+        // Não vazamos detalhes; apenas logamos internamente
+        logger.error("Falha ao enviar e-mail de redefinição para {}: {}", email, e.getMessage());
+      }
+    }
+
+    // Resposta genérica para evitar revelar se o e-mail está cadastrado
+    return ResponseEntity
+        .ok("Se um usuário com este e-mail existe, um link de redefinição foi enviado.");
   }
 
 
