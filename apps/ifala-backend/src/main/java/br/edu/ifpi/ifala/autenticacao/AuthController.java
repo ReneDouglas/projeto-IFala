@@ -91,7 +91,7 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
-  @GetMapping("/redefinir-senha/{token:.+}")
+  @GetMapping("/redefinir-senha/{token}")
   public ResponseEntity<PasswordResetTokenCheckDTO> validateResetToken(@PathVariable String token) {
     logger.info("Validação de token de redefinição de senha: {}", token);
 
@@ -114,24 +114,32 @@ public class AuthController {
   }
 
   @PostMapping("/redefinir-senha")
-  public ResponseEntity<?> requestPasswordReset(
+  public ResponseEntity<br.edu.ifpi.ifala.autenticacao.dto.PasswordResetResponseDTO> requestPasswordReset(
       @Valid @RequestBody br.edu.ifpi.ifala.autenticacao.dto.PasswordResetRequestDTO body) {
     String email = body.email();
     logger.info("Solicitação de redefinição de senha para e-mail: {}", email);
-
     Optional<Usuario> userOpt = usuarioRepository.findByEmail(email);
-    if (userOpt.isPresent()) {
-      try {
-        authService.sendPasswordReset(userOpt.get());
-      } catch (Exception e) {
-        // Não vazamos detalhes; apenas logamos internamente
-        logger.error("Falha ao enviar e-mail de redefinição para {}: {}", email, e.getMessage());
-      }
+
+    // Se o e-mail não estiver cadastrado, informar explicitamente conforme solicitado
+    if (userOpt.isEmpty()) {
+      logger.warn("E-mail não encontrado no sistema para solicitação de redefinição: {}", email);
+      return ResponseEntity.status(404)
+          .body(new br.edu.ifpi.ifala.autenticacao.dto.PasswordResetResponseDTO(false,
+              "email não cadastrado no sistema"));
     }
 
-    // Resposta genérica para evitar revelar se o e-mail está cadastrado
-    return ResponseEntity
-        .ok("Se um usuário com este e-mail existe, um link de redefinição foi enviado.");
+    // Tenta enviar o e-mail de redefinição quando o usuário existe
+    try {
+      authService.sendPasswordReset(userOpt.get());
+      return ResponseEntity.ok(new br.edu.ifpi.ifala.autenticacao.dto.PasswordResetResponseDTO(true,
+          "Um link de redefinição foi enviado para seu email"));
+    } catch (Exception e) {
+      // Logamos internamente e informamos o cliente do erro
+      logger.error("Falha ao enviar e-mail de redefinição para {}: {}", email, e.getMessage(), e);
+      return ResponseEntity.status(500)
+          .body(new br.edu.ifpi.ifala.autenticacao.dto.PasswordResetResponseDTO(false,
+              "Falha ao enviar e-mail de redefinição. Tente novamente mais tarde."));
+    }
   }
 
 
