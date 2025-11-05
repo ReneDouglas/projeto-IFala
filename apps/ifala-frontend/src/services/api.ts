@@ -39,6 +39,11 @@ export async function getTurmas(): Promise<EnumOption[]> {
   return handleResponse<EnumOption[]>(response);
 }
 
+export async function getStatus(): Promise<EnumOption[]> {
+  const response = await fetch(`${API_BASE_URL}/utils/status`);
+  return handleResponse<EnumOption[]>(response);
+}
+
 // ENDPOINT DE DENÚNCIA PÚBLICA
 
 export async function criarDenuncia(

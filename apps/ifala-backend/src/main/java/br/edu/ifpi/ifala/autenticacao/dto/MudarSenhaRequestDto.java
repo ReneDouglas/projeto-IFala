@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
  * DTO para mudança de senha.
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 
 // DTO para receber os dados de mudança de senha

@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
  * Implementação do serviço de autenticação.
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 
 @Service

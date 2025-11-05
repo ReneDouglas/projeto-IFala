@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
  * negócio para o AuthService.
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 @RestController
 @RequestMapping("/api/v1/auth")

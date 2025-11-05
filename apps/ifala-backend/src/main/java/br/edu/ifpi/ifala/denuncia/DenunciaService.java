@@ -6,6 +6,7 @@ import br.edu.ifpi.ifala.acompanhamento.AcompanhamentoRepository;
 import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.*;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
+import br.edu.ifpi.ifala.shared.enums.Perfis;
 import br.edu.ifpi.ifala.shared.enums.Status;
 import org.owasp.html.PolicyFactory;
 import org.owasp.html.Sanitizers;
@@ -28,8 +29,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 /**
- * Classe de serviço responsável por manipular operações relacionadas a
- * denúncias.
+ * Classe de serviço responsável por manipular operações relacionadas a denúncias.
  *
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
@@ -111,24 +111,27 @@ public class DenunciaService {
     log.info("Denúncia criada com ID: {}", denunciaSalva.getId());
     log.info("Token de acompanhamento gerado: {}", denunciaSalva.getTokenAcompanhamento());
 
+    // Criar automaticamente o primeiro acompanhamento com o relato da denúncia
+    Acompanhamento primeiroAcompanhamento = new Acompanhamento();
+    primeiroAcompanhamento.setMensagem(denunciaSalva.getDescricao());
+    primeiroAcompanhamento.setDenuncia(denunciaSalva);
+    primeiroAcompanhamento.setAutor(Perfis.ANONIMO);
+    acompanhamentoRepository.save(primeiroAcompanhamento);
+    log.info("Primeiro acompanhamento criado automaticamente com o relato da denúncia.");
+
     return mapToDenunciaResponseDto(denunciaSalva);
   }
 
   @Transactional(readOnly = true)
   public Optional<DenunciaResponseDto> consultarPorTokenAcompanhamento(UUID tokenAcompanhamento) {
     return denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
-        .filter(denuncia -> denuncia.getStatus() != Status.RESOLVIDO
-            && denuncia.getStatus() != Status.REJEITADO)
         .map(this::mapToDenunciaResponseDto);
   }
 
   /*
-   * tipo Page é uma interface do Spring Data que encapsula uma página de dados
-   * Pageable é uma
-   * interface que define a paginação e ordenação Specification é uma interface do
-   * Spring Data JPA
-   * que permite construir consultas dinamicamente predicate é uma condição usada
-   * em consultas para
+   * tipo Page é uma interface do Spring Data que encapsula uma página de dados Pageable é uma
+   * interface que define a paginação e ordenação Specification é uma interface do Spring Data JPA
+   * que permite construir consultas dinamicamente predicate é uma condição usada em consultas para
    * filtrar resultados
    */
 
@@ -198,8 +201,9 @@ public class DenunciaService {
   @Transactional(readOnly = true)
   public List<AcompanhamentoDto> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
     log.info("Listando acompanhamentos (público) para o token: {}", tokenAcompanhamento);
-    Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
-        () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
+    Denuncia denuncia =
+        denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
+            () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
 
     return denuncia.getAcompanhamentos().stream().map(this::mapToAcompanhamentoResponseDto)
         .collect(Collectors.toList());
@@ -215,25 +219,33 @@ public class DenunciaService {
         .collect(Collectors.toList());
   }
 
-  public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento, AcompanhamentoDto dto) {
+  public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento,
+      AcompanhamentoDto dto) {
     log.info("Adicionando acompanhamento (público) para o token: {}", tokenAcompanhamento);
     Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
         .filter(d -> d.getStatus() != Status.RESOLVIDO && d.getStatus() != Status.REJEITADO)
-        .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada, finalizada ou token inválido."));
+        .orElseThrow(() -> new EntityNotFoundException(
+            "Denúncia não encontrada, finalizada ou token inválido."));
+
+    // Verificar se a última mensagem foi do admin (anti-flood)
+    List<Acompanhamento> acompanhamentos = new ArrayList<>(denuncia.getAcompanhamentos());
+    if (!acompanhamentos.isEmpty()) {
+      Acompanhamento ultimaMensagem = acompanhamentos.get(acompanhamentos.size() - 1);
+      if (ultimaMensagem.getAutor() == Perfis.ANONIMO) {
+        log.warn("Tentativa de envio de mensagem consecutiva pelo denunciante no token: {}",
+            tokenAcompanhamento);
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+            "Você precisa aguardar a resposta do administrador antes de enviar outra mensagem.");
+      }
+    }
 
     Acompanhamento novoAcompanhamento = new Acompanhamento();
     novoAcompanhamento.setMensagem(policy.sanitize(dto.mensagem()));
     novoAcompanhamento.setDenuncia(denuncia);
 
-    // se o denunciante optou por se identificar, usar o nome completo dele como
-    // autor
-    if (denuncia.isDesejaSeIdentificar() && denuncia.getDenunciante() != null
-        && denuncia.getDenunciante().getNomeCompleto() != null
-        && !denuncia.getDenunciante().getNomeCompleto().isBlank()) {
-      novoAcompanhamento.setAutor(denuncia.getDenunciante().getNomeCompleto());
-    } else {
-      novoAcompanhamento.setAutor("DENUNCIANTE"); // se for anônimo, usar "DENUNCIANTE"
-    }
+    // Define o perfil do autor como ANONIMO (denunciantes são sempre anônimos no acompanhamento
+    // público)
+    novoAcompanhamento.setAutor(Perfis.ANONIMO);
 
     Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
     log.info("Acompanhamento adicionado com sucesso a denúncia de token: {}", tokenAcompanhamento);
@@ -250,35 +262,79 @@ public class DenunciaService {
     Acompanhamento novoAcompanhamento = new Acompanhamento();
     novoAcompanhamento.setMensagem(policy.sanitize(dto.mensagem()));
     novoAcompanhamento.setDenuncia(denuncia);
-    novoAcompanhamento.setAutor(policy.sanitize(nomeAdmin));
+    novoAcompanhamento.setAutor(Perfis.ADMIN);
 
     Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
     log.info("Acompanhamento adicionado com sucesso à denúncia ID: {}", id);
     return mapToAcompanhamentoResponseDto(salvo);
   }
 
+  public DenunciaAdminResponseDto alterarStatus(Long id, Status novoStatus, String adminName) {
+    log.info("Iniciando alteração de status da denúncia ID {} para {} por admin {}.", id,
+        novoStatus, adminName);
+
+    Denuncia denuncia = denunciaRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada."));
+
+    if (denuncia.getStatus() == Status.RESOLVIDO || denuncia.getStatus() == Status.REJEITADO) {
+      log.warn("Tentativa de alteração de status de denúncia ID {} em estado final.", id);
+      throw new IllegalStateException("Denúncia já está em estado final e não pode ser alterada.");
+    }
+
+    Status statusAnterior = denuncia.getStatus();
+    denuncia.setStatus(novoStatus);
+    denuncia.setAlteradoEm(LocalDateTime.now());
+    denuncia.setAlteradoPor(adminName);
+
+    Denuncia denunciaAtualizada = denunciaRepository.save(denuncia);
+
+    // Criar mensagem automática de mudança de status
+    String mensagemStatus = gerarMensagemMudancaStatus(statusAnterior, novoStatus);
+    Acompanhamento acompanhamentoStatus = new Acompanhamento();
+    acompanhamentoStatus.setMensagem(mensagemStatus);
+    acompanhamentoStatus.setDenuncia(denunciaAtualizada);
+    acompanhamentoStatus.setAutor(Perfis.ADMIN);
+    acompanhamentoRepository.save(acompanhamentoStatus);
+
+    log.info(
+        "Status da denúncia ID {} alterado de {} para {} com mensagem automática de acompanhamento.",
+        id, statusAnterior, novoStatus);
+
+    return mapToDenunciaAdminResponseDto(denunciaAtualizada);
+  }
+
+  private String gerarMensagemMudancaStatus(Status statusAnterior, Status novoStatus) {
+    String statusAnteriorFormatado = formatarStatusParaMensagem(statusAnterior);
+    String novoStatusFormatado = formatarStatusParaMensagem(novoStatus);
+
+    return String.format(
+        "O status da sua denúncia foi alterado de '%s' para '%s'. " + "Acompanhe as atualizações.",
+        statusAnteriorFormatado, novoStatusFormatado);
+  }
+
+  private String formatarStatusParaMensagem(Status status) {
+    return switch (status) {
+      case RECEBIDO -> "Recebido";
+      case EM_ANALISE -> "Em Análise";
+      case AGUARDANDO -> "Aguardando Informações";
+      case RESOLVIDO -> "Resolvido";
+      case REJEITADO -> "Rejeitado";
+    };
+  }
+
   private DenunciaResponseDto mapToDenunciaResponseDto(Denuncia denuncia) {
-    return new DenunciaResponseDto(
-        denuncia.getTokenAcompanhamento(),
-        denuncia.getStatus(),
-        denuncia.getCategoria(),
-        denuncia.getCriadoEm());
+    return new DenunciaResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
+        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm());
   }
 
   private DenunciaAdminResponseDto mapToDenunciaAdminResponseDto(Denuncia denuncia) {
-    return new DenunciaAdminResponseDto(
-        denuncia.getId(),
-        denuncia.getTokenAcompanhamento(),
-        denuncia.getStatus(),
-        denuncia.getCategoria(),
-        denuncia.getCriadoEm());
+    return new DenunciaAdminResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
+        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm());
   }
 
   private AcompanhamentoDto mapToAcompanhamentoResponseDto(Acompanhamento acompanhamento) {
-    return new AcompanhamentoDto(
-        acompanhamento.getMensagem(),
-        acompanhamento.getAutor(),
-        acompanhamento.getDataEnvio());
+    return new AcompanhamentoDto(acompanhamento.getId(), acompanhamento.getMensagem(),
+        acompanhamento.getAutor().getDisplayName(), acompanhamento.getDataEnvio());
   }
 
 }

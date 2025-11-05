@@ -12,6 +12,7 @@ import jakarta.validation.constraints.Size;
  * DTO para requisições de login, suportando autenticação por email ou username (matrícula/usuário).
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 @Schema(name = "Requisição de Login", description = "Dados necessários para autenticar um usuário.")
 public class LoginRequestDTO implements Serializable {

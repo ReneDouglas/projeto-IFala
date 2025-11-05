@@ -25,7 +25,7 @@ export function App() {
             <Route path='/denuncia' element={<Denuncia />} />
             <Route path='/denuncia/sucesso' element={<DenunciaSucesso />} />
             <Route path='/painel-denuncias' element={<DenunciasList />} />
-            <Route path='/acompanhamento' element={<Acompanhamento />} />
+            <Route path='/acompanhamento/:token' element={<Acompanhamento />} />
           </Route>
         </Routes>
       </BrowserRouter>

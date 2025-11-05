@@ -34,8 +34,10 @@ export function Home() {
   };
 
   const handleTokenSubmit = () => {
-    if (token.trim()) {
-      console.log('Token fornecido, verificando status da denúncia...');
+    const tokenTrimmed = token.trim();
+    if (tokenTrimmed) {
+      // Navega para a página de acompanhamento com o token
+      navigate(`/acompanhamento/${tokenTrimmed}`);
     } else {
       alert('Por favor, insira um token válido.');
     }
@@ -96,6 +98,11 @@ export function Home() {
                     placeholder='Digite seu token de acompanhamento'
                     value={token}
                     onChange={(e) => setToken(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleTokenSubmit();
+                      }
+                    }}
                   />
                   <button className='btn-outline' onClick={handleTokenSubmit}>
                     Verificar Token

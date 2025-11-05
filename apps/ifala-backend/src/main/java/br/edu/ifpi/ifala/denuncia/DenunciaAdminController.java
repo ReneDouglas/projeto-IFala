@@ -1,9 +1,9 @@
 package br.edu.ifpi.ifala.denuncia;
 
 import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.AlterarStatusDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.AtualizarDenunciaDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaAdminResponseDto;
-import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Status;
 
@@ -15,9 +15,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import jakarta.validation.Valid;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +37,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * Controller responsável pelos endpoints de ADMINISTRAÇÃO de denúncias. Requer autenticação e
@@ -224,5 +222,48 @@ public class DenunciaAdminController {
         denunciaService.adicionarAcompanhamentoAdmin(id, novoAcompanhamento, nomeAdmin);
     log.info("Acompanhamento adicionado à denúncia ID {}: {}", id, acompanhamentoSalvo);
     return ResponseEntity.status(HttpStatus.CREATED).body(acompanhamentoSalvo);
+  }
+
+  /**
+   * Altera o status de uma denúncia e envia mensagem automática de acompanhamento.
+   *
+   * @param id ID da denúncia
+   * @param dto dados com o novo status
+   * @param authentication contexto de autenticação
+   * @return denúncia atualizada
+   */
+  @PostMapping("/{id}/status")
+  @Operation(summary = "Altera o status de uma denúncia com mensagem automática",
+      description = "Altera o status e envia automaticamente uma mensagem de acompanhamento informando a mudança.")
+  @ApiResponses(
+      value = {
+          @ApiResponse(responseCode = "200", description = "Status alterado com sucesso",
+              content = @Content(
+                  schema = @Schema(implementation = DenunciaAdminResponseDto.class))),
+          @ApiResponse(responseCode = "401", description = "Não autorizado", content = @Content),
+          @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
+              content = @Content),
+          @ApiResponse(responseCode = "400",
+              description = "Denúncia em estado final não pode ser alterada", content = @Content)})
+  public ResponseEntity<DenunciaAdminResponseDto> alterarStatus(
+      @Parameter(description = "ID da denúncia") @PathVariable Long id,
+      @Valid @RequestBody AlterarStatusDto dto, Authentication authentication) {
+    String adminName = authentication.getName();
+    log.info("Admin {} requisitou alteração de status da denúncia ID {} para {}", adminName, id,
+        dto.status());
+
+    try {
+      DenunciaAdminResponseDto denunciaAtualizada =
+          denunciaService.alterarStatus(id, dto.status(), adminName);
+      return ResponseEntity.ok(denunciaAtualizada);
+    } catch (EntityNotFoundException e) {
+      log.warn("Denúncia ID {} não encontrada para alteração de status pelo admin {}.", id,
+          adminName);
+      return ResponseEntity.notFound().build();
+    } catch (IllegalStateException e) {
+      log.warn("Tentativa de alterar status de denúncia ID {} em estado final pelo admin {}.", id,
+          adminName);
+      return ResponseEntity.badRequest().build();
+    }
   }
 }

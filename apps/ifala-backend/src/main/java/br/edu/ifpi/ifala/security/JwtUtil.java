@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
  * Utilitário para criação e validação de tokens JWT.
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 
 @Component

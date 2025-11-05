@@ -18,6 +18,7 @@ public interface AuthService {
    * @throws IllegalArgumentException se o e-mail ou username já estiverem em uso.
    * 
    * @author Phaola
+   * @author Jhonatas G Ribeiro
    */
   UsuarioResponseDTO registrarUsuario(RegistroRequestDTO registroRequest);
 
