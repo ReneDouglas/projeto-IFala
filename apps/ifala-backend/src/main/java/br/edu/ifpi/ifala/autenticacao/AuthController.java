@@ -120,7 +120,7 @@ public class AuthController {
     logger.info("Solicitação de redefinição de senha para e-mail: {}", email);
     Optional<Usuario> userOpt = usuarioRepository.findByEmail(email);
 
-    // Se o e-mail não estiver cadastrado, informar explicitamente conforme solicitado
+    // Se o e-mail não estiver cadastrado, informar explicitamente
     if (userOpt.isEmpty()) {
       logger.warn("E-mail não encontrado no sistema para solicitação de redefinição: {}", email);
       return ResponseEntity.status(404)
@@ -134,7 +134,6 @@ public class AuthController {
       return ResponseEntity.ok(new br.edu.ifpi.ifala.autenticacao.dto.PasswordResetResponseDTO(true,
           "Um link de redefinição foi enviado para seu email"));
     } catch (Exception e) {
-      // Logamos internamente e informamos o cliente do erro
       logger.error("Falha ao enviar e-mail de redefinição para {}: {}", email, e.getMessage(), e);
       return ResponseEntity.status(500)
           .body(new br.edu.ifpi.ifala.autenticacao.dto.PasswordResetResponseDTO(false,
