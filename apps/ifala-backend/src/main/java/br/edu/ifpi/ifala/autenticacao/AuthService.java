@@ -44,6 +44,16 @@ public interface AuthService {
   LoginResponseDTO changePassword(MudarSenhaRequestDTO req);
 
   /**
+   * Obtém o email do usuário pelo token de redefinição de senha.
+   * 
+   * @param token O token de redefinição de senha.
+   * @return O email do usuário associado ao token.
+   * @throws InvalidTokenException se o token for inválido.
+   * @throws TokenExpiredException se o token estiver expirado.
+   */
+  String getEmailByResetToken(String token);
+
+  /**
    * Gera um novo Access Token usando um Refresh Token válido. * @param req O DTO de requisição de
    * Refresh Token.
    * 
