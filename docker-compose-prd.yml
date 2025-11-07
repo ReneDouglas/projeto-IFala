@@ -63,8 +63,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      keycloak:
-        condition: service_started
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -90,36 +88,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-  # ----------------------------------------
-  # Keycloak - Autenticação e Autorização
-  # ----------------------------------------
-  keycloak:
-    image: quay.io/keycloak/keycloak:25.0.5
-    container_name: keycloak-prd
-    restart: always
-    environment:
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
-      KC_DB_USERNAME: ${POSTGRES_USER}
-      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
-      KC_HOSTNAME: localhost
-      KC_HTTP_ENABLED: true
-      KC_HOSTNAME_STRICT: false
-      KC_HOSTNAME_STRICT_HTTPS: false
-      KC_PROXY: edge
-    volumes:
-      - keycloak_data_prd:/opt/keycloak/data
-    command:
-      - 'start'
-      - '--optimized'
-    networks:
-      - ifala-network
-    depends_on:
-      postgres:
-        condition: service_healthy
 
   # ----------------------------------------
   # Prometheus - Métricas
@@ -233,8 +201,6 @@ networks:
 # ----------------------------------------
 volumes:
   pgdata_prd:
-    external: true  # Volume criado manualmente - protegido contra 'docker compose down -v'
-  keycloak_data_prd:
     external: true  # Volume criado manualmente - protegido contra 'docker compose down -v'
   grafana_data_prd:
     driver: local

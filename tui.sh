@@ -97,7 +97,7 @@ show_detailed_menu() {
     echo -e "${BOLD}MENU DETALHADO${NC}"
     print_separator
     echo -e "${CYAN}1)${NC} Reiniciar Servicos"
-    echo -e "${CYAN}2)${NC} Reconstruir Servicos"
+    echo -e "${CYAN}2)${NC} Reconstruir Servicos (--no-cache)"
     echo -e "${CYAN}3)${NC} Backup do banco de dados"
     echo -e "${CYAN}4)${NC} Ver status dos servicos"
     echo -e "${CYAN}5)${NC} Ver logs em tempo real"
@@ -157,15 +157,6 @@ check_prerequisites() {
         print_success "Volume 'pgdata_prd' encontrado"
     fi
     
-    # Volume do Keycloak (CRITICO - protegido contra 'docker compose down -v')
-    if ! docker volume inspect keycloak_data_prd &> /dev/null; then
-        print_warning "Volume 'keycloak_data_prd' nao existe. Criando..."
-        docker volume create keycloak_data_prd
-        print_success "Volume 'keycloak_data_prd' criado!"
-    else
-        print_success "Volume 'keycloak_data_prd' encontrado"
-    fi
-    
     echo ""
     print_success "Todos os prerequisitos verificados!"
     echo ""
@@ -199,6 +190,17 @@ start_services() {
     print_separator
     echo ""
     
+    # Garantir que volumes externos existem antes de subir containers
+    print_info "Verificando volumes externos..."
+    
+    if ! docker volume inspect pgdata_prd &> /dev/null; then
+        print_warning "Volume 'pgdata_prd' nao existe. Criando..."
+        docker volume create pgdata_prd
+        print_success "Volume 'pgdata_prd' criado!"
+    fi
+    
+    
+    echo ""
     print_info "Subindo containers..."
     docker compose -f "$COMPOSE_FILE" up -d
     print_success "Servicos iniciados!"
@@ -217,6 +219,16 @@ restart_services() {
         print_success "Servicos parados!"
         echo ""
         
+        # Garantir que volumes externos existem antes de subir containers
+        print_info "Verificando volumes externos..."
+        
+        if ! docker volume inspect pgdata_prd &> /dev/null; then
+            print_warning "Volume 'pgdata_prd' nao existe. Criando..."
+            docker volume create pgdata_prd
+            print_success "Volume 'pgdata_prd' criado!"
+        fi
+        
+        echo ""
         print_info "Iniciando servicos novamente..."
         docker compose -f "$COMPOSE_FILE" up -d
         print_success "Servicos reiniciados!"
@@ -303,14 +315,18 @@ show_logs() {
 
 rebuild_services() {
     print_separator
-    echo -e "${BOLD}RECONSTRUIR SERVICOS${NC}"
+    echo -e "${BOLD}RECONSTRUIR SERVICOS (--no-cache)${NC}"
     print_separator
     echo ""
     
     print_warning "ATENCAO: Esta operacao vai:"
     echo "  1. Parar todos os containers"
-    echo "  2. Reconstruir imagens Docker (pode demorar varios minutos)"
-    echo "  3. Reiniciar servicos"
+    echo "  2. Reconstruir imagens Docker do ZERO (--no-cache)"
+    echo "  3. Baixar TODAS as dependencias novamente"
+    echo "  4. Reiniciar servicos"
+    echo ""
+    print_warning "AVISO: Todas as dependencias serao baixadas do zero!"
+    print_warning "Isso pode demorar bastante tempo (5-20 minutos)!"
     echo ""
     print_info "Seus dados serao preservados (volumes externos protegidos)!"
     echo ""
@@ -328,6 +344,16 @@ rebuild_services() {
         print_success "Imagens reconstruidas!"
         echo ""
         
+        # Garantir que volumes externos existem antes de subir containers
+        print_info "Verificando volumes externos..."
+        
+        if ! docker volume inspect pgdata_prd &> /dev/null; then
+            print_warning "Volume 'pgdata_prd' nao existe. Criando..."
+            docker volume create pgdata_prd
+            print_success "Volume 'pgdata_prd' criado!"
+        fi
+        
+        echo ""
         print_info "Iniciando servicos..."
         docker compose -f "$COMPOSE_FILE" up -d
         print_success "Servicos iniciados!"
@@ -469,7 +495,7 @@ update_system() {
     echo ""
     
     print_info "Construindo novas imagens Docker..."
-    docker compose -f "$COMPOSE_FILE" build --no-cache 2>&1 | while read line; do
+    docker compose -f "$COMPOSE_FILE" build 2>&1 | while read line; do
         echo -e "${GRAY}  $line${NC}"
     done
     print_success "Imagens reconstruidas!"
@@ -481,6 +507,16 @@ update_system() {
     print_separator
     echo ""
     
+    # Garantir que volumes externos existem antes de subir containers
+    print_info "Verificando volumes externos..."
+    
+    if ! docker volume inspect pgdata_prd &> /dev/null; then
+        print_warning "Volume 'pgdata_prd' nao existe. Criando..."
+        docker volume create pgdata_prd
+        print_success "Volume 'pgdata_prd' criado!"
+    fi
+    
+    echo ""
     print_info "Iniciando containers..."
     docker compose -f "$COMPOSE_FILE" up -d
     print_success "Servicos iniciados!"

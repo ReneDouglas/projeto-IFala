@@ -12,7 +12,7 @@ O **tui.sh** e um script Bash interativo que gerencia o deploy e manutencao da a
 - Mensagens coloridas (verde, vermelho, amarelo, azul)
 - Confirmacoes antes de operacoes destrutivas
 - Verificacao automatica de pre-requisitos
-- **Protecao de volumes externos** (PostgreSQL e Keycloak)
+- **Protecao de volumes externos** (PostgreSQL)
 - **Volumes criados automaticamente** se não existirem
 - Feedback de progresso em tempo real
 - Logs estruturados e faceis de ler
@@ -49,7 +49,7 @@ Escolha uma opcao:
 MENU DETALHADO
 ----------------------------------------
 1) Reiniciar Servicos
-2) Reconstruir Servicos
+2) Reconstruir Servicos (--no-cache)
 3) Backup do banco de dados
 4) Ver status dos servicos
 5) Ver logs em tempo real
@@ -91,10 +91,11 @@ docker exec ifala-db-prd pg_dump -U postgres -d ifala > backups/backup_update_YY
 #### [3/4] Reconstruindo imagens
 ```bash
 docker compose -f docker-compose-prd.yml down
-docker compose -f docker-compose-prd.yml build --no-cache
+docker compose -f docker-compose-prd.yml build
 ```
 - Para servicos primeiro
 - Reconstroi frontend e backend com codigo atualizado
+- **Usa cache do Docker** para builds mais rápidos
 
 #### [4/4] Reiniciando servicos
 ```bash
@@ -116,7 +117,7 @@ docker compose -f docker-compose-prd.yml up -d
 [?] Deseja realmente atualizar o sistema? [s/N]
 ```
 
-**Tempo estimado:** 5-15 minutos
+**Tempo estimado:** 3-8 minutos (com cache)
 
 **Quando usar:**
 - Atualizar aplicacao em producao
@@ -187,11 +188,12 @@ docker compose -f docker-compose-prd.yml up -d
 
 ---
 
-### Opcao 2: Reconstruir Servicos
+### Opcao 2: Reconstruir Servicos (--no-cache)
 
 **O que faz:**
 - Para todos os containers
-- Reconstroi todas as imagens do zero (`--no-cache`)
+- Reconstroi todas as imagens do ZERO (`--no-cache`)
+- **Baixa TODAS as dependências novamente**
 - Reinicia servicos com novas imagens
 - **Preserva todos os dados** (volumes externos protegidos)
 
@@ -199,8 +201,12 @@ docker compose -f docker-compose-prd.yml up -d
 ```
 [AVISO] ATENCAO: Esta operacao vai:
   1. Parar todos os containers
-  2. Reconstruir imagens Docker (pode demorar varios minutos)
-  3. Reiniciar servicos
+  2. Reconstruir imagens Docker do ZERO (--no-cache)
+  3. Baixar TODAS as dependencias novamente
+  4. Reiniciar servicos
+
+[AVISO] Todas as dependencias serao baixadas do zero!
+[AVISO] Isso pode demorar bastante tempo (5-20 minutos)!
 
 [INFO] Seus dados serao preservados (volumes externos protegidos)!
 
@@ -217,20 +223,22 @@ docker compose -f docker-compose-prd.yml up -d
 **Passos executados:**
 1. Confirmacao do usuario
 2. Para servicos (down)
-3. Reconstroi imagens (build --no-cache)
+3. Reconstroi imagens do ZERO (build --no-cache)
 4. Inicia servicos (up -d)
 5. Aguarda containers ficarem saudaveis
 6. Mostra status dos servicos
 7. Exibe URLs de acesso
 
-**Tempo estimado:** 5-15 minutos
+**Tempo estimado:** 5-20 minutos
 
 **Quando usar:**
-- Alterou codigo do backend (Java/Spring)
-- Alterou codigo do frontend (React)
-- Mudou Dockerfile.prd
-- Precisa reconstruir sem atualizar repositorio
+- Suspeita de cache corrompido
+- Build com problemas inexplicáveis
+- Limpar dependências completamente
+- Mudanças profundas no código
 - **Nao faz git pull** (apenas reconstroi)
+
+**Aviso:** Esta opção baixa todas as dependências (npm, Maven, etc.) do zero, por isso é mais demorada.
 
 ---
 
@@ -292,11 +300,10 @@ nginx-gateway-prd    Up 5 minutes (healthy)    0.0.0.0:80->80/tcp
 ifala-backend-prd    Up 5 minutes (healthy)    
 ifala-frontend-prd   Up 5 minutes              
 ifala-db-prd         Up 5 minutes (healthy)    
-keycloak-prd         Up 5 minutes              
 prometheus-prd       Up 5 minutes              
 grafana-prd          Up 5 minutes              
 loki-prd             Up 5 minutes              
-promtail-prd         Up 5 minutes              
+promtail-prd         Up 5 minutes                          
 ```
 
 **Quando usar:**
@@ -362,14 +369,13 @@ Volumes externos sao volumes Docker criados manualmente e configurados como `ext
 
 ### Volumes protegidos no IFala
 
-O script `tui.sh` protege automaticamente dois volumes criticos:
+O script `tui.sh` protege automaticamente o volume crítico:
 
 1. **pgdata_prd** - Dados do PostgreSQL (banco de dados)
-2. **keycloak_data_prd** - Configuracoes do Keycloak (autenticacao)
 
 ### Criacao automatica
 
-Na verificacao de pre-requisitos, o script cria esses volumes se nao existirem:
+Na verificacao de pre-requisitos, o script cria esse volume se não existir:
 
 ```bash
 # Volume do PostgreSQL (CRITICO - protegido contra 'docker compose down -v')
@@ -380,15 +386,6 @@ if ! docker volume inspect pgdata_prd &> /dev/null; then
 else
     print_success "Volume 'pgdata_prd' encontrado"
 fi
-
-# Volume do Keycloak (CRITICO - protegido contra 'docker compose down -v')
-if ! docker volume inspect keycloak_data_prd &> /dev/null; then
-    print_warning "Volume 'keycloak_data_prd' nao existe. Criando..."
-    docker volume create keycloak_data_prd
-    print_success "Volume 'keycloak_data_prd' criado!"
-else
-    print_success "Volume 'keycloak_data_prd' encontrado"
-fi
 ```
 
 ### Configuracao no docker-compose-prd.yml
@@ -396,8 +393,6 @@ fi
 ```yaml
 volumes:
   pgdata_prd:
-    external: true  # Volume criado manualmente - protegido contra 'docker compose down -v'
-  keycloak_data_prd:
     external: true  # Volume criado manualmente - protegido contra 'docker compose down -v'
   grafana_data_prd:
     driver: local   # Volumes internos (podem ser apagados com down -v)
@@ -452,7 +447,7 @@ Estas opcoes foram **removidas** por serem muito perigosas:
 ### Funcionalidades ADICIONADAS
 
 - ✅ **Menu em dois niveis** (inicial + detalhado)
-- ✅ **Protecao de volumes externos** (pgdata_prd, keycloak_data_prd)
+- ✅ **Protecao de volumes externos** (pgdata_prd)
 - ✅ **Criacao automatica de volumes** (se nao existirem)
 - ✅ **Mensagens mais claras** sobre preservacao de dados
 
@@ -531,10 +526,10 @@ nginx-gateway-prd    Up 5 minutes (healthy)    0.0.0.0:80->80/tcp
 ifala-backend-prd    Up 5 minutes (healthy)    
 ifala-frontend-prd   Up 5 minutes              
 ifala-db-prd         Up 5 minutes (healthy)    
-keycloak-prd         Up 5 minutes              
 prometheus-prd       Up 5 minutes              
 grafana-prd          Up 5 minutes              
 loki-prd             Up 5 minutes              
+promtail-prd         Up 5 minutes              
 promtail-prd         Up 5 minutes              
 ```
 
@@ -656,10 +651,6 @@ print_info "Verificando volumes externos..."
 
 if ! docker volume inspect pgdata_prd &> /dev/null; then
     docker volume create pgdata_prd
-fi
-
-if ! docker volume inspect keycloak_data_prd &> /dev/null; then
-    docker volume create keycloak_data_prd
 fi
 ```
 
@@ -945,10 +936,9 @@ git pull origin main
 ### Volumes nao foram criados automaticamente
 
 **Sintoma**: Mensagens de erro sobre volumes nao encontrados
-**Solucao**: Criar volumes manualmente:
+**Solucao**: Criar volume manualmente:
 ```bash
 docker volume create pgdata_prd
-docker volume create keycloak_data_prd
 ```
 
 ### Dados foram apagados acidentalmente
@@ -1039,7 +1029,7 @@ Qual volume limpar?
 4) Cancelar
 ```
 
-**Nota**: PostgreSQL e Keycloak nunca aparecem nesta lista (protegidos)
+**Nota**: PostgreSQL nunca aparece nesta lista (protegido)
 
 ---
 
@@ -1057,11 +1047,11 @@ Qual volume limpar?
 ```
 
 **O que faz**:
-1. Verifica se volumes `pgdata_prd` e `keycloak_data_prd` existem
+1. Verifica se volume `pgdata_prd` existe
 2. Cria arquivo de teste no volume pgdata_prd
 3. Executa `docker compose down -v` (comando perigoso)
 4. Verifica se arquivo ainda existe
-5. Confirma que volumes NAO foram apagados
+5. Confirma que volume NAO foi apagado
 
 **Resultado esperado**:
 ```
