@@ -4,6 +4,7 @@
 # Script de Deploy INTERATIVO - Producao
 # ========================================
 # Terminal interativo com menu, confirmacoes e avisos
+# Versao OTIMIZADA com protecao de volumes externos
 # atualizado linux
 
 set -e
@@ -21,7 +22,6 @@ NC='\033[0m' # No Color
 
 # Variaveis de controle
 BUILD=false
-CLEAN=false
 LOGS=false
 COMPOSE_FILE="docker-compose-prd.yml"
 
@@ -83,18 +83,25 @@ confirm() {
 
 show_menu() {
     print_header
-    echo -e "${BOLD}MENU PRINCIPAL${NC}"
+    echo -e "${BOLD}MENU INICIAL${NC}"
     print_separator
-    echo -e "${CYAN}1)${NC} Deploy completo (rapido)"
-    echo -e "${CYAN}2)${NC} Deploy com rebuild de imagens"
-    echo -e "${CYAN}3)${NC} Deploy com limpeza de volumes"
-    echo -e "${CYAN}4)${NC} Deploy completo (rebuild + limpeza)"
-    echo -e "${CYAN}5)${NC} Atualizar sistema (git pull + backup + rebuild)"
-    echo -e "${CYAN}6)${NC} Backup do banco de dados"
-    echo -e "${CYAN}7)${NC} Ver status dos servicos"
-    echo -e "${CYAN}8)${NC} Ver logs em tempo real"
-    echo -e "${CYAN}9)${NC} Parar todos os servicos"
+    echo -e "${CYAN}1)${NC} Realizar Deploy"
+    echo -e "${CYAN}2)${NC} Acessar menu detalhado"
     echo -e "${CYAN}0)${NC} Sair"
+    print_separator
+    echo ""
+}
+
+show_detailed_menu() {
+    print_header
+    echo -e "${BOLD}MENU DETALHADO${NC}"
+    print_separator
+    echo -e "${CYAN}1)${NC} Reiniciar Servicos"
+    echo -e "${CYAN}2)${NC} Reconstruir Servicos"
+    echo -e "${CYAN}3)${NC} Backup do banco de dados"
+    echo -e "${CYAN}4)${NC} Ver status dos servicos"
+    echo -e "${CYAN}5)${NC} Ver logs em tempo real"
+    echo -e "${CYAN}0)${NC} Voltar para o menu inicial"
     print_separator
     echo ""
 }
@@ -138,35 +145,29 @@ check_prerequisites() {
         print_success "Arquivo .env encontrado"
     fi
     
+    # Criar volumes externos se nao existirem
+    print_info "Verificando volumes externos..."
+    
+    # Volume do PostgreSQL (CRITICO - protegido contra 'docker compose down -v')
+    if ! docker volume inspect pgdata_prd &> /dev/null; then
+        print_warning "Volume 'pgdata_prd' nao existe. Criando..."
+        docker volume create pgdata_prd
+        print_success "Volume 'pgdata_prd' criado!"
+    else
+        print_success "Volume 'pgdata_prd' encontrado"
+    fi
+    
+    # Volume do Keycloak (CRITICO - protegido contra 'docker compose down -v')
+    if ! docker volume inspect keycloak_data_prd &> /dev/null; then
+        print_warning "Volume 'keycloak_data_prd' nao existe. Criando..."
+        docker volume create keycloak_data_prd
+        print_success "Volume 'keycloak_data_prd' criado!"
+    else
+        print_success "Volume 'keycloak_data_prd' encontrado"
+    fi
+    
     echo ""
     print_success "Todos os prerequisitos verificados!"
-    echo ""
-}
-
-clean_volumes() {
-    print_separator
-    echo -e "${BOLD}LIMPEZA DE VOLUMES${NC}"
-    print_separator
-    echo ""
-    
-    print_warning "ATENCAO: Esta operacao vai:"
-    echo "  - Parar todos os containers"
-    echo "  - Remover todos os volumes"
-    echo "  - APAGAR TODOS OS DADOS do banco de dados"
-    echo "  - APAGAR configuracoes do Keycloak"
-    echo "  - APAGAR dados do Grafana e Prometheus"
-    echo ""
-    
-    if confirm "Tem certeza que deseja continuar?"; then
-        print_info "Limpando containers e volumes..."
-        docker compose -f "$COMPOSE_FILE" down -v 2>&1 | while read line; do
-            echo -e "${GRAY}  $line${NC}"
-        done
-        print_success "Limpeza concluida!"
-    else
-        print_info "Limpeza cancelada."
-        return 1
-    fi
     echo ""
 }
 
@@ -202,6 +203,33 @@ start_services() {
     docker compose -f "$COMPOSE_FILE" up -d
     print_success "Servicos iniciados!"
     echo ""
+}
+
+restart_services() {
+    print_separator
+    echo -e "${BOLD}REINICIAR SERVICOS${NC}"
+    print_separator
+    echo ""
+    
+    if confirm "Deseja reiniciar todos os servicos?"; then
+        print_info "Parando servicos..."
+        docker compose -f "$COMPOSE_FILE" down
+        print_success "Servicos parados!"
+        echo ""
+        
+        print_info "Iniciando servicos novamente..."
+        docker compose -f "$COMPOSE_FILE" up -d
+        print_success "Servicos reiniciados!"
+        echo ""
+        
+        wait_healthy
+        show_status
+        show_access_info
+    else
+        print_info "Operacao cancelada."
+    fi
+    echo ""
+    press_enter
 }
 
 wait_healthy() {
@@ -273,16 +301,43 @@ show_logs() {
     docker compose -f "$COMPOSE_FILE" logs -f
 }
 
-stop_services() {
+rebuild_services() {
     print_separator
-    echo -e "${BOLD}PARAR SERVICOS${NC}"
+    echo -e "${BOLD}RECONSTRUIR SERVICOS${NC}"
     print_separator
     echo ""
     
-    if confirm "Deseja parar todos os servicos?"; then
+    print_warning "ATENCAO: Esta operacao vai:"
+    echo "  1. Parar todos os containers"
+    echo "  2. Reconstruir imagens Docker (pode demorar varios minutos)"
+    echo "  3. Reiniciar servicos"
+    echo ""
+    print_info "Seus dados serao preservados (volumes externos protegidos)!"
+    echo ""
+    
+    if confirm "Deseja realmente reconstruir os servicos?" "n"; then
         print_info "Parando servicos..."
         docker compose -f "$COMPOSE_FILE" down
         print_success "Servicos parados!"
+        echo ""
+        
+        print_info "Reconstruindo imagens..."
+        docker compose -f "$COMPOSE_FILE" build --no-cache 2>&1 | while read line; do
+            echo -e "${GRAY}  $line${NC}"
+        done
+        print_success "Imagens reconstruidas!"
+        echo ""
+        
+        print_info "Iniciando servicos..."
+        docker compose -f "$COMPOSE_FILE" up -d
+        print_success "Servicos iniciados!"
+        echo ""
+        
+        wait_healthy
+        show_status
+        show_access_info
+        
+        print_success "Reconstrucao concluida com sucesso!"
     else
         print_info "Operacao cancelada."
     fi
@@ -332,7 +387,7 @@ backup_database() {
 
 update_system() {
     print_separator
-    echo -e "${BOLD}ATUALIZAR SISTEMA${NC}"
+    echo -e "${BOLD}REALIZAR DEPLOY (ATUALIZACAO COMPLETA)${NC}"
     print_separator
     echo ""
     
@@ -340,9 +395,9 @@ update_system() {
     echo "  1. Fazer git pull origin main (atualizar codigo)"
     echo "  2. Criar backup de seguranca do banco de dados"
     echo "  3. Fazer rebuild das imagens Docker"
-    echo "  4. Reiniciar servicos (SEM apagar volumes)"
+    echo "  4. Reiniciar servicos"
     echo ""
-    print_info "Seus dados serao preservados!"
+    print_info "Seus dados serao preservados (volumes externos protegidos)!"
     echo ""
     
     if ! confirm "Deseja realmente atualizar o sistema?" "n"; then
@@ -408,6 +463,11 @@ update_system() {
     print_separator
     echo ""
     
+    print_info "Parando servicos..."
+    docker compose -f "$COMPOSE_FILE" down
+    print_success "Servicos parados!"
+    echo ""
+    
     print_info "Construindo novas imagens Docker..."
     docker compose -f "$COMPOSE_FILE" build --no-cache 2>&1 | while read line; do
         echo -e "${GRAY}  $line${NC}"
@@ -421,9 +481,9 @@ update_system() {
     print_separator
     echo ""
     
-    print_info "Reiniciando containers..."
+    print_info "Iniciando containers..."
     docker compose -f "$COMPOSE_FILE" up -d
-    print_success "Servicos reiniciados!"
+    print_success "Servicos iniciados!"
     echo ""
     
     # Aguardar e mostrar status
@@ -436,41 +496,11 @@ update_system() {
     press_enter
 }
 
-custom_deploy() {
-    print_header
-    echo -e "${BOLD}CONFIGURACAO PERSONALIZADA${NC}"
-    print_separator
-    echo ""
-    
-    if confirm "Deseja limpar volumes antes do deploy?"; then
-        CLEAN=true
-    fi
-    
-    if confirm "Deseja fazer rebuild das imagens?"; then
-        BUILD=true
-    fi
-    
-    if confirm "Deseja ver logs apos o deploy?"; then
-        LOGS=true
-    fi
-    
-    echo ""
-    print_info "Configuracao personalizada definida!"
-    press_enter
-    
-    execute_deploy
-}
-
 execute_deploy() {
     print_header
     
     # Verificar prerequisitos
     check_prerequisites
-    
-    # Limpeza
-    if [ "$CLEAN" = true ]; then
-        clean_volumes || return 1
-    fi
     
     # Build
     if [ "$BUILD" = true ]; then
@@ -501,8 +531,48 @@ execute_deploy() {
     
     # Resetar flags
     BUILD=false
-    CLEAN=false
     LOGS=false
+}
+
+# Menu detalhado
+detailed_menu() {
+    while true; do
+        show_detailed_menu
+        read -p "Escolha uma opcao: " opcao
+        
+        case $opcao in
+            1)
+                print_header
+                restart_services
+                ;;
+            2)
+                print_header
+                rebuild_services
+                ;;
+            3)
+                print_header
+                backup_database
+                ;;
+            4)
+                print_header
+                show_status
+                press_enter
+                ;;
+            5)
+                print_header
+                show_logs
+                ;;
+            0)
+                return 0
+                ;;
+            *)
+                print_header
+                print_error "Opcao invalida!"
+                echo ""
+                press_enter
+                ;;
+        esac
+    done
 }
 
 # Menu principal
@@ -514,60 +584,10 @@ main() {
         case $opcao in
             1)
                 print_header
-                print_info "Iniciando deploy rapido..."
-                echo ""
-                BUILD=false
-                CLEAN=false
-                LOGS=false
-                execute_deploy
-                ;;
-            2)
-                print_header
-                print_info "Iniciando deploy com rebuild..."
-                echo ""
-                BUILD=true
-                CLEAN=false
-                LOGS=false
-                execute_deploy
-                ;;
-            3)
-                print_header
-                print_info "Iniciando deploy com limpeza..."
-                echo ""
-                BUILD=false
-                CLEAN=true
-                LOGS=false
-                execute_deploy
-                ;;
-            4)
-                print_header
-                print_info "Iniciando deploy completo..."
-                echo ""
-                BUILD=true
-                CLEAN=true
-                LOGS=false
-                execute_deploy
-                ;;
-            5)
-                print_header
                 update_system
                 ;;
-            6)
-                print_header
-                backup_database
-                ;;
-            7)
-                print_header
-                show_status
-                press_enter
-                ;;
-            8)
-                print_header
-                show_logs
-                ;;
-            9)
-                print_header
-                stop_services
+            2)
+                detailed_menu
                 ;;
             0)
                 print_header
@@ -587,4 +607,3 @@ main() {
 
 # Iniciar aplicacao
 main
-

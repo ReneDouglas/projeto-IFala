@@ -233,9 +233,9 @@ networks:
 # ----------------------------------------
 volumes:
   pgdata_prd:
-    driver: local
+    external: true  # Volume criado manualmente - protegido contra 'docker compose down -v'
   keycloak_data_prd:
-    driver: local
+    external: true  # Volume criado manualmente - protegido contra 'docker compose down -v'
   grafana_data_prd:
     driver: local
   loki_data_prd:
