@@ -12,8 +12,7 @@ export function MainLayout() {
 
   // paginas que nao devem mostrar o botao de voltar
   const pagesWithoutBackButton = ['/', '/painel-denuncias'];
-  const
-   headerVariant = pagesWithoutBackButton.includes(location.pathname)
+  const headerVariant = pagesWithoutBackButton.includes(location.pathname)
     ? 'home'
     : 'page';
 
