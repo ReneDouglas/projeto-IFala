@@ -195,10 +195,13 @@ public class AuthServiceImpl implements AuthService {
           .authenticate(new UsernamePasswordAuthenticationToken(identifier, req.getPassword()));
       logger.info("Autenticação via Spring Security bem-sucedida para: {}", identifier);
 
-    } catch (AuthenticationException e) {
-      logger.warn("Falha de autenticação (credenciais inválidas) para: {}", identifier, e);
-      // Mapeia a exceção do Spring Security para a sua exceção personalizada
+    } catch (org.springframework.security.authentication.BadCredentialsException e) {
+      // Tratamento para credenciais inválidas: log reduzido sem stacktrace
+      logger.warn("Falha de autenticação: credenciais inválidas para: {}", identifier);
       throw new InvalidCredentialsException(); // 401 Unauthorized
+    } catch (AuthenticationException e) {
+      logger.warn("Falha de autenticação para {}: {}", identifier, e.getMessage());
+      throw new InvalidCredentialsException();
     }
 
     // 2. Busca o usuário no repositório para a lógica de negócio
