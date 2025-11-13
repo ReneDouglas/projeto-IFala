@@ -13,7 +13,7 @@ import type { JwtPayload } from '../types/auth';
  */
 export async function login(
   credentials: LoginRequest,
-): Promise<{ loginData: LoginResponse; user: AuthUser }> {
+): Promise<{ loginData: LoginResponse; user: AuthUser | null }> {
   const response = await axiosClient.post<LoginResponse>(
     '/auth/login',
     credentials,
@@ -21,7 +21,11 @@ export async function login(
 
   const loginData = response.data;
 
-  // Decodificar JWT para obter dados do usuário
+  if (loginData.passwordChangeRequired) {
+    return { loginData, user: null };
+  }
+
+  // Decodificar JWT para obter dados do usuario
   const decoded = jwtDecode<JwtPayload>(loginData.token);
 
   const user: AuthUser = {

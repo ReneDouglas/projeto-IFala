@@ -43,6 +43,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { loginData, user: userData } = await authApi.login(credentials);
 
+      // Se senha for temporaria, lançar erro com a mensagem do backend
+      if (loginData.passwordChangeRequired && loginData.message) {
+        throw new Error(loginData.message);
+      }
+
+      // Validar se há token e usuário
+      if (!loginData.token || !userData) {
+        throw new Error('Resposta de login inválida');
+      }
+
       // Armazenar token e dados do usuário
       localStorage.setItem('access_token', loginData.token);
       localStorage.setItem(

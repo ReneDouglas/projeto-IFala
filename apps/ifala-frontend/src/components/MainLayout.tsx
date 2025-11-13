@@ -10,8 +10,12 @@ export function MainLayout() {
   const navigate = useNavigate();
   const { isLoggedIn, logout } = useAuth();
 
-  // Define qual variante do header usar com base na URL atual
-  const headerVariant = location.pathname === '/' ? 'home' : 'page';
+  // paginas que nao devem mostrar o botao de voltar
+  const pagesWithoutBackButton = ['/', '/painel-denuncias'];
+  const
+   headerVariant = pagesWithoutBackButton.includes(location.pathname)
+    ? 'home'
+    : 'page';
 
   // Funções de navegação para o sidebar
   const handleLogin = () => {
@@ -24,7 +28,7 @@ export function MainLayout() {
   };
 
   const handleDashboard = () => {
-    navigate('/dashboard-denuncias');
+    navigate('/painel-denuncias');
   };
 
   const handleChangePassword = () => {

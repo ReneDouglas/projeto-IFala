@@ -136,6 +136,7 @@ export function Login() {
 
     setLoading(true);
     setError('');
+    setSuccessMessage('');
 
     try {
       // Detectar se é email ou username
@@ -152,14 +153,25 @@ export function Login() {
       // Redirecionar após login bem-sucedido
       navigate('/painel-denuncias');
     } catch (err: unknown) {
-      if (err && typeof err === 'object' && 'response' in err) {
-        const axiosError = err as {
-          response?: { data?: { message?: string } };
-        };
-        setError(
-          axiosError.response?.data?.message ||
-            'Credenciais inválidas. Verifique suas credenciais e tente novamente.',
-        );
+      if (err && typeof err === 'object' && 'message' in err) {
+        const errorMessage = (err as Error).message;
+
+        if (
+          errorMessage.includes('redefinição foi enviado') ||
+          errorMessage.includes('Um e-mail de redefinição foi enviado')
+        ) {
+          setSuccessMessage(errorMessage);
+        } else if ('response' in err) {
+          const axiosError = err as {
+            response?: { data?: { message?: string } };
+          };
+          setError(
+            axiosError.response?.data?.message ||
+              'Credenciais inválidas. Verifique suas credenciais e tente novamente.',
+          );
+        } else {
+          setError(errorMessage);
+        }
       } else {
         setError('Erro ao fazer login. Tente novamente.');
       }
