@@ -4,8 +4,9 @@ import { Denuncia } from './pages/Denuncia/Denuncia';
 import { DenunciaSucesso } from './pages/DenunciaSucesso/DenunciaSucesso';
 import { DenunciasList } from './pages/DenunciaList/DenunciaList';
 import { Login } from './pages/Login/Login';
-import { ResetPassword } from './pages/ResetPassword/ResetPassword';
+import { RedefinirSenha } from './pages/ResetPassword/ResetPassword';
 import { MainLayout } from './components/MainLayout';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import { Acompanhamento } from './pages/Acompanhamento/Acompanhamento';
 
@@ -16,7 +17,7 @@ export function App() {
         <Routes>
           {/* Rotas de autenticação - sem o MainLayout */}
           <Route path='/login' element={<Login />} />
-          <Route path='/reset-password' element={<ResetPassword />} />
+          <Route path='/redefinir-senha/:token' element={<RedefinirSenha />} />
 
           {/* Rota "pai" que renderiza o Layout Principal */}
           <Route element={<MainLayout />}>
@@ -24,8 +25,12 @@ export function App() {
             <Route path='/' element={<Home />} />
             <Route path='/denuncia' element={<Denuncia />} />
             <Route path='/denuncia/sucesso' element={<DenunciaSucesso />} />
-            <Route path='/painel-denuncias' element={<DenunciasList />} />
             <Route path='/acompanhamento/:token' element={<Acompanhamento />} />
+
+            {/* Rotas protegidas - requerem autenticação */}
+            <Route element={<ProtectedRoute />}>
+              <Route path='/painel-denuncias' element={<DenunciasList />} />
+            </Route>
           </Route>
         </Routes>
       </BrowserRouter>

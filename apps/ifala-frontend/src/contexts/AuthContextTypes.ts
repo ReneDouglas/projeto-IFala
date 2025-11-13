@@ -1,18 +1,22 @@
 import { createContext } from 'react';
+import type { LoginRequest } from '../types/auth';
 
 // Tipos para o contexto de autenticação
 export interface User {
-  usuario: string;
+  id: string;
   nome: string;
-  perfil: string;
+  email: string;
+  username: string;
+  roles: string[];
   loggedIn: boolean;
 }
 
 export interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
-  login: (userData: User) => void;
-  logout: () => void;
+  loading: boolean;
+  login: (credentials: LoginRequest) => Promise<void>;
+  logout: () => Promise<void>;
   checkAuthStatus: () => void;
 }
 

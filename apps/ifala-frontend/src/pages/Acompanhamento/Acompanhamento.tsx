@@ -103,7 +103,7 @@ export function Acompanhamento() {
 
   const mensagensBoxRef = useRef<HTMLDivElement>(null);
 
-  const isAdmin = isLoggedIn && user?.perfil === 'ADMIN';
+  const isAdmin = isLoggedIn && user?.roles?.includes('ADMIN');
   const statusMenuAberto = Boolean(anchorElStatus);
 
   const handleAbrirMenuStatus = (event: React.MouseEvent<HTMLElement>) => {

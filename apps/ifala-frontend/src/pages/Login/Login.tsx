@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import * as authApi from '../../services/auth-api';
 import {
   Container,
   Paper,
@@ -27,6 +29,7 @@ import '../../App.css';
 
 export function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // Estados do formulário
   const [formData, setFormData] = useState({
@@ -39,6 +42,7 @@ export function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Estados de validação
   const [errors, setErrors] = useState({
@@ -132,55 +136,104 @@ export function Login() {
 
     setLoading(true);
     setError('');
-    /*
-    const grecaptcha = window.grecaptcha;
-    if (!grecaptcha) {
-      setError('Erro ao carregar o reCAPTCHA. Por favor, recarregue a página.');
+    setSuccessMessage('');
+
+    try {
+      // Detectar se é email ou username
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const isEmail = emailRegex.test(formData.matricula);
+
+      await login({
+        ...(isEmail
+          ? { email: formData.matricula }
+          : { username: formData.matricula }),
+        password: formData.senha,
+      });
+
+      // Redirecionar após login bem-sucedido
+      navigate('/painel-denuncias');
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'message' in err) {
+        const errorMessage = (err as Error).message;
+
+        if (
+          errorMessage.includes('redefinição foi enviado') ||
+          errorMessage.includes('Um e-mail de redefinição foi enviado')
+        ) {
+          setSuccessMessage(errorMessage);
+        } else if ('response' in err) {
+          const axiosError = err as {
+            response?: { data?: { message?: string } };
+          };
+          setError(
+            axiosError.response?.data?.message ||
+              'Credenciais inválidas. Verifique suas credenciais e tente novamente.',
+          );
+        } else {
+          setError(errorMessage);
+        }
+      } else {
+        setError('Erro ao fazer login. Tente novamente.');
+      }
+    } finally {
       setLoading(false);
+    }
+  };
+
+  // Manipulador do botão "Esqueci minha senha"
+  const handleEsqueciSenha = async () => {
+    setError('');
+    setSuccessMessage('');
+
+    // Validar se email está preenchido
+    if (!formData.matricula.trim()) {
+      setError(
+        'Por favor, digite seu email no campo "Usuário ou Email Institucional" antes de clicar em "Esqueci minha senha".',
+      );
       return;
     }
 
-    try {
-      if (typeof grecaptcha.ready === 'function') {
-        await new Promise<void>((resolve) =>
-          grecaptcha.ready!(() => resolve()),
-        );
-      }
-      const token = await grecaptcha.execute(
-        import.meta.env.VITE_RECAPTCHA_SITE_KEY,
-        { action: 'login' },
+    // Validar se é um email válido
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.matricula)) {
+      setError(
+        'Por favor, digite um email válido para receber o link de redefinição de senha.',
       );
-      if (!token) {
-        setError('Falha ao obter o token do reCAPTCHA. Tente novamente.');
-        setLoading(false);
-        return;
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await authApi.solicitarRedefinicaoSenha(formData.matricula);
+
+      setSuccessMessage(
+        `Email enviado com sucesso para ${formData.matricula}! Confira sua caixa de entrada e siga as instruções para redefinir sua senha.`,
+      );
+
+      // Limpar erro se existir
+      setError('');
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosError = err as {
+          response?: { data?: { message?: string }; status?: number };
+        };
+
+        // Se o usuário não foi encontrado
+        if (axiosError.response?.status === 404) {
+          setError('Email não encontrado. Verifique se digitou corretamente.');
+        } else {
+          setError(
+            axiosError.response?.data?.message ||
+              'Erro ao enviar email de redefinição. Tente novamente.',
+          );
+        }
+      } else {
+        setError('Erro ao enviar email de redefinição. Tente novamente.');
       }
-
-      const loginData = {
-        ...formData,
-        recaptchaToken: token,
-      };
-
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        console.log('Dados que seriam enviados para a API:', loginData);
-
-        setError(
-          'Credenciais inválidas. Integração com API de autenticação pendente.',
-        );
-      } catch {
-        setError(
-          'Erro ao fazer login. Verifique suas credenciais e tente novamente.',
-        );
-      } finally {
-        setLoading(false);
-      }
-    } catch {
-      setError('Erro ao gerar token do reCAPTCHA. Tente novamente.');
     } finally {
       setLoading(false);
-    }*/
+    }
   };
 
   return (
@@ -290,6 +343,13 @@ export function Login() {
               {error && (
                 <Alert severity='error' sx={{ mb: 3, borderRadius: '12px' }}>
                   {error}
+                </Alert>
+              )}
+
+              {/* Mensagem de sucesso */}
+              {successMessage && (
+                <Alert severity='success' sx={{ mb: 3, borderRadius: '12px' }}>
+                  {successMessage}
                 </Alert>
               )}
 
@@ -444,21 +504,25 @@ export function Login() {
                   component='button'
                   type='button'
                   underline='hover'
-                  onClick={() => navigate('/reset-password')}
+                  onClick={handleEsqueciSenha}
+                  disabled={loading}
                   sx={{
                     color: 'var(--azul-confianca)',
                     fontWeight: 500,
                     fontSize: '1rem',
                     background: 'none',
                     border: 'none',
-                    cursor: 'pointer',
+                    cursor: loading ? 'not-allowed' : 'pointer',
                     boxShadow: 'none',
                     outline: 'none',
                     padding: 0,
                     margin: 0,
                     textDecoration: 'none',
+                    opacity: loading ? 0.5 : 1,
                     '&:hover': {
-                      color: 'var(--verde-esperanca)',
+                      color: loading
+                        ? 'var(--azul-confianca)'
+                        : 'var(--verde-esperanca)',
                     },
                     '&:focus': {
                       outline: '2px solid var(--azul-confianca)',

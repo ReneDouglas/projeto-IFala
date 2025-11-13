@@ -161,7 +161,7 @@ public class AuthServiceImpl implements AuthService {
     userRepository.save(user);
 
     // 2. Geração do Link
-    String link = resetPasswordUrl + "?token=" + token + "&email=" + user.getEmail();
+    String link = resetPasswordUrl + "/" + token;
 
     // 3. Envio do E-mail
     SimpleMailMessage msg = new SimpleMailMessage();
@@ -195,10 +195,13 @@ public class AuthServiceImpl implements AuthService {
           .authenticate(new UsernamePasswordAuthenticationToken(identifier, req.getPassword()));
       logger.info("Autenticação via Spring Security bem-sucedida para: {}", identifier);
 
-    } catch (AuthenticationException e) {
-      logger.warn("Falha de autenticação (credenciais inválidas) para: {}", identifier, e);
-      // Mapeia a exceção do Spring Security para a sua exceção personalizada
+    } catch (org.springframework.security.authentication.BadCredentialsException e) {
+      // Tratamento para credenciais inválidas: log reduzido sem stacktrace
+      logger.warn("Falha de autenticação: credenciais inválidas para: {}", identifier);
       throw new InvalidCredentialsException(); // 401 Unauthorized
+    } catch (AuthenticationException e) {
+      logger.warn("Falha de autenticação para {}: {}", identifier, e.getMessage());
+      throw new InvalidCredentialsException();
     }
 
     // 2. Busca o usuário no repositório para a lógica de negócio
@@ -226,7 +229,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     // 4. Gera e retorna tokens
-    TokenDataDTO tokenData = jwtUtil.generateToken(user.getEmail());
+    TokenDataDTO tokenData = jwtUtil.generateTokenWithUserData(user);
     // Cria e persiste um refresh token rotativo (UUID) no banco
     RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
     String redirect = determineRedirect(user);
@@ -267,11 +270,19 @@ public class AuthServiceImpl implements AuthService {
         logger.warn("Token expirado para usuário {}.", user.getEmail());
         throw new TokenExpiredException();
       }
-    } else {
+    } else if (req.currentPassword() != null && !req.currentPassword().isBlank()) {
+      // Mudança de senha com senha atual (usuário logado)
       if (!passwordEncoder.matches(req.currentPassword(), user.getSenha())) {
         logger.warn("Falha ao redefinir senha para {}: Senha atual incorreta.", user.getEmail());
         throw new PasswordMismatchException();
       }
+    } else {
+      // Solicitação de redefinição de senha (enviar email)
+      logger.info("Solicitação de redefinição de senha para: {}", user.getEmail());
+      sendPasswordReset(user);
+
+      return new LoginResponseDTO(null, null, null, null, false, null,
+          "Email de redefinição enviado com sucesso.");
     }
 
     // Aplica a nova senha e limpa os campos de token
@@ -284,7 +295,7 @@ public class AuthServiceImpl implements AuthService {
     logger.info("Senha alterada com sucesso para o usuário: {}", user.getEmail());
 
     // Gera novo token de acesso após a mudança de senha
-    TokenDataDTO tokenData = jwtUtil.generateToken(user.getEmail());
+    TokenDataDTO tokenData = jwtUtil.generateTokenWithUserData(user);
     String redirect = determineRedirect(user);
 
     logger.info("Redefinição de senha finalizada. Novo redirecionamento: {}", redirect);
@@ -327,7 +338,7 @@ public class AuthServiceImpl implements AuthService {
 
     // 4. Gera novo access token e NOVO refresh token
     Usuario user = stored.getUsuario();
-    TokenDataDTO accessTokenData = jwtUtil.generateToken(user.getEmail());
+    TokenDataDTO accessTokenData = jwtUtil.generateTokenWithUserData(user);
 
     // A criação do novo token DEVE acontecer *APÓS* a deleção do antigo
     // Preserva o expiry absoluto do token antigo para que a rotação não estenda
@@ -379,5 +390,28 @@ public class AuthServiceImpl implements AuthService {
         }
       }
     }
+  }
+
+  @Override
+  public String getEmailByResetToken(String token) {
+    if (token == null || token.isBlank()) {
+      logger.warn("Token de redefinição vazio ou nulo.");
+      throw new InvalidTokenException();
+    }
+
+    Optional<Usuario> optUser = userRepository.findByPasswordResetToken(token);
+    if (optUser.isEmpty()) {
+      logger.warn("Token de redefinição inválido.");
+      throw new InvalidTokenException();
+    }
+
+    Usuario user = optUser.get();
+    if (user.getPasswordResetExpires() == null
+        || user.getPasswordResetExpires().isBefore(Instant.now())) {
+      logger.warn("Token de redefinição expirado para usuário {}.", user.getEmail());
+      throw new TokenExpiredException();
+    }
+
+    return user.getEmail();
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
@@ -8,29 +8,57 @@ import {
   Button,
   Stack,
   IconButton,
+  Alert,
+  CircularProgress,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import * as authApi from '../../services/auth-api';
 import '../../App.css';
 import ifalaLogo from '../../assets/IFala-logo.png';
 
-export function ResetPassword() {
+export function RedefinirSenha() {
+  const { token } = useParams<{ token: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [validatingToken, setValidatingToken] = useState(true);
   const navigate = useNavigate();
+
+  // Validar token ao carregar a página e buscar email
+  useEffect(() => {
+    const validarToken = async () => {
+      // Se não houver token na URL, redirecionar para página 404
+      if (!token) {
+        navigate('/404', { replace: true });
+        return;
+      }
+
+      try {
+        // Buscar email associado ao token
+        const emailDoToken = await authApi.validarTokenRedefinicao(token);
+        setEmail(emailDoToken);
+      } catch {
+        // Token inválido ou expirado
+        setError(
+          'Token inválido ou expirado. Solicite um novo link de redefinição.',
+        );
+        setTimeout(() => {
+          navigate('/login', { replace: true });
+        }, 3000);
+      } finally {
+        setValidatingToken(false);
+      }
+    };
+
+    validarToken();
+  }, [token, navigate]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
 
-    // --- VALIDAÇÕES ESPECIFICADAS ---
-    // Validação 0: Email deve ser válido
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email)) {
-      setError('Por favor, insira um email válido.');
-      return;
-    }
     // Validação 1: Senhas não coincidem
     if (password !== confirmPassword) {
       setError('As senhas não coincidem.');
@@ -49,39 +77,72 @@ export function ResetPassword() {
       return;
     }
 
-    // Validação reCAPTCHA
-    /*const grecaptcha = window.grecaptcha;
-    if (!grecaptcha) {
-      setError('Erro ao carregar o reCAPTCHA. Por favor, recarregue a página.');
-      return;
-    }
+    setLoading(true);
 
     try {
-      if (typeof grecaptcha.ready === 'function') {
-        await new Promise<void>((resolve) =>
-          grecaptcha.ready!(() => resolve()),
-        );
-      }
-      const token = await grecaptcha.execute(
-        import.meta.env.VITE_RECAPTCHA_SITE_KEY,
-        { action: 'reset_password' },
-      );
-      if (!token) {
-        setError('Falha ao obter o token do reCAPTCHA. Tente novamente.');
-        return;
-      }
+      await authApi.redefinirSenha({
+        email,
+        newPassword: password,
+        token: token || undefined,
+        currentPassword: null,
+      });
 
-      const resetData = { email, password, recaptchaToken: token };
+      // Redirecionar para login após redefinir senha com sucesso
+      alert('Senha redefinida com sucesso! Faça login com sua nova senha.');
+      navigate('/login');
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosError = err as {
+          response?: { data?: { message?: string }; status?: number };
+        };
 
-      // caso todas as validações passem
-      console.log('Simulando redefinição de senha com os dados:', resetData);
-      alert('Simulação: Senha redefinida com sucesso!');
-      navigate('/');
-    } catch {
-      setError('Erro ao gerar token do reCAPTCHA. Tente novamente.');
+        // Tratar erros específicos
+        if (axiosError.response?.status === 400) {
+          setError(
+            'Token inválido ou expirado. Solicite um novo link de redefinição.',
+          );
+        } else {
+          setError(
+            axiosError.response?.data?.message ||
+              'Erro ao redefinir senha. Tente novamente.',
+          );
+        }
+      } else {
+        setError('Erro ao redefinir senha. Tente novamente.');
+      }
+    } finally {
+      setLoading(false);
     }
-  */
   };
+
+  // Exibir loader enquanto valida o token
+  if (validatingToken) {
+    return (
+      <div
+        className='hero'
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          <CircularProgress size={60} />
+          <Typography variant='h6' color='white'>
+            Validando token...
+          </Typography>
+        </Box>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -173,26 +234,16 @@ export function ResetPassword() {
                     mb: 2,
                   }}
                 >
-                  Digite seu email e defina uma nova senha
+                  Defina sua nova senha
                 </Typography>
               </Box>
 
               {/* Mensagem de erro */}
               {error && (
                 <Box sx={{ mb: 3 }}>
-                  <Typography
-                    color='error'
-                    variant='body2'
-                    sx={{
-                      backgroundColor: 'rgba(211, 47, 47, 0.1)',
-                      border: '1px solid rgba(211, 47, 47, 0.3)',
-                      borderRadius: '8px',
-                      p: 2,
-                      fontSize: '0.9rem',
-                    }}
-                  >
+                  <Alert severity='error' sx={{ borderRadius: '8px' }}>
                     {error}
-                  </Typography>
+                  </Alert>
                 </Box>
               )}
 
@@ -203,32 +254,24 @@ export function ResetPassword() {
                 sx={{ textAlign: 'left' }}
               >
                 <Stack spacing={3}>
-                  {/* Campo Email */}
+                  {/* Campo Email (desabilitado) */}
                   <TextField
                     fullWidth
                     name='email'
                     label='Email'
                     type='email'
-                    placeholder='Digite seu email'
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
+                    disabled
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '12px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        backgroundColor: 'rgba(0, 0, 0, 0.05)',
                         '& fieldset': {
-                          borderColor: 'rgba(0, 0, 0, 0.2)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: 'var(--verde-esperanca)',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: 'var(--azul-confianca)',
+                          borderColor: 'rgba(0, 0, 0, 0.15)',
                         },
                       },
-                      '& .MuiInputLabel-root.Mui-focused': {
-                        color: 'var(--azul-confianca)',
+                      '& .MuiInputLabel-root': {
+                        color: 'rgba(0, 0, 0, 0.6)',
                       },
                     }}
                   />
@@ -299,6 +342,7 @@ export function ResetPassword() {
                     fullWidth
                     variant='contained'
                     size='large'
+                    disabled={loading}
                     sx={{
                       borderRadius: '12px',
                       py: 2,
@@ -313,11 +357,14 @@ export function ResetPassword() {
                         transform: 'translateY(-2px)',
                         boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2)',
                       },
+                      '&:disabled': {
+                        background: 'rgba(0, 0, 0, 0.12)',
+                      },
                       transition: 'all 0.3s ease',
                       mt: 4,
                     }}
                   >
-                    Redefinir Senha
+                    {loading ? 'Redefinindo...' : 'Redefinir Senha'}
                   </Button>
                 </Stack>
               </Box>
