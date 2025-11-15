@@ -1,12 +1,12 @@
 package br.edu.ifpi.ifala.notificacao;
 
 import br.edu.ifpi.ifala.denuncia.Denuncia;
-import br.edu.ifpi.ifala.notificacao.enums.TiposNotificacao;
+import br.edu.ifpi.ifala.notificacao.enums.TipoNotificacao;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
- * Entidade que representa uma notificação no sistema.
+ * Entidade que representa uma notificação no sistema IFala.
  */
 @Entity
 @Table(name = "notificacao")
@@ -24,7 +24,7 @@ public class Notificacao {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private TiposNotificacao tipo;
+    private TipoNotificacao tipo;
 
     @Column(name = "criado_em", nullable = false)
     private LocalDateTime criadoEm;
@@ -40,21 +40,52 @@ public class Notificacao {
         }
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    // Getters e Setters
+    public Long getId() {
+        return id;
+    }
 
-    public String getTitulo() { return titulo; }
-    public void setTitulo(String titulo) { this.titulo = titulo; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getMensagem() { return mensagem; }
-    public void setMensagem(String mensagem) { this.mensagem = mensagem; }
+    public String getTitulo() {
+        return titulo;
+    }
 
-    public TiposNotificacao getTipo() { return tipo; }
-    public void setTipo(TiposNotificacao tipo) { this.tipo = tipo; }
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
+    }
 
-    public LocalDateTime getCriadoEm() { return criadoEm; }
-    public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
+    public String getMensagem() {
+        return mensagem;
+    }
 
-    public Denuncia getDenuncia() { return denuncia; }
-    public void setDenuncia(Denuncia denuncia) { this.denuncia = denuncia; }
+    public void setMensagem(String mensagem) {
+        this.mensagem = mensagem;
+    }
+
+    public TipoNotificacao getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(TipoNotificacao tipo) {
+        this.tipo = tipo;
+    }
+
+    public LocalDateTime getCriadoEm() {
+        return criadoEm;
+    }
+
+    public void setCriadoEm(LocalDateTime criadoEm) {
+        this.criadoEm = criadoEm;
+    }
+
+    public Denuncia getDenuncia() {
+        return denuncia;
+    }
+
+    public void setDenuncia(Denuncia denuncia) {
+        this.denuncia = denuncia;
+    }
 }
