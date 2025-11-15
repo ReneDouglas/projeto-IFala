@@ -1,44 +1,22 @@
 package br.edu.ifpi.ifala.notificacao.dto;
 
-import br.edu.ifpi.ifala.notificacao.enums.TiposNotificacao;
+import br.edu.ifpi.ifala.notificacao.enums.TipoNotificacao;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * DTO para criação e atualização de notificações.
+ * DTO (Data Transfer Object) para criação e atualização de notificações.
+ * Implementado como record, seguindo o padrão adotado no backend do IFala.
  */
-public class NotificationRequestDto {
+public record NotificationRequestDto(
 
-    @NotBlank(message = "O título é obrigatório.")
-    private String titulo;
+        @NotBlank(message = "O título é obrigatório.")
+        String titulo,
 
-    @NotBlank(message = "A mensagem é obrigatória.")
-    private String mensagem;
+        @NotBlank(message = "A mensagem é obrigatória.")
+        String mensagem,
 
-    @NotNull(message = "O tipo de notificação é obrigatório.")
-    private TiposNotificacao tipo;
+        @NotNull(message = "O tipo de notificação é obrigatório.")
+        TipoNotificacao tipo
 
-    public String getTitulo() {
-        return titulo;
-    }
-
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
-    }
-
-    public String getMensagem() {
-        return mensagem;
-    }
-
-    public void setMensagem(String mensagem) {
-        this.mensagem = mensagem;
-    }
-
-    public TiposNotificacao getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(TiposNotificacao tipo) {
-        this.tipo = tipo;
-    }
-}
+) {}

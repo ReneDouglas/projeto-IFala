@@ -1,7 +1,7 @@
 package br.edu.ifpi.ifala.notificacao;
 
-import br.edu.ifpi.ifala.notificacao.dto.NotificationRequestDTO;
-import br.edu.ifpi.ifala.notificacao.dto.NotificationResponseDTO;
+import br.edu.ifpi.ifala.notificacao.dto.NotificationRequestDto;
+import br.edu.ifpi.ifala.notificacao.dto.NotificationResponseDto;
 import br.edu.ifpi.ifala.notificacao.enums.TipoNotificacao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -26,60 +27,52 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public NotificationResponseDTO create(NotificationRequestDTO dto) {
+    public NotificationResponseDto create(NotificationRequestDto dto) {
         Notificacao n = new Notificacao();
         n.setTitulo(dto.titulo());
         n.setMensagem(dto.mensagem());
         n.setTipo(dto.tipo());
+        n.setCriadoEm(LocalDateTime.now()); // deixa explícito e mais claro no código
 
         Notificacao saved = repository.save(n);
 
         if (saved.getTipo() == TipoNotificacao.EXTERNO) {
-            log.info("Enviando e-mail de notificação externa...");
-
-            // Para ambiente de desenvolvimento:
+            log.info("Enviando e-mail de notificação externa para nova denúncia...");
             emailService.sendNewDenunciaEmail(saved, "sistema-ifala-development@gmail.com");
         }
 
-        return NotificationResponseDTO.fromEntity(saved);
+        return NotificationResponseDto.fromEntity(saved);
     }
 
     @Override
-    public NotificationResponseDTO findById(Long id) {
+    public List<NotificationResponseDto> findAll() {
+        return repository.findAll().stream().map(NotificationResponseDto::fromEntity).toList();
+    }
+
+    @Override
+    public NotificationResponseDto findById(Long id) {
         Notificacao n = repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Notificação não encontrada"));
 
-        return NotificationResponseDTO.fromEntity(n);
+        return NotificationResponseDto.fromEntity(n);
     }
 
     @Override
-    public List<NotificationResponseDTO> findAll() {
-        return repository.findAll().stream().map(NotificationResponseDTO::fromEntity).toList(); // Java
-                                                                                                // 16+
-                                                                                                // padrão
-                                                                                                // no
-                                                                                                // IFala
-    }
-
-    @Override
-    public NotificationResponseDTO update(Long id, NotificationRequestDTO dto) {
+    public NotificationResponseDto update(Long id, NotificationRequestDto dto) {
         Notificacao n = repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Notificação não encontrada"));
 
-        if (dto.titulo() != null) {
+        if (dto.titulo() != null)
             n.setTitulo(dto.titulo());
-        }
-        if (dto.mensagem() != null) {
+        if (dto.mensagem() != null)
             n.setMensagem(dto.mensagem());
-        }
-        if (dto.tipo() != null) {
+        if (dto.tipo() != null)
             n.setTipo(dto.tipo());
-        }
 
         Notificacao updated = repository.save(n);
-        return NotificationResponseDTO.fromEntity(updated);
+        return NotificationResponseDto.fromEntity(updated);
     }
 
     @Override

@@ -1,55 +1,32 @@
 package br.edu.ifpi.ifala.notificacao.dto;
 
 import br.edu.ifpi.ifala.notificacao.Notificacao;
-import br.edu.ifpi.ifala.notificacao.enums.TiposNotificacao;
+import br.edu.ifpi.ifala.notificacao.enums.TipoNotificacao;
 import java.time.LocalDateTime;
 
 /**
  * DTO de resposta para exibição de notificações.
+ * Implementado como record, seguindo o padrão do backend do IFala.
  */
-public class NotificationResponseDto {
+public record NotificationResponseDto(
+        Long id,
+        String titulo,
+        String mensagem,
+        TipoNotificacao tipo,
+        LocalDateTime criadoEm) {
 
-    private Long id;
-    private String titulo;
-    private String mensagem;
-    private TiposNotificacao tipo;
-    private LocalDateTime criadoEm;
-
-    public NotificationResponseDto(Long id, String titulo, String mensagem, TiposNotificacao tipo, LocalDateTime criadoEm) {
-        this.id = id;
-        this.titulo = titulo;
-        this.mensagem = mensagem;
-        this.tipo = tipo;
-        this.criadoEm = criadoEm;
-    }
-
+    /**
+     * Constrói um DTO a partir da entidade Notificacao.
+     *
+     * @param n entidade Notificacao
+     * @return um novo NotificationResponseDto com os dados da entidade
+     */
     public static NotificationResponseDto fromEntity(Notificacao n) {
         return new NotificationResponseDto(
                 n.getId(),
                 n.getTitulo(),
                 n.getMensagem(),
                 n.getTipo(),
-                n.getCriadoEm()
-        );
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getTitulo() {
-        return titulo;
-    }
-
-    public String getMensagem() {
-        return mensagem;
-    }
-
-    public TiposNotificacao getTipo() {
-        return tipo;
-    }
-
-    public LocalDateTime getCriadoEm() {
-        return criadoEm;
+                n.getCriadoEm());
     }
 }

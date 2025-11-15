@@ -1,19 +1,19 @@
 package br.edu.ifpi.ifala.notificacao;
 
-import br.edu.ifpi.ifala.notificacao.dto.NotificationRequestDTO;
-import br.edu.ifpi.ifala.notificacao.dto.NotificationResponseDTO;
+import br.edu.ifpi.ifala.notificacao.dto.NotificationRequestDto;
+import br.edu.ifpi.ifala.notificacao.dto.NotificationResponseDto;
 
 import java.util.List;
 
 public interface NotificationService {
 
-    NotificationResponseDTO create(NotificationRequestDTO dto);
+    NotificationResponseDto create(NotificationRequestDto dto);
 
-    NotificationResponseDTO findById(Long id);
+    NotificationResponseDto findById(Long id);
 
-    List<NotificationResponseDTO> findAll();
+    List<NotificationResponseDto> findAll();
 
-    NotificationResponseDTO update(Long id, NotificationRequestDTO dto);
+    NotificationResponseDto update(Long id, NotificationRequestDto dto);
 
     void delete(Long id);
 }

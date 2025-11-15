@@ -1,7 +1,7 @@
 package br.edu.ifpi.ifala.notificacao;
 
-import br.edu.ifpi.ifala.notificacao.dto.NotificationRequestDTO;
-import br.edu.ifpi.ifala.notificacao.dto.NotificationResponseDTO;
+import br.edu.ifpi.ifala.notificacao.dto.NotificationRequestDto;
+import br.edu.ifpi.ifala.notificacao.dto.NotificationResponseDto;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,9 +21,9 @@ public class NotificationController {
     }
 
     @PostMapping
-    public ResponseEntity<NotificationResponseDTO> create(
-            @Valid @RequestBody NotificationRequestDTO dto, UriComponentsBuilder uriBuilder) {
-        NotificationResponseDTO created = service.create(dto);
+    public ResponseEntity<NotificationResponseDto> create(
+            @Valid @RequestBody NotificationRequestDto dto, UriComponentsBuilder uriBuilder) {
+        NotificationResponseDto created = service.create(dto);
 
         URI location = uriBuilder.path("/notificacoes/{id}").buildAndExpand(created.id()).toUri();
 
@@ -31,18 +31,18 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<NotificationResponseDTO>> list() {
+    public ResponseEntity<List<NotificationResponseDto>> list() {
         return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<NotificationResponseDTO> get(@PathVariable Long id) {
+    public ResponseEntity<NotificationResponseDto> get(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<NotificationResponseDTO> update(@PathVariable Long id,
-            @RequestBody NotificationRequestDTO dto) {
+    public ResponseEntity<NotificationResponseDto> update(@PathVariable Long id,
+            @Valid @RequestBody NotificationRequestDto dto) {
         return ResponseEntity.ok(service.update(id, dto));
     }
 
