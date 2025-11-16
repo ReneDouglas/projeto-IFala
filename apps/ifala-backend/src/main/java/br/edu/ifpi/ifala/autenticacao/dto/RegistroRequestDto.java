@@ -14,6 +14,7 @@ import java.util.List;
  * @param roles Lista de papéis/roles do usuário.
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 
 public record RegistroRequestDTO(@NotBlank(message = "O nome é obrigatório.") String nome,

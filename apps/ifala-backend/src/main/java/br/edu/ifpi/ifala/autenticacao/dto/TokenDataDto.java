@@ -10,6 +10,7 @@ import java.time.Instant;
  * @param expirationTime o instante em que o token expira
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 
 public record TokenDataDTO(String token, Instant issuedAt, Instant expirationTime) {

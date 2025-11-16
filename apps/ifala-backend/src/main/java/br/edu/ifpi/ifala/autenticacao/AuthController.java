@@ -6,6 +6,7 @@ import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.EmailTokenResponseDTO;
 import br.edu.ifpi.ifala.shared.exceptions.RefreshTokenException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseCookie;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +28,7 @@ import org.slf4j.LoggerFactory;
  * negócio para o AuthService.
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -82,6 +86,15 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
+  /**
+   * Endpoint para validar token de redefinição e retornar o email do usuário.
+   */
+  @GetMapping("/validar-token-redefinicao")
+  public ResponseEntity<?> validateResetToken(@RequestParam String token) {
+    logger.info("Validando token de redefinição.");
+    String email = authService.getEmailByResetToken(token);
+    return ResponseEntity.ok().body(new EmailTokenResponseDTO(email));
+  }
 
   @PostMapping("/refresh")
   public ResponseEntity<LoginResponseDTO> refreshToken(

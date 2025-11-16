@@ -1,0 +1,67 @@
+import axiosClient from './axios-client';
+import type {
+  AcompanhamentoDetalhes,
+  MensagemAcompanhamento,
+  EnviarMensagemRequest,
+} from '../types/acompanhamento';
+
+// ENDPOINT PARA CONSULTAR DENNCIA POR TOKEN
+
+export async function consultarDenunciaPorToken(
+  token: string,
+): Promise<AcompanhamentoDetalhes> {
+  const response = await axiosClient.get(`/public/denuncias/${token}`);
+  return response.data;
+}
+
+// ENDPOINT PARA LISTAR MENSAGENS DE ACOMPANHAMENTO
+
+export async function listarMensagens(
+  token: string,
+): Promise<MensagemAcompanhamento[]> {
+  const response = await axiosClient.get(
+    `/public/denuncias/${token}/acompanhamentos`,
+  );
+  return response.data;
+}
+
+// ENDPOINT PARA ENVIAR NOVA MENSAGEM
+
+export async function enviarMensagem(
+  token: string,
+  mensagem: string,
+): Promise<MensagemAcompanhamento> {
+  const dados: EnviarMensagemRequest = { mensagem };
+
+  const response = await axiosClient.post(
+    `/public/denuncias/${token}/acompanhamentos`,
+    dados,
+  );
+
+  return response.data;
+}
+
+// ENDPOINT ADMIN PARA ENVIAR MENSAGEM (sem restrição de flood)
+
+export async function enviarMensagemAdmin(
+  denunciaId: number,
+  mensagem: string,
+): Promise<MensagemAcompanhamento> {
+  const response = await axiosClient.post(
+    `/admin/denuncias/${denunciaId}/acompanhamentos`,
+    { mensagem },
+  );
+
+  return response.data;
+}
+
+// ENDPOINT ADMIN PARA ALTERAR STATUS DA DENÚNCIA
+
+export async function alterarStatusDenuncia(
+  denunciaId: number,
+  novoStatus: string,
+): Promise<void> {
+  await axiosClient.post(`/admin/denuncias/${denunciaId}/status`, {
+    status: novoStatus,
+  });
+}

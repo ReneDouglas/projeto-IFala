@@ -1,6 +1,8 @@
 package br.edu.ifpi.ifala.security;
 
+import br.edu.ifpi.ifala.autenticacao.Usuario;
 import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDTO;
+import br.edu.ifpi.ifala.shared.enums.Perfis;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -10,6 +12,10 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +23,7 @@ import org.slf4j.LoggerFactory;
  * Utilitário para criação e validação de tokens JWT.
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 
 @Component
@@ -44,6 +51,33 @@ public class JwtUtil {
     String token = Jwts.builder().setSubject(username).setIssuedAt(issuedAt)
         .setExpiration(expiration).signWith(signingKey, SignatureAlgorithm.HS256).compact();
     logger.info("Gerando JWT para {}: issuedAt={}, expiration={}", username, issuedAt, expiration);
+    return new TokenDataDTO(token, issuedAt.toInstant(), expiration.toInstant());
+  }
+
+  public TokenDataDTO generateTokenWithUserData(Usuario usuario) {
+    Date issuedAt = new Date();
+    Date expiration = new Date(System.currentTimeMillis() + (expirationSeconds * 1000));
+
+    // Adicionar claims customizados
+    Map<String, Object> claims = new HashMap<>();
+    claims.put("nome", usuario.getNome());
+    claims.put("email", usuario.getEmail());
+    claims.put("username", usuario.getUsername());
+
+    // Converter roles para lista de strings
+    List<String> rolesList = usuario.getRoles() != null
+        ? usuario.getRoles().stream().map(Perfis::name).collect(Collectors.toList())
+        : List.of();
+    claims.put("roles", rolesList);
+
+    String token = Jwts.builder().setClaims(claims).setSubject(usuario.getEmail()) // ID do usuário
+                                                                                   // como subject
+        .setIssuedAt(issuedAt).setExpiration(expiration)
+        .signWith(signingKey, SignatureAlgorithm.HS256).compact();
+
+    logger.info("Gerando JWT para {} com roles {}: issuedAt={}, expiration={}", usuario.getEmail(),
+        rolesList, issuedAt, expiration);
+
     return new TokenDataDTO(token, issuedAt.toInstant(), expiration.toInstant());
   }
 

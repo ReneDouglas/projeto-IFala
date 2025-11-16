@@ -4,35 +4,33 @@
 
 O **tui.sh** e um script Bash interativo que gerencia o deploy e manutencao da aplicacao IFala em ambiente de producao. Ele fornece um menu colorido e intuitivo com opcoes para build, deploy, backup e monitoramento.
 
+**Versão OTIMIZADA** com proteção de volumes externos e menu reestruturado em dois níveis.
+
 ## Caracteristicas
 
-- Interface interativa com menu numerado
+- Interface interativa com menu numerado (dois níveis)
 - Mensagens coloridas (verde, vermelho, amarelo, azul)
 - Confirmacoes antes de operacoes destrutivas
 - Verificacao automatica de pre-requisitos
+- **Protecao de volumes externos** (PostgreSQL)
+- **Volumes criados automaticamente** se não existirem
 - Feedback de progresso em tempo real
 - Logs estruturados e faceis de ler
+- **Opcoes perigosas removidas** (limpeza de volumes)
 
 ---
 
-## Menu Principal
+## Menu Inicial
 
 ```
 ========================================
      IFala - Deploy em Producao
 ========================================
 
-MENU PRINCIPAL
+MENU INICIAL
 ----------------------------------------
-1) Deploy completo (rapido)
-2) Deploy com rebuild de imagens
-3) Deploy com limpeza de volumes
-4) Deploy completo (rebuild + limpeza)
-5) Atualizar sistema (git pull + backup + rebuild)
-6) Backup do banco de dados
-7) Ver status dos servicos
-8) Ver logs em tempo real
-9) Parar todos os servicos
+1) Realizar Deploy
+2) Acessar menu detalhado
 0) Sair
 ----------------------------------------
 
@@ -41,154 +39,38 @@ Escolha uma opcao:
 
 ---
 
-## Opcoes Detalhadas
+## Menu Detalhado
 
-### Opcao 1: Deploy completo (rapido)
-
-**O que faz:**
-- Usa imagens Docker ja existentes (nao reconstroi)
-- NAO apaga volumes/dados
-- Apenas sobe os containers
-
-**Flags internas:**
-```bash
-BUILD=false
-CLEAN=false
-LOGS=false
 ```
+========================================
+     IFala - Deploy em Producao
+========================================
 
-**Passos executados:**
-1. Verificar pre-requisitos (Docker, docker-compose, arquivos)
-2. `docker compose -f docker-compose-prd.yml up -d`
-3. Aguardar containers ficarem saudaveis (ate 30 tentativas)
-4. Mostrar status dos containers
-5. Exibir URLs de acesso
+MENU DETALHADO
+----------------------------------------
+1) Reiniciar Servicos
+2) Reconstruir Servicos (--no-cache)
+3) Backup do banco de dados
+4) Ver status dos servicos
+5) Ver logs em tempo real
+0) Voltar para o menu inicial
+----------------------------------------
 
-**Tempo estimado:** 10-30 segundos
-
-**Quando usar:**
-- Desenvolvimento continuo
-- Codigo nao mudou
-- Quer subir rapidamente sem perder dados
+Escolha uma opcao:
+```
 
 ---
 
-### Opcao 2: Deploy com rebuild de imagens
+## Opcoes do Menu Inicial
 
-**O que faz:**
-- Reconstroi todas as imagens do zero (`--no-cache`)
-- Mantem volumes/dados existentes
-- Sobe containers com novas imagens
-
-**Flags internas:**
-```bash
-BUILD=true
-CLEAN=false
-LOGS=false
-```
-
-**Passos executados:**
-1. Verificar pre-requisitos
-2. Pergunta confirmacao para rebuild
-3. `docker compose build --no-cache`
-4. `docker compose up -d`
-5. Aguardar saude dos containers
-6. Mostrar status e URLs
-
-**Tempo estimado:** 5-15 minutos
-
-**Quando usar:**
-- Alterou codigo do backend (Java/Spring)
-- Alterou codigo do frontend (React)
-- Mudou Dockerfile.prd
-- Dados do banco devem ser preservados
-
----
-
-### Opcao 3: Deploy com limpeza de volumes
-
-**O que faz:**
-- Usa imagens existentes
-- **APAGA TUDO**: banco, Keycloak, Grafana, Prometheus
-- `docker compose down -v`
-- Sobe containers com dados zerados
-
-**Flags internas:**
-```bash
-BUILD=false
-CLEAN=true
-LOGS=false
-```
-
-**Avisos mostrados:**
-```
-[AVISO] ATENCAO: Esta operacao vai:
-  - Parar todos os containers
-  - Remover todos os volumes
-  - APAGAR TODOS OS DADOS do banco de dados
-  - APAGAR configuracoes do Keycloak
-  - APAGAR dados do Grafana e Prometheus
-
-[?] Tem certeza que deseja continuar? [s/N]
-```
-
-**Passos executados:**
-1. Verificar pre-requisitos
-2. Mostrar aviso critico
-3. Pedir confirmacao explicita
-4. `docker compose down -v`
-5. `docker compose up -d`
-6. Banco executa `init.sql` novamente
-7. Mostrar status e URLs
-
-**Quando usar:**
-- Banco de dados corrompido
-- Quer comecar do zero (fresh start)
-- Testando migrations/init.sql
-- **CUIDADO**: Perde todos os dados!
-
----
-
-### Opcao 4: Deploy completo (rebuild + limpeza)
-
-**O que faz:**
-- Limpa todos os volumes (perde dados)
-- Reconstroi todas as imagens
-- Deploy 100% do zero
-
-**Flags internas:**
-```bash
-BUILD=true
-CLEAN=true
-LOGS=false
-```
-
-**Passos executados:**
-1. Verificar pre-requisitos
-2. Aviso de limpeza + confirmacao
-3. `docker compose down -v`
-4. Confirmacao de rebuild
-5. `docker compose build --no-cache`
-6. `docker compose up -d`
-7. Mostrar status e URLs
-
-**Tempo estimado:** 5-20 minutos
-
-**Quando usar:**
-- Mudou codigo E quer dados limpos
-- Deployment em ambiente novo
-- Testes de integracao do zero
-- Release/producao (deploy limpo)
-
----
-
-### Opcao 5: Atualizar sistema (git pull + backup + rebuild)
+### Opcao 1: Realizar Deploy
 
 **O que faz:**
 - Atualiza codigo do repositorio (git pull)
 - Cria backup de seguranca do banco
-- Reconstroi imagens Docker
-- Reinicia servicos SEM apagar volumes
+- Reconstroi todas as imagens Docker
+- Reinicia servicos com codigo atualizado
+- **Preserva todos os dados** (volumes externos protegidos)
 
 **Passos executados:**
 
@@ -203,21 +85,24 @@ git pull origin main
 docker exec ifala-db-prd pg_dump -U postgres -d ifala > backups/backup_update_YYYYMMDD_HHMMSS.sql
 ```
 - Cria diretorio `./backups` se nao existir
-- Arquivo: `backup_update_20251029_143025.sql`
+- Arquivo: `backup_update_20251107_143025.sql`
 - Se PostgreSQL nao estiver rodando, pula backup com aviso
 
 #### [3/4] Reconstruindo imagens
 ```bash
-docker compose build --no-cache
+docker compose -f docker-compose-prd.yml down
+docker compose -f docker-compose-prd.yml build
 ```
+- Para servicos primeiro
 - Reconstroi frontend e backend com codigo atualizado
+- **Usa cache do Docker** para builds mais rápidos
 
 #### [4/4] Reiniciando servicos
 ```bash
-docker compose up -d
+docker compose -f docker-compose-prd.yml up -d
 ```
-- Reinicia containers com novas imagens
-- Dados preservados (nao usa `-v`)
+- Inicia containers com novas imagens
+- Dados preservados (volumes externos protegidos)
 
 **Confirmacao inicial:**
 ```
@@ -225,21 +110,365 @@ docker compose up -d
   1. Fazer git pull origin main (atualizar codigo)
   2. Criar backup de seguranca do banco de dados
   3. Fazer rebuild das imagens Docker
-  4. Reiniciar servicos (SEM apagar volumes)
+  4. Reiniciar servicos
 
-[INFO] Seus dados serao preservados!
+[INFO] Seus dados serao preservados (volumes externos protegidos)!
 
 [?] Deseja realmente atualizar o sistema? [s/N]
 ```
 
+**Tempo estimado:** 3-8 minutos (com cache)
+
 **Quando usar:**
 - Atualizar aplicacao em producao
 - Deploy de nova versao
-- Manter dados mas atualizar codigo
+- Codigo foi alterado no repositorio
+- **Opcao principal recomendada para deploys**
 
 ---
 
-### Opcao 6: Backup do banco de dados
+### Opcao 2: Acessar menu detalhado
+
+**O que faz:**
+- Abre submenu com operacoes avancadas
+- Permite acesso a funcoes especificas
+- Menu secundario para manutencao
+
+**Quando usar:**
+- Precisa de operacoes especificas
+- Manutencao e monitoramento
+- Backup manual
+- Visualizar logs
+
+---
+
+### Opcao 0: Sair
+
+**O que faz:**
+- Encerra o script
+- Volta ao terminal normal
+
+---
+
+## Opcoes do Menu Detalhado
+
+### Opcao 1: Reiniciar Servicos
+
+**O que faz:**
+- Para todos os containers
+- Reinicia todos os servicos
+- **Preserva volumes e dados**
+
+**Confirmacao:**
+```
+[?] Deseja reiniciar todos os servicos? [s/N]
+```
+
+**Comando executado:**
+```bash
+docker compose -f docker-compose-prd.yml down
+docker compose -f docker-compose-prd.yml up -d
+```
+
+**Passos executados:**
+1. Confirmacao do usuario
+2. Para servicos (down)
+3. Inicia servicos novamente (up -d)
+4. Aguarda containers ficarem saudaveis
+5. Mostra status dos servicos
+6. Exibe URLs de acesso
+
+**Tempo estimado:** 30-60 segundos
+
+**Quando usar:**
+- Servicos travados ou com problemas
+- Limpar memoria/cache dos containers
+- Aplicar configuracoes do .env
+- **Nao reconstroi imagens** (rapido)
+
+---
+
+### Opcao 2: Reconstruir Servicos (--no-cache)
+
+**O que faz:**
+- Para todos os containers
+- Reconstroi todas as imagens do ZERO (`--no-cache`)
+- **Baixa TODAS as dependências novamente**
+- Reinicia servicos com novas imagens
+- **Preserva todos os dados** (volumes externos protegidos)
+
+**Confirmacao:**
+```
+[AVISO] ATENCAO: Esta operacao vai:
+  1. Parar todos os containers
+  2. Reconstruir imagens Docker do ZERO (--no-cache)
+  3. Baixar TODAS as dependencias novamente
+  4. Reiniciar servicos
+
+[AVISO] Todas as dependencias serao baixadas do zero!
+[AVISO] Isso pode demorar bastante tempo (5-20 minutos)!
+
+[INFO] Seus dados serao preservados (volumes externos protegidos)!
+
+[?] Deseja realmente reconstruir os servicos? [s/N]
+```
+
+**Comando executado:**
+```bash
+docker compose -f docker-compose-prd.yml down
+docker compose -f docker-compose-prd.yml build --no-cache
+docker compose -f docker-compose-prd.yml up -d
+```
+
+**Passos executados:**
+1. Confirmacao do usuario
+2. Para servicos (down)
+3. Reconstroi imagens do ZERO (build --no-cache)
+4. Inicia servicos (up -d)
+5. Aguarda containers ficarem saudaveis
+6. Mostra status dos servicos
+7. Exibe URLs de acesso
+
+**Tempo estimado:** 5-20 minutos
+
+**Quando usar:**
+- Suspeita de cache corrompido
+- Build com problemas inexplicáveis
+- Limpar dependências completamente
+- Mudanças profundas no código
+- **Nao faz git pull** (apenas reconstroi)
+
+**Aviso:** Esta opção baixa todas as dependências (npm, Maven, etc.) do zero, por isso é mais demorada.
+
+---
+
+### Opcao 3: Backup do banco de dados
+
+**O que faz:**
+- Cria backup do PostgreSQL usando pg_dump
+- Salva em `./backups/backup_YYYYMMDD_HHMMSS.sql`
+- Mostra tamanho do arquivo criado
+
+**Passos executados:**
+1. Verificar se container `ifala-db-prd` esta rodando
+2. Criar diretorio `./backups` se nao existir
+3. Executar pg_dump:
+```bash
+docker exec ifala-db-prd pg_dump -U postgres -d ifala > backups/backup_20251107_143025.sql
+```
+4. Mostrar resultado:
+```
+[OK] Backup criado com sucesso!
+
+  Arquivo: ./backups/backup_20251107_143025.sql
+  Tamanho: 2.5M
+```
+
+**Quando usar:**
+- Antes de operacoes arriscadas
+- Backup preventivo periodico
+- Antes de atualizar sistema
+- Antes de testar migrations
+
+**Restaurar backup:**
+```bash
+docker exec -i ifala-db-prd psql -U postgres -d ifala < backups/backup_20251107_143025.sql
+```
+
+---
+
+### Opcao 4: Ver status dos servicos
+
+**O que faz:**
+- Mostra tabela com todos os containers
+- Status (Up, Down, Restarting)
+- Healthcheck (healthy, unhealthy, starting)
+- Portas expostas
+
+**Comando executado:**
+```bash
+docker compose -f docker-compose-prd.yml ps
+```
+
+**Exemplo de saida:**
+```
+STATUS DOS SERVICOS
+----------------------------------------
+
+NAME                 STATUS                    PORTS
+nginx-gateway-prd    Up 5 minutes (healthy)    0.0.0.0:80->80/tcp
+ifala-backend-prd    Up 5 minutes (healthy)    
+ifala-frontend-prd   Up 5 minutes              
+ifala-db-prd         Up 5 minutes (healthy)    
+prometheus-prd       Up 5 minutes              
+grafana-prd          Up 5 minutes              
+loki-prd             Up 5 minutes              
+promtail-prd         Up 5 minutes                          
+```
+
+**Quando usar:**
+- Verificar se containers estao rodando
+- Ver quanto tempo estao UP
+- Debugar problemas
+- Verificar healthchecks
+
+---
+
+### Opcao 5: Ver logs em tempo real
+
+**O que faz:**
+- Mostra logs de **todos os containers** ao vivo
+- Logs coloridos por servico
+- Atualiza em tempo real (streaming)
+
+**Comando executado:**
+```bash
+docker compose -f docker-compose-prd.yml logs -f
+```
+
+**Exemplo de saida:**
+```
+[INFO] Exibindo logs (Ctrl+C para sair)...
+
+nginx-gateway-prd  | 192.168.1.10 - - [07/Nov/2025:14:30:15] "GET /api/users HTTP/1.1" 200
+ifala-backend-prd  | 2025-11-07 14:30:15 INFO  - Processing request...
+ifala-db-prd       | 2025-11-07 14:30:15 UTC LOG:  statement: SELECT * FROM users
+grafana-prd        | logger=context userId=1 t=2025-11-07T14:30:15.123 level=info
+```
+
+**Como usar:**
+- Escolhe opcao 5
+- Logs aparecem continuamente
+- **Ctrl+C** para sair e voltar ao menu
+
+**Quando usar:**
+- Debugar erros
+- Ver requisicoes chegando
+- Monitorar comportamento
+- Acompanhar startup
+
+---
+
+### Opcao 0: Voltar para o menu inicial
+
+**O que faz:**
+- Retorna ao menu inicial
+- Nao encerra o script
+
+---
+
+## Protecao de Volumes Externos
+
+### O que são volumes externos?
+
+Volumes externos sao volumes Docker criados manualmente e configurados como `external: true` no `docker-compose-prd.yml`. Isso significa que:
+
+- **NAO sao apagados** com `docker compose down -v`
+- **Persistem** mesmo apos remover todos os containers
+- **Precisam ser apagados manualmente** com `docker volume rm`
+
+### Volumes protegidos no IFala
+
+O script `tui.sh` protege automaticamente o volume crítico:
+
+1. **pgdata_prd** - Dados do PostgreSQL (banco de dados)
+
+### Criacao automatica
+
+Na verificacao de pre-requisitos, o script cria esse volume se não existir:
+
+```bash
+# Volume do PostgreSQL (CRITICO - protegido contra 'docker compose down -v')
+if ! docker volume inspect pgdata_prd &> /dev/null; then
+    print_warning "Volume 'pgdata_prd' nao existe. Criando..."
+    docker volume create pgdata_prd
+    print_success "Volume 'pgdata_prd' criado!"
+else
+    print_success "Volume 'pgdata_prd' encontrado"
+fi
+```
+
+### Configuracao no docker-compose-prd.yml
+
+```yaml
+volumes:
+  pgdata_prd:
+    external: true  # Volume criado manualmente - protegido contra 'docker compose down -v'
+  grafana_data_prd:
+    driver: local   # Volumes internos (podem ser apagados com down -v)
+  loki_data_prd:
+    driver: local
+  promtail_positions_prd:
+    driver: local
+  prometheus_data_prd:
+    driver: local
+```
+
+### Teste de protecao
+
+Para testar se os volumes estao protegidos, use o script PowerShell:
+
+```powershell
+.\scripts\test-volume-protection.ps1
+```
+
+Este script:
+1. Verifica se volumes externos existem
+2. Cria arquivo de teste no volume
+3. Executa `docker compose down -v` (comando perigoso)
+4. Verifica se arquivo ainda existe
+5. Confirma protecao dos volumes
+
+### Vantagens da protecao
+
+- **Seguranca**: Impossivel apagar dados acidentalmente
+- **Confiabilidade**: Dados preservados em qualquer operacao
+- **Simplicidade**: Sem comandos perigosos no menu
+- **Producao**: Adequado para ambiente de producao
+
+---
+
+## Mudancas da Versao Anterior
+
+### Opcoes REMOVIDAS (perigosas)
+
+Estas opcoes foram **removidas** por serem muito perigosas:
+
+- ❌ **Opcao 3**: Deploy com limpeza de volumes
+- ❌ **Opcao 4**: Deploy completo (rebuild + limpeza)
+- ❌ **Opcao 9**: Parar todos os servicos
+
+### Opcoes RENOMEADAS (clareza)
+
+- ✅ **"Deploy completo (rapido)"** → **"Reiniciar Servicos"** (menu detalhado)
+- ✅ **"Deploy com rebuild de imagens"** → **"Reconstruir Servicos"** (menu detalhado)
+- ✅ **"Atualizar sistema"** → **"Realizar Deploy"** (menu inicial)
+
+### Funcionalidades ADICIONADAS
+
+- ✅ **Menu em dois niveis** (inicial + detalhado)
+- ✅ **Protecao de volumes externos** (pgdata_prd)
+- ✅ **Criacao automatica de volumes** (se nao existirem)
+- ✅ **Mensagens mais claras** sobre preservacao de dados
+
+### Variaveis de Controle
+
+Antes:
+```bash
+BUILD=false
+CLEAN=false  # REMOVIDA
+LOGS=false
+```
+
+Agora:
+```bash
+BUILD=false
+LOGS=false
+```
+
+---
+
+## Funcoes Internas
 
 **O que faz:**
 - Cria backup do PostgreSQL usando pg_dump
@@ -297,10 +526,10 @@ nginx-gateway-prd    Up 5 minutes (healthy)    0.0.0.0:80->80/tcp
 ifala-backend-prd    Up 5 minutes (healthy)    
 ifala-frontend-prd   Up 5 minutes              
 ifala-db-prd         Up 5 minutes (healthy)    
-keycloak-prd         Up 5 minutes              
 prometheus-prd       Up 5 minutes              
 grafana-prd          Up 5 minutes              
 loki-prd             Up 5 minutes              
+promtail-prd         Up 5 minutes              
 promtail-prd         Up 5 minutes              
 ```
 
@@ -416,6 +645,13 @@ if [ ! -f ".env" ]; then
         # continua
     fi
 fi
+
+# Criar volumes externos se nao existirem (NOVO!)
+print_info "Verificando volumes externos..."
+
+if ! docker volume inspect pgdata_prd &> /dev/null; then
+    docker volume create pgdata_prd
+fi
 ```
 
 ---
@@ -504,6 +740,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
 GRAY='\033[0;90m'
 BOLD='\033[1m'
 NC='\033[0m'  # No Color (reset)
@@ -523,41 +760,60 @@ echo -e "${BOLD}Titulo${NC}"
 
 ```bash
 BUILD=false      # Se deve rebuildar imagens
-CLEAN=false      # Se deve apagar volumes
 LOGS=false       # Se deve mostrar logs apos deploy
 COMPOSE_FILE="docker-compose-prd.yml"  # Arquivo compose
 ```
 
-Essas flags sao setadas pelas opcoes do menu e usadas pela funcao `execute_deploy()`.
+**Nota**: A variavel `CLEAN` foi **removida** na versao otimizada.
 
 ---
 
 ## Fluxo de Execucao
 
-### Exemplo: Usuario escolhe opcao 2 (Deploy com rebuild)
+### Exemplo: Usuario escolhe "Realizar Deploy" (menu inicial)
 
 ```
-1. main() exibe menu
+1. main() exibe menu inicial
+2. Usuario digita "1"
+3. Case 1 executado:
+   - update_system()
+
+4. update_system():
+   a. Mostra confirmacao
+   b. git pull origin main
+   c. Backup do banco (se possivel)
+   d. docker compose down
+   e. docker compose build --no-cache
+   f. docker compose up -d
+   g. wait_healthy()
+   h. show_status()
+   i. show_access_info()
+   j. press_enter()
+
+5. Volta para main() (while loop)
+6. Menu inicial exibido novamente
+```
+
+### Exemplo: Usuario escolhe "Reconstruir Servicos" (menu detalhado)
+
+```
+1. main() → opcao 2 → detailed_menu()
 2. Usuario digita "2"
 3. Case 2 executado:
-   - BUILD=true
-   - CLEAN=false
-   - LOGS=false
-   - execute_deploy()
+   - rebuild_services()
 
-4. execute_deploy():
-   a. check_prerequisites()
-   b. if CLEAN=true → clean_volumes() [PULA]
-   c. if BUILD=true → build_images() [EXECUTA]
-   d. start_services()
+4. rebuild_services():
+   a. Mostra confirmacao
+   b. docker compose down
+   c. docker compose build --no-cache
+   d. docker compose up -d
    e. wait_healthy()
    f. show_status()
    g. show_access_info()
-   h. if LOGS=true → show_logs() [PULA]
-   i. press_enter()
+   h. press_enter()
 
-5. Volta para main() (while loop)
-6. Menu exibido novamente
+5. Volta para detailed_menu() (while loop)
+6. Menu detalhado exibido novamente
 ```
 
 ---
@@ -566,13 +822,15 @@ Essas flags sao setadas pelas opcoes do menu e usadas pela funcao `execute_deplo
 
 ```
 projeto-IFala/
-├── tui.sh                      # Script principal
-├── docker-compose-prd.yml      # Compose de producao
+├── tui.sh                      # Script principal (OTIMIZADO)
+├── docker-compose-prd.yml      # Compose de producao (volumes externos)
 ├── .env                        # Variaveis de ambiente
 ├── backups/                    # Criado automaticamente
-│   ├── backup_20251029_143025.sql
-│   ├── backup_update_20251029_150130.sql
+│   ├── backup_20251107_143025.sql
+│   ├── backup_update_20251107_150130.sql
 │   └── ...
+├── scripts/
+│   └── test-volume-protection.ps1  # Teste de protecao de volumes
 ├── nginx/
 │   └── nginx.conf
 └── apps/
@@ -616,21 +874,22 @@ bash tui.sh
 
 ### Para Desenvolvimento
 
-1. **Deploy rapido** (opcao 1) - Na maioria das vezes
-2. **Rebuild** (opcao 2) - Quando altera codigo
-3. **Ver logs** (opcao 8) - Para debugar
+1. **Reiniciar Servicos** (menu detalhado → opcao 1) - Para problemas rapidos
+2. **Reconstruir Servicos** (menu detalhado → opcao 2) - Quando altera codigo
+3. **Ver logs** (menu detalhado → opcao 5) - Para debugar
 
 ### Para Producao
 
-1. **Backup** (opcao 6) - Antes de qualquer mudanca
-2. **Atualizar sistema** (opcao 5) - Para novos deploys
-3. **Ver status** (opcao 7) - Monitoramento periodico
+1. **Backup** (menu detalhado → opcao 3) - Antes de qualquer mudanca
+2. **Realizar Deploy** (menu inicial → opcao 1) - Para novos deploys
+3. **Ver status** (menu detalhado → opcao 4) - Monitoramento periodico
 
-### Antes de Operacoes Destrutivas
+### Antes de Operacoes Importantes
 
-1. **Backup** (opcao 6) - Sempre
+1. **Backup** (menu detalhado → opcao 3) - Sempre
 2. **Git commit** - Garantir codigo versionado
 3. **Confirmar duas vezes** - Ler avisos com atencao
+4. **Testar protecao de volumes** - `.\scripts\test-volume-protection.ps1`
 
 ---
 
@@ -662,7 +921,7 @@ POSTGRES_DB=ifala
 ### Container do banco nao esta rodando (backup)
 
 **Erro**: `[ERRO] Container do PostgreSQL nao esta rodando!`
-**Solucao**: Subir containers primeiro (opcao 1)
+**Solucao**: Subir containers primeiro (menu inicial → opcao 1)
 
 ### Git pull falha
 
@@ -673,6 +932,39 @@ git status  # verificar estado
 git stash   # guardar mudancas locais
 git pull origin main
 ```
+
+### Volumes nao foram criados automaticamente
+
+**Sintoma**: Mensagens de erro sobre volumes nao encontrados
+**Solucao**: Criar volume manualmente:
+```bash
+docker volume create pgdata_prd
+```
+
+### Dados foram apagados acidentalmente
+
+**Sintoma**: Banco de dados vazio apos restart
+**Causa provavel**: Volumes nao estavam configurados como externos
+**Solucao**: 
+1. Restaurar do backup mais recente:
+```bash
+docker exec -i ifala-db-prd psql -U postgres -d ifala < backups/backup_YYYYMMDD_HHMMSS.sql
+```
+2. Verificar configuracao em `docker-compose-prd.yml`:
+```yaml
+volumes:
+  pgdata_prd:
+    external: true  # Deve estar assim
+```
+
+### Testar protecao de volumes
+
+**Como verificar**: Executar script de teste:
+```powershell
+.\scripts\test-volume-protection.ps1
+```
+
+Este script confirma que os volumes externos estao protegidos contra `docker compose down -v`.
 
 ---
 
@@ -688,14 +980,7 @@ Qual servico rebuildar?
 3) Ambos
 ```
 
-### 2. Restaurar backup
-
-Nova opcao para restaurar backups:
-```
-10) Restaurar backup do banco
-```
-
-### 3. Logs de servico especifico
+### 2. Logs de servico especifico
 
 ```
 Ver logs de qual servico?
@@ -706,7 +991,7 @@ Ver logs de qual servico?
 5) Todos
 ```
 
-### 4. Healthcheck detalhado
+### 3. Healthcheck detalhado
 
 Mostrar saude individual de cada servico:
 ```
@@ -715,9 +1000,132 @@ ifala-backend-prd    [OK] healthy
 ifala-db-prd         [WARN] starting...
 ```
 
+### 4. Gerenciamento de backups
+
+Nova opcao para listar e restaurar backups:
+```
+1) Criar novo backup
+2) Listar backups existentes
+3) Restaurar backup especifico
+```
+
 ### 5. Rollback automatico
 
-Opcao para voltar para versao anterior em caso de falha
+Opcao para voltar para versao anterior em caso de falha:
+```
+1) Rollback para commit anterior
+2) Rollback para backup especifico
+```
+
+### 6. Limpeza seletiva
+
+Permitir limpar apenas volumes especificos (com confirmacao tripla):
+```
+AVISO CRITICO: Apagar volumes e IRREVERSIVEL!
+Qual volume limpar?
+1) Grafana (dados de dashboards)
+2) Prometheus (metricas)
+3) Loki (logs)
+4) Cancelar
+```
+
+**Nota**: PostgreSQL nunca aparece nesta lista (protegido)
+
+---
+
+## Scripts Relacionados
+
+### test-volume-protection.ps1
+
+**Localizacao**: `scripts/test-volume-protection.ps1`
+
+**Proposito**: Testar se volumes externos estao realmente protegidos
+
+**Uso**:
+```powershell
+.\scripts\test-volume-protection.ps1
+```
+
+**O que faz**:
+1. Verifica se volume `pgdata_prd` existe
+2. Cria arquivo de teste no volume pgdata_prd
+3. Executa `docker compose down -v` (comando perigoso)
+4. Verifica se arquivo ainda existe
+5. Confirma que volume NAO foi apagado
+
+**Resultado esperado**:
+```
+[OK] SUCESSO! Arquivo de teste ainda existe!
+[OK] Os volumes externos estao PROTEGIDOS contra 'docker compose down -v'!
+```
+
+---
+
+## Comparacao: Versao Antiga vs Otimizada
+
+| Aspecto | Versao Antiga | Versao Otimizada |
+|---------|---------------|------------------|
+| **Menu** | 1 nivel (10 opcoes) | 2 niveis (3 + 6 opcoes) |
+| **Volumes** | Podem ser apagados | Protegidos (externos) |
+| **Opcoes perigosas** | 2 opcoes (limpeza) | 0 opcoes (removidas) |
+| **Deploy principal** | Opcao 5 | Opcao 1 (menu inicial) |
+| **Clareza** | "Deploy completo (rapido)" | "Reiniciar Servicos" |
+| **Seguranca** | Media (requer atencao) | Alta (protegido por design) |
+| **Criacao de volumes** | Manual | Automatica |
+| **Teste de protecao** | Nao existe | Script PowerShell |
+| **Parar servicos** | Opcao separada (9) | Incluido em "Reiniciar" |
+
+---
+
+## Comandos Uteis
+
+### Gerenciar volumes manualmente
+
+```bash
+# Listar todos os volumes
+docker volume ls
+
+# Inspecionar volume especifico
+docker volume inspect pgdata_prd
+
+# Ver tamanho do volume
+docker system df -v
+
+# Criar volume externo
+docker volume create pgdata_prd
+
+# Remover volume (CUIDADO!)
+docker volume rm pgdata_prd
+```
+
+### Verificar configuracao do docker-compose
+
+```bash
+# Validar sintaxe
+docker compose -f docker-compose-prd.yml config
+
+# Listar servicos
+docker compose -f docker-compose-prd.yml ps
+
+# Ver volumes usados
+docker compose -f docker-compose-prd.yml config --volumes
+```
+
+### Backup e restauracao manual
+
+```bash
+# Backup
+docker exec ifala-db-prd pg_dump -U postgres -d ifala > backup.sql
+
+# Restaurar
+docker exec -i ifala-db-prd psql -U postgres -d ifala < backup.sql
+
+# Backup comprimido
+docker exec ifala-db-prd pg_dump -U postgres -d ifala | gzip > backup.sql.gz
+
+# Restaurar comprimido
+gunzip -c backup.sql.gz | docker exec -i ifala-db-prd psql -U postgres -d ifala
+```
 
 ---
 
@@ -725,4 +1133,6 @@ Opcao para voltar para versao anterior em caso de falha
 
 - [Bash Scripting Guide](https://www.gnu.org/software/bash/manual/)
 - [Docker Compose CLI](https://docs.docker.com/compose/reference/)
+- [Docker Volumes](https://docs.docker.com/storage/volumes/)
 - [ANSI Color Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
+- [PostgreSQL Backup & Restore](https://www.postgresql.org/docs/current/backup.html)

@@ -34,9 +34,9 @@ public class SecurityConfig {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/api/v1/auth/login", "/actuator/**",
-                "/api/v1/auth/redefinir-senha/**", "/api/v1/public/**", "/api/v1/auth/refresh",
-                "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/webjars/**",
-                "/swagger-resources/**")
+                "/api/v1/auth/redefinir-senha/**", "/api/v1/auth/validar-token-redefinicao",
+                "/api/v1/public/**", "/api/v1/auth/refresh", "/api/v1/utils/**", "/swagger-ui/**",
+                "/v3/api-docs/**", "/swagger-ui.html", "/webjars/**", "/swagger-resources/**")
             .permitAll()
             // Todas as outras rotas necessitam de autenticação
             .anyRequest().authenticated())

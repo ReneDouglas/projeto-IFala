@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * DTO para respostas de autenticação.
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 @Schema(name = "Resposta de Autenticação",
     description = "Objeto de resposta para operações de login, logout e primeiro acesso.")

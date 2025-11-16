@@ -46,8 +46,8 @@ export const DenunciaCard = ({
   const getPriorityColor = (status: string) => {
     const priorities: { [key: string]: string } = {
       EM_ANALISE: 'high-priority',
-      AGUARDANDO_INFORMACOES: 'medium-priority',
-      RECEPTADO: 'low-priority',
+      AGUARDANDO: 'medium-priority',
+      RECEBIDO: 'low-priority',
       RESOLVIDO: 'resolved',
       REJEITADO: 'rejected',
     };

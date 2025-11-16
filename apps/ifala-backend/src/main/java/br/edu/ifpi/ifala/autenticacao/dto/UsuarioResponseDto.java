@@ -8,6 +8,7 @@ import br.edu.ifpi.ifala.shared.enums.Perfis;
  * etc.
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 public record UsuarioResponseDTO(String nome, String email, String username, List<Perfis> roles) {
 }

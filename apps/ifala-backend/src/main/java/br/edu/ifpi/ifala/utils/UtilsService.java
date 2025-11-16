@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
  * usar enums Java conforme especificação da Task #74.
  *
  * @author luisthedevmagician
- * @author GitHub Copilot (correção)
+ * @author Guilherme Alves (correção)
  */
 @Service
 public class UtilsService {

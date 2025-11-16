@@ -18,6 +18,7 @@ public interface AuthService {
    * @throws IllegalArgumentException se o e-mail ou username já estiverem em uso.
    * 
    * @author Phaola
+   * @author Jhonatas G Ribeiro
    */
   UsuarioResponseDTO registrarUsuario(RegistroRequestDTO registroRequest);
 
@@ -41,6 +42,16 @@ public interface AuthService {
    * @return O DTO de resposta de login com novos tokens após a mudança de senha.
    */
   LoginResponseDTO changePassword(MudarSenhaRequestDTO req);
+
+  /**
+   * Obtém o email do usuário pelo token de redefinição de senha.
+   * 
+   * @param token O token de redefinição de senha.
+   * @return O email do usuário associado ao token.
+   * @throws InvalidTokenException se o token for inválido.
+   * @throws TokenExpiredException se o token estiver expirado.
+   */
+  String getEmailByResetToken(String token);
 
   /**
    * Gera um novo Access Token usando um Refresh Token válido. * @param req O DTO de requisição de

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * DTO para requisições de logout.
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 @Schema(name = "Requisição de Logout",
     description = "Dados necessários para invalidar a sessão de um usuário.")

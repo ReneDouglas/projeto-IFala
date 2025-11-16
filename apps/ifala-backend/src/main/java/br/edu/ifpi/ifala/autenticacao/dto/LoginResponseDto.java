@@ -4,6 +4,7 @@ package br.edu.ifpi.ifala.autenticacao.dto;
  * DTO para respostas de login.
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 
 import java.time.Instant;

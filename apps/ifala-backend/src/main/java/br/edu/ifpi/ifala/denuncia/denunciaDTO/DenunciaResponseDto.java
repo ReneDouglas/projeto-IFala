@@ -10,9 +10,6 @@ import java.util.UUID;
  * 
  * @author Jhonatas G Ribeiro
  */
-public record DenunciaResponseDto(
-    UUID tokenAcompanhamento,
-    Status status,
-    Categorias categoria,
-    LocalDateTime criadoEm) {
+public record DenunciaResponseDto(Long id, UUID tokenAcompanhamento, Status status,
+    Categorias categoria, LocalDateTime criadoEm) {
 }

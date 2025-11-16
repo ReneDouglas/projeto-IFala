@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * DTO para requisições de primeiro acesso (username e senha temporária).
  * 
  * @author Phaola
+ * @author Jhonatas G Ribeiro
  */
 @Schema(name = "Requisição de Primeiro Acesso",
     description = "Credenciais temporárias para o primeiro acesso do usuário.")
