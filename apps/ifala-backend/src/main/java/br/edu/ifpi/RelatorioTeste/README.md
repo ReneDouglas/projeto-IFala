@@ -12,7 +12,7 @@ impedindo que o container ifala-backend fosse construído corretamente.
    crítica no processo de build do backend. Como o backend não inicia, não é
    possível acessar a aplicação e testar o fluxo de cadastro de denúncias.
 
-3. Detalhamento do Bug de Build ID do Bug: BUG-102-BUILD-01 Título: [Backend] –
+3. Detalhamento do Bug de Build ID do Bug: BUG-102-BUILD-01 Título: [Backend]
    Falha de compilação ao buildar o backend do IFala Severidade / Prioridade
    Severidade: CRÍTICA Prioridade: URGENTE
 
