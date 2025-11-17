@@ -19,7 +19,7 @@ impedindo que o container ifala-backend fosse construído corretamente.
 Passos para Reproduzir
 
 1. Abrir o projeto projeto-IFala na branch development.
-2. Rodar o comando: docker compose up -d --build
+2. Rodar o comando: docker compose up -d --build.
 3. Aguardar a etapa de compilação do backend.
 4. Observar o erro retornado pelo Maven.
 
