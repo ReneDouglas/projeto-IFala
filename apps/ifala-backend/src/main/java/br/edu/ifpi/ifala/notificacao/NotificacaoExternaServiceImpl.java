@@ -7,7 +7,7 @@ import br.edu.ifpi.ifala.autenticacao.Usuario;
 import br.edu.ifpi.ifala.notificacao.dto.EmailRequest;
 import br.edu.ifpi.ifala.notificacao.enums.TiposNotificacao;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -46,8 +46,8 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     // 1. Padrão de Título
     final String subject = "[IFala] Nova Denúncia Cadastrada";
 
-    // 2. Corpo do E-mail (HTML Template)
-    final String body = buildNovaDenunciaBody(novaDenuncia);
+    // 2. Corpo do E-mail (HTML Template) — usar token de acompanhamento (exibe últimas 3 chars)
+    final String body = buildNovaDenunciaBody(novaDenuncia.getTokenAcompanhamento());
 
     // 3. Buscar E-mails de TODOS os usuários do sistema
     List<String> emails = usuarioRepository.findAll().stream().map(Usuario::getEmail)
@@ -96,7 +96,7 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
         getShortDenunciaId(denuncia.getId()));
 
     // 2. Corpo do E-mail (HTML Template)
-    final String body = buildNovaMensagemBody(denuncia, mensagem);
+    final String body = buildNovaMensagemBody(denuncia.getTokenAcompanhamento(), mensagem);
 
     // 3. Buscar E-mails de TODOS os usuários do sistema
     List<String> emails = usuarioRepository.findAll().stream().map(Usuario::getEmail)
@@ -136,12 +136,10 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     }
   }
 
-  private String buildNovaDenunciaBody(Denuncia denuncia) {
-    String detalheSituacao =
-        (denuncia.getStatus() != null) ? denuncia.getStatus().getDisplayName() : "N/D";
-    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy. HH:mm");
-    String criadoEm = (denuncia.getCriadoEm() != null) ? denuncia.getCriadoEm().format(fmt) : "N/D";
-    String token = "*******" + getShortDenunciaId(denuncia.getId());
+  private String buildNovaDenunciaBody(java.util.UUID tokenAcompanhamento) {
+    String detalheSituacao = "N/D";
+    String criadoEm = "N/D";
+    String token = "*******" + getShortToken(tokenAcompanhamento);
 
     String painelLink = getFrontendUrl("/painel-denuncias");
 
@@ -149,43 +147,44 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
         <!doctype html>
         <html>
         <head>
-            <meta charset="utf-8">
-            <style>
-                body{font-family:Arial,Helvetica,sans-serif;color:#333}
-                .card{max-width:600px;margin:20px auto;border:1px solid #e1e1e1;border-radius:8px;overflow:hidden}
-                .header{background:#004d99;color:#fff;padding:16px}
-                .content{padding:18px}
-                .footer{background:#f6f6f6;padding:12px;text-align:center;color:#666;font-size:13px}
-                .btn{display:inline-block;padding:10px 16px;background:#007bff;color:#fff;text-decoration:none;border-radius:6px}
-            </style>
+          <meta charset="utf-8">
+          <style>
+            body{font-family:Arial,Helvetica,sans-serif;color:#333}
+            .card{max-width:600px;margin:20px auto;border:1px solid #e1e1e1;border-radius:8px;overflow:hidden}
+            .header{background:#004d99;color:#fff;padding:16px}
+            .content{padding:18px}
+            .footer{background:#f6f6f6;padding:12px;text-align:center;color:#666;font-size:13px}
+            .btn{display:inline-block;padding:10px 16px;background:#007bff;color:#fff;text-decoration:none;border-radius:6px}
+          </style>
         </head>
         <body>
-            <div class="card">
-                <div class="header">
-                    <h2 style="margin:0;font-size:18px">IFala — Nova Denúncia Cadastrada</h2>
-                </div>
-                <div class="content">
-                    <p>Olá,</p>
-                    <p>Uma nova denúncia foi cadastrada no sistema IFala. Seguem os principais detalhes:</p>
-                    <ul>
-                        <li><strong>Token:</strong> %s</li>
-                        <li><strong>Data/Hora:</strong> %s</li>
-                        <li><strong>Situação:</strong> %s</li>
-                    </ul>
-                    <p>Para visualizar a denúncia completa e tomar as providências, acesse o painel do sistema.</p>
-                    <p><a class="btn" href="%s">Abrir Painel de Denúncias</a></p>
-                </div>
-                <div class="footer">Equipe IFala — <em>Notificações Automáticas</em></div>
+          <div class="card">
+            <div class="header">
+              <h2 style="margin:0;font-size:18px">IFala — Nova Denúncia Cadastrada</h2>
             </div>
+            <div class="content">
+              <p>Olá,</p>
+              <p>Uma nova denúncia foi cadastrada no sistema IFala. Seguem os principais detalhes:</p>
+              <ul>
+                <li><strong>Token:</strong> %s</li>
+                <li><strong>Data/Hora:</strong> %s</li>
+                <li><strong>Situação:</strong> %s</li>
+              </ul>
+              <p>Para visualizar a denúncia completa e tomar as providências, acesse o painel do sistema.</p>
+              <p><a class="btn" href="%s">Abrir Painel de Denúncias</a></p>
+            </div>
+            <div class="footer">Equipe IFala — <em>Notificações Automáticas</em></div>
+          </div>
         </body>
         </html>
         """
         .formatted(token, criadoEm, detalheSituacao, painelLink);
   }
 
-  private String buildNovaMensagemBody(Denuncia denuncia, Acompanhamento mensagem) {
+  private String buildNovaMensagemBody(java.util.UUID tokenAcompanhamento,
+      Acompanhamento mensagem) {
     String trecho = getShortMessageText(mensagem.getMensagem());
-    String id = "*******" + getShortDenunciaId(denuncia.getId());
+    String id = "*******" + getShortToken(tokenAcompanhamento);
 
     String painelLink = getFrontendUrl("/painel-denuncias");
     return """
@@ -222,6 +221,17 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
         </html>
         """
         .formatted(id, (trecho != null ? trecho : "(sem conteúdo)"), painelLink);
+  }
+
+  private String getShortToken(java.util.UUID token) {
+    if (token == null) {
+      return "N/D";
+    }
+    String s = token.toString();
+    if (s.length() <= 3) {
+      return s;
+    }
+    return s.substring(s.length() - 3);
   }
 
   private String getFrontendUrl(String path) {
