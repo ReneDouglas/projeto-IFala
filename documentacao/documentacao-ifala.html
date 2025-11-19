@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>Documentação do Sistema IFala</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <style>
       :root {
         --bg-sidebar: #0f172a;
@@ -18,14 +19,12 @@
         --scrollbar-thumb: #1f2937;
         --code-bg: #0b1120;
         --code-border: #1f2937;
-        --badge-bg: #eef2ff;
-        --badge-text: #4f46e5;
       }
 
       * {
-        box-sizing: border-box;
         margin: 0;
         padding: 0;
+        box-sizing: border-box;
       }
 
       body {
@@ -65,36 +64,33 @@
       .sidebar::-webkit-scrollbar {
         width: 8px;
       }
+
       .sidebar::-webkit-scrollbar-track {
         background: var(--scrollbar-bg);
       }
+
       .sidebar::-webkit-scrollbar-thumb {
         background: var(--scrollbar-thumb);
         border-radius: 999px;
-      }
-
-      .brand {
-        margin-bottom: 1.5rem;
       }
 
       .brand h1 {
         font-size: 1.25rem;
         font-weight: 700;
         display: flex;
+        gap: 0.4rem;
         align-items: center;
-        gap: 0.5rem;
       }
 
-      .brand span.logo-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+      .logo-badge {
         width: 28px;
         height: 28px;
-        border-radius: 0.75rem;
         background: linear-gradient(135deg, #22c55e, #22d3ee);
+        border-radius: 0.75rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         font-weight: 800;
-        font-size: 0.9rem;
         color: #020617;
       }
 
@@ -105,251 +101,95 @@
       }
 
       .sidebar-section-title {
+        margin-top: 1.5rem;
+        margin-bottom: 0.6rem;
         font-size: 0.8rem;
+        color: #9ca3af;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        color: #9ca3af;
-        margin: 1.25rem 0 0.5rem;
       }
 
       .nav-list {
         list-style: none;
-        font-size: 0.9rem;
-      }
-
-      .nav-item {
-        margin-bottom: 0.15rem;
       }
 
       .nav-link {
         display: block;
-        padding: 0.35rem 0.6rem;
+        padding: 0.35rem 0.55rem;
         border-radius: 0.5rem;
         color: #e5e7eb;
-        text-decoration: none;
-        cursor: pointer;
+        font-size: 0.9rem;
       }
 
       .nav-link:hover {
-        background: rgba(148, 163, 184, 0.2);
+        background: rgba(148, 163, 184, 0.25);
       }
 
       .nav-link.active {
-        background: rgba(37, 99, 235, 0.25);
-        color: #ffffff;
-        font-weight: 600;
+        background: rgba(37, 99, 235, 0.4);
       }
 
       .nav-link.small {
+        padding-left: 1.2rem;
         font-size: 0.85rem;
-        padding-left: 1.5rem;
       }
 
       .nav-link.tiny {
+        padding-left: 2rem;
         font-size: 0.8rem;
-        padding-left: 2.1rem;
       }
 
-      .nav-note {
-        margin-top: 1.5rem;
-        padding: 0.75rem 0.6rem;
-        border-radius: 0.75rem;
-        background: rgba(15, 23, 42, 0.8);
-        border: 1px solid rgba(148, 163, 184, 0.35);
-        font-size: 0.78rem;
-        color: #cbd5f5;
-      }
-
-      .nav-note strong {
-        color: #e5e7eb;
-      }
-
-      /* MAIN CONTENT */
+      /* MAIN */
       .main {
         flex: 1;
-        padding: 1.75rem 2.25rem;
+        padding: 2rem;
         max-width: 1100px;
         margin: 0 auto;
       }
 
-      .page-header {
-        margin-bottom: 1.25rem;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 0.75rem;
-        align-items: baseline;
-      }
-
-      .page-header h2 {
-        font-size: 1.6rem;
-        font-weight: 700;
-      }
-
-      .page-header .meta {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        align-items: center;
-      }
-
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.15rem 0.6rem;
-        border-radius: 999px;
-        font-size: 0.78rem;
-        background: var(--badge-bg);
-        color: var(--badge-text);
-        font-weight: 600;
-      }
-
-      .badge span.dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 999px;
-        background: #22c55e;
-      }
-
-      .card {
-        background: var(--bg-card);
-        border-radius: 0.85rem;
-        padding: 1.25rem 1.4rem;
-        border: 1px solid var(--border-subtle);
-        box-shadow: 0 10px 15px -12px rgba(15, 23, 42, 0.25);
-        margin-bottom: 1.25rem;
-      }
-
-      .card h3 {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
-      }
-
-      .card p {
-        font-size: 0.95rem;
-        color: var(--text-main);
-      }
-
-      .card ul {
-        margin-left: 1.2rem;
-        margin-top: 0.35rem;
-        margin-bottom: 0.35rem;
-        font-size: 0.95rem;
-      }
-
-      .card li + li {
-        margin-top: 0.15rem;
-      }
-
       .section {
-        margin-bottom: 2rem;
-        scroll-margin-top: 1.5rem;
+        margin-bottom: 2.5rem;
       }
 
       .section h2 {
-        font-size: 1.35rem;
-        margin-bottom: 0.4rem;
+        font-size: 1.6rem;
+        margin-bottom: 0.75rem;
       }
 
       .section h3 {
-        font-size: 1.1rem;
-        margin-top: 0.9rem;
-        margin-bottom: 0.3rem;
+        font-size: 1.25rem;
+        margin: 1rem 0 0.5rem;
       }
 
       .section h4 {
-        font-size: 0.98rem;
-        margin-top: 0.75rem;
-        margin-bottom: 0.2rem;
-      }
-
-      .section p {
-        margin-bottom: 0.4rem;
-        font-size: 0.95rem;
-        color: var(--text-main);
-      }
-
-      .muted {
-        color: var(--text-muted);
-        font-size: 0.9rem;
-      }
-
-      .highlight {
-        background: var(--accent-soft);
-        border-radius: 0.55rem;
-        padding: 0.7rem 0.9rem;
-        font-size: 0.9rem;
-        border-left: 3px solid var(--accent);
-        margin: 0.4rem 0;
-      }
-
-      .grid {
-        display: grid;
-        gap: 0.7rem;
-      }
-
-      .grid-2 {
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      }
-
-      .key-value {
-        display: grid;
-        grid-template-columns: 160px minmax(0, 1fr);
-        gap: 0.25rem 1rem;
-        font-size: 0.9rem;
-      }
-
-      .key-value dt {
-        font-weight: 600;
-        color: var(--text-muted);
-      }
-
-      .key-value dd {
-        margin: 0;
-      }
-
-      .tag {
-        display: inline-flex;
-        padding: 0.05rem 0.4rem;
-        border-radius: 999px;
-        font-size: 0.78rem;
-        background: #f3f4f6;
-        color: #4b5563;
-        border: 1px solid #e5e7eb;
+        font-size: 1.05rem;
+        margin: 0.75rem 0 0.35rem;
       }
 
       .code-block {
         background: var(--code-bg);
-        border-radius: 0.6rem;
-        padding: 0.8rem;
-        border: 1px solid var(--code-border);
         color: #e5e7eb;
-        font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo,
-          Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-        font-size: 0.85rem;
+        padding: 0.9rem;
+        border-radius: 0.5rem;
+        font-family: monospace;
+        margin: 0.6rem 0 1rem;
         overflow-x: auto;
-        margin: 0.5rem 0 0.7rem;
+        font-size: 0.85rem;
+        border: 1px solid var(--code-border);
       }
 
-      .code-inline {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-          'Liberation Mono', 'Courier New', monospace;
-        font-size: 0.85rem;
-        background: #111827;
-        color: #e5e7eb;
-        padding: 0.08rem 0.35rem;
-        border-radius: 0.3rem;
-        border: 1px solid #1f2937;
+      ul,
+      ol {
+        margin-left: 1.2rem;
+        margin-bottom: 0.6rem;
       }
 
       table {
         width: 100%;
         border-collapse: collapse;
-        margin: 0.6rem 0;
+        margin: 0.8rem 0 1.2rem;
         font-size: 0.9rem;
+        background: #fff;
       }
 
       th,
@@ -360,794 +200,593 @@
       }
 
       th {
-        background: #f3f4f6;
-        font-weight: 600;
-      }
-
-      .todo-box {
-        border-radius: 0.6rem;
-        border: 1px dashed #f97316;
-        background: #fffbeb;
-        padding: 0.7rem 0.9rem;
-        font-size: 0.9rem;
-        margin: 0.6rem 0;
-        color: #92400e;
-      }
-
-      .pill {
-        display: inline-block;
-        padding: 0.1rem 0.6rem;
-        border-radius: 999px;
         background: #e5e7eb;
-        font-size: 0.78rem;
-        color: #374151;
-        margin-right: 0.3rem;
-        margin-top: 0.2rem;
-      }
-
-      @media (max-width: 900px) {
-        .layout {
-          flex-direction: column;
-        }
-        .sidebar {
-          position: relative;
-          width: 100%;
-          height: auto;
-          border-bottom: 1px solid #1f2937;
-        }
-        .main {
-          padding: 1.25rem 1rem 2rem;
-        }
       }
     </style>
   </head>
+
   <body>
     <div class="layout">
       <!-- SIDEBAR -->
       <aside class="sidebar">
         <div class="brand">
-          <h1>
-            <span class="logo-badge">IF</span>
-            IFala – Docs
-          </h1>
-          <p>Guia interno de arquitetura, uso e desenvolvimento.</p>
+          <h1><span class="logo-badge">IF</span>IFala Docs</h1>
+          <p>Documentação oficial do sistema</p>
         </div>
 
-        <div>
-          <div class="sidebar-section-title">Visão Geral</div>
-          <ul class="nav-list">
-            <li class="nav-item">
-              <a href="#sobre-ifala" class="nav-link">Sobre o IFala</a>
-            </li>
-            <li class="nav-item">
-              <a href="#equipe-desenvolvimento" class="nav-link"
-                >Equipe de Desenvolvimento</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#primeiros-passos" class="nav-link">Primeiros passos</a>
-            </li>
-          </ul>
+        <div class="sidebar-section-title">Visão Geral</div>
+        <ul class="nav-list">
+          <li><a href="#sobre-ifala" class="nav-link">Sobre o IFala</a></li>
+          <li>
+            <a href="#equipe-desenvolvimento" class="nav-link"
+              >Equipe de Desenvolvimento</a
+            >
+          </li>
+          <li>
+            <a href="#primeiros-passos" class="nav-link">Primeiros passos</a>
+          </li>
+        </ul>
 
-          <div class="sidebar-section-title">Fluxos por Perfil</div>
-          <ul class="nav-list">
-            <li class="nav-item">
-              <a href="#para-aluno" class="nav-link">Para o aluno</a>
-            </li>
-            <li class="nav-item">
-              <a href="#para-aluno-denuncia" class="nav-link small"
-                >Como realizar uma denúncia</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#para-aluno-acompanhamento" class="nav-link small"
-                >Acompanhamento da denúncia</a
-              >
-            </li>
+        <div class="sidebar-section-title">Para o aluno</div>
+        <ul class="nav-list">
+          <li><a href="#para-aluno" class="nav-link">Visão geral</a></li>
+          <li>
+            <a href="#como-realizar-denuncia" class="nav-link small"
+              >Como realizar uma denúncia</a
+            >
+          </li>
+          <li>
+            <a href="#como-acompanhar-denuncia" class="nav-link small"
+              >Como funciona o acompanhamento</a
+            >
+          </li>
+        </ul>
 
-            <li class="nav-item">
-              <a href="#para-servidor" class="nav-link"
-                >Para o servidor coordenador</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#servidor-login" class="nav-link small"
-                >Realizando o login</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#servidor-cadastro" class="nav-link small"
-                >Cadastro de novo servidor</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#servidor-painel" class="nav-link small"
-                >Painel de denúncias</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#servidor-acompanhamento" class="nav-link small"
-                >Acompanhamento de denúncia</a
-              >
-            </li>
-          </ul>
+        <div class="sidebar-section-title">Para o servidor</div>
+        <ul class="nav-list">
+          <li><a href="#para-servidor" class="nav-link">Visão geral</a></li>
+          <li>
+            <a href="#login-servidor" class="nav-link small"
+              >Realizando o login</a
+            >
+          </li>
+          <li>
+            <a href="#cadastro-servidor" class="nav-link small"
+              >Cadastro de novo servidor</a
+            >
+          </li>
+          <li>
+            <a href="#painel-denuncias" class="nav-link small"
+              >Painel de denúncias</a
+            >
+          </li>
+          <li>
+            <a href="#acompanhar-servidor" class="nav-link small"
+              >Acompanhamento de denúncia</a
+            >
+          </li>
+        </ul>
 
-          <div class="sidebar-section-title">Arquitetura & Serviços</div>
-          <ul class="nav-list">
-            <li class="nav-item">
-              <a href="#arquitetura" class="nav-link">Arquitetura Geral</a>
-            </li>
-            <li class="nav-item">
-              <a href="#fluxo-dados" class="nav-link small">Fluxo de dados</a>
-            </li>
-            <li class="nav-item">
-              <a href="#backend" class="nav-link">Backend (Spring Boot)</a>
-            </li>
-            <li class="nav-item">
-              <a href="#backend-estrutura" class="nav-link small"
-                >Estrutura de pacotes</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#backend-modulos" class="nav-link small"
-                >Módulos funcionais</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#modulo-denuncias" class="nav-link tiny"
-                >Módulo de denúncias</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#modulo-autenticacao" class="nav-link tiny"
-                >Módulo de Autenticação</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#modulo-notificacoes" class="nav-link tiny"
-                >Módulo de Notificações</a
-              >
-            </li>
+        <div class="sidebar-section-title">Arquitetura e Serviços</div>
+        <ul class="nav-list">
+          <li>
+            <a href="#arquitetura-servicos" class="nav-link"
+              >Arquitetura e Serviços</a
+            >
+          </li>
+          <li>
+            <a href="#arquitetura-geral" class="nav-link small"
+              >Arquitetura Geral</a
+            >
+          </li>
+          <li>
+            <a href="#fluxo-dados" class="nav-link small">Fluxo de dados</a>
+          </li>
+          <li><a href="#backend" class="nav-link">Backend (Spring Boot)</a></li>
+          <li>
+            <a href="#backend-estrutura-pacotes" class="nav-link small"
+              >Estrutura de pacotes</a
+            >
+          </li>
+          <li>
+            <a href="#backend-modulos-funcionais" class="nav-link small"
+              >Módulos Funcionais</a
+            >
+          </li>
+          <li>
+            <a href="#frontend" class="nav-link">Frontend (React + Vite)</a>
+          </li>
+          <li>
+            <a href="#frontend-estrutura" class="nav-link small"
+              >Estrutura de pacotes</a
+            >
+          </li>
+          <li>
+            <a href="#frontend-componentes" class="nav-link small"
+              >Componentes principais</a
+            >
+          </li>
+          <li>
+            <a href="#frontend-roteamento" class="nav-link small"
+              >Roteamento e Navegação</a
+            >
+          </li>
+          <li>
+            <a href="#frontend-integracao-api" class="nav-link small"
+              >Integração com a API</a
+            >
+          </li>
+          <li><a href="#banco-dados" class="nav-link">Banco de Dados</a></li>
+          <li>
+            <a href="#banco-mer" class="nav-link small"
+              >Modelo entidade-relacionamento</a
+            >
+          </li>
+          <li>
+            <a href="#banco-flyway" class="nav-link small"
+              >Migração com Flyway</a
+            >
+          </li>
+          <li><a href="#monitoramento" class="nav-link">Monitoramento</a></li>
+          <li>
+            <a href="#monitoramento-fluxo" class="nav-link small"
+              >Fluxo de monitoramento</a
+            >
+          </li>
+          <li>
+            <a href="#monitoramento-actuator" class="nav-link small"
+              >Spring Boot Actuator</a
+            >
+          </li>
+          <li>
+            <a href="#monitoramento-prometheus" class="nav-link small"
+              >Prometheus</a
+            >
+          </li>
+          <li>
+            <a href="#monitoramento-promtail" class="nav-link small"
+              >Promtail</a
+            >
+          </li>
+          <li>
+            <a href="#monitoramento-grafana" class="nav-link small">Grafana</a>
+          </li>
+          <li><a href="#monitoramento-loki" class="nav-link small">Loki</a></li>
+          <li>
+            <a href="#monitorar-producao" class="nav-link small"
+              >Monitorar em produção</a
+            >
+          </li>
+          <li>
+            <a href="#acesso-grafana" class="nav-link small">Acessar Grafana</a>
+          </li>
+          <li>
+            <a href="#dashboard-aplicacao" class="nav-link small"
+              >Dashboard da aplicação</a
+            >
+          </li>
+          <li>
+            <a href="#tecnologias" class="nav-link">Tecnologias utilizadas</a>
+          </li>
+        </ul>
 
-            <li class="nav-item">
-              <a href="#frontend" class="nav-link"
-                >Frontend (React + Vite + TypeScript)</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#frontend-estrutura" class="nav-link small"
-                >Estrutura de pacotes</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#frontend-componentes" class="nav-link small"
-                >Componentes principais</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#frontend-roteamento" class="nav-link small"
-                >Roteamento & Navegação</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#frontend-integracao-api" class="nav-link small"
-                >Integração com API</a
-              >
-            </li>
-
-            <li class="nav-item">
-              <a href="#banco-dados" class="nav-link">Banco de Dados</a>
-            </li>
-            <li class="nav-item">
-              <a href="#bd-mer" class="nav-link small"
-                >Modelo entidade-relacionamento</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#bd-flyway" class="nav-link small"
-                >Migração com Flyway</a
-              >
-            </li>
-
-            <li class="nav-item">
-              <a href="#monitoramento" class="nav-link">Monitoramento</a>
-            </li>
-            <li class="nav-item">
-              <a href="#monitoramento-fluxo" class="nav-link small"
-                >Fluxo de monitoramento</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#monitoramento-actuator" class="nav-link small"
-                >Spring Boot Actuator</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#monitoramento-prometheus" class="nav-link small"
-                >Prometheus</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#monitoramento-promptail" class="nav-link small"
-                >Promptail</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#monitoramento-grafana" class="nav-link small"
-                >Grafana & Loki</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#monitoramento-producao" class="nav-link small"
-                >Monitorar em produção</a
-              >
-            </li>
-
-            <li class="nav-item">
-              <a href="#tecnologias" class="nav-link">Tecnologias Utilizadas</a>
-            </li>
-          </ul>
-
-          <div class="sidebar-section-title">Guia de Desenvolvimento</div>
-          <ul class="nav-list">
-            <li class="nav-item">
-              <a href="#dev-branches" class="nav-link"
-                >Criação de nova branch</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#dev-commits" class="nav-link"
-                >Boas práticas de commits</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#dev-pr" class="nav-link">Criar Pull Request</a>
-            </li>
-            <li class="nav-item">
-              <a href="#dev-deploy" class="nav-link">Deploy em produção</a>
-            </li>
-            <li class="nav-item">
-              <a href="#dev-docker" class="nav-link small"
-                >Conteinerização com Docker</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#dev-nginx" class="nav-link small"
-                >Sobre o NGINX Gateway</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#dev-env-vars" class="nav-link small"
-                >Variáveis de ambiente</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#dev-credenciais" class="nav-link small"
-                >Credenciais de produção</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#dev-pipelines" class="nav-link small">Pipelines</a>
-            </li>
-            <li class="nav-item">
-              <a href="#dev-pipelines-cli" class="nav-link tiny"
-                >Passo a passo (CLI)</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="#dev-pipelines-tui" class="nav-link tiny"
-                >Deploy via tui.sh / TUI</a
-              >
-            </li>
-          </ul>
-
-          <div class="nav-note">
-            <strong>Observações da Task</strong><br />
-            • Não mover do <em>Backlog</em>.<br />
-            • Não atribuir assignees.<br />
-            • Trabalho colaborativo e aberto para quem quiser contribuir.<br />
-            • Interessados em documentar devem se manifestar diretamente com o
-            responsável.
-          </div>
-        </div>
+        <div class="sidebar-section-title">Guia de Desenvolvimento</div>
+        <ul class="nav-list">
+          <li>
+            <a href="#guia-dev" class="nav-link">Guia de Desenvolvimento</a>
+          </li>
+          <li>
+            <a href="#criar-branch" class="nav-link small"
+              >Criação de uma Nova Branch</a
+            >
+          </li>
+          <li>
+            <a href="#boas-praticas-commits" class="nav-link small"
+              >Boas Práticas de Commits</a
+            >
+          </li>
+          <li>
+            <a href="#criar-pr" class="nav-link small">Criar Pull Request</a>
+          </li>
+          <li>
+            <a href="#deploy-producao" class="nav-link small"
+              >Deploy em produção</a
+            >
+          </li>
+          <li>
+            <a href="#docker" class="nav-link small"
+              >Conteinerização com Docker</a
+            >
+          </li>
+          <li>
+            <a href="#nginx-gateway" class="nav-link small">NGINX Gateway</a>
+          </li>
+          <li>
+            <a href="#variaveis-ambiente" class="nav-link small"
+              >Variáveis de Ambiente</a
+            >
+          </li>
+          <li>
+            <a href="#credenciais-producao" class="nav-link small"
+              >Credenciais para produção</a
+            >
+          </li>
+          <li><a href="#pipelines" class="nav-link small">Pipelines</a></li>
+          <li>
+            <a href="#passo-a-passo-cli" class="nav-link small"
+              >Passo a passo via linha de comando</a
+            >
+          </li>
+          <li>
+            <a href="#deploy-tui" class="nav-link small">Deploy via tui.sh</a>
+          </li>
+          <li><a href="#sobre-tui" class="nav-link small">Sobre o TUI</a></li>
+        </ul>
       </aside>
 
-      <!-- MAIN CONTENT -->
+      <!-- MAIN -->
       <main class="main">
-        <header class="page-header">
-          <div>
-            <h2>Documentação do Sistema IFala</h2>
-            <p class="muted">
-              Versão inicial da documentação interna. Atualize este documento
-              sempre que novas features forem adicionadas ou a arquitetura
-              sofrer mudanças significativas.
-            </p>
-          </div>
-          <div class="meta">
-            <span class="badge">
-              <span class="dot"></span>
-              Internal use only
-            </span>
-            <span
-              >Última atualização:
-              <!-- atualize manualmente -->DD/MM/AAAA</span
-            >
-          </div>
-        </header>
-
+        <!-- ========================================= -->
         <!-- SOBRE O IFALA -->
+        <!-- ========================================= -->
         <section id="sobre-ifala" class="section">
           <h2>Sobre o IFala</h2>
           <p>
-            O <strong>IFala</strong> é uma plataforma de comunicação segura e
-            anônima voltada para instituições de ensino, com foco em permitir
-            que alunos relatem situações de assédio, violência, discriminação,
-            bullying ou qualquer outra ocorrência que impacte o ambiente
-            escolar/acadêmico.
+            O IFala é um sistema desenvolvido para o IFPI com o objetivo de
+            centralizar, organizar e acompanhar denúncias feitas por alunos,
+            garantindo sigilo, rastreabilidade e transparência no tratamento dos
+            casos.
           </p>
           <p>
-            O sistema oferece um fluxo completo de
-            <strong>registro, triagem, acompanhamento e notificação</strong>
-            envolvendo alunos e servidores coordenadores, garantindo:
+            Ele permite que alunos registrem denúncias (podendo optar por
+            anonimato), e que servidores coordenadores acompanhem, analisem e
+            atuem em cada caso seguindo um fluxo padrão definido
+            institucionalmente.
           </p>
-          <ul>
-            <li>Anonimato e proteção dos denunciantes.</li>
-            <li>Registro estruturado das denúncias.</li>
-            <li>Acompanhamento do status pela parte denunciante.</li>
-            <li>Painel de gestão para servidores responsáveis.</li>
-            <li>Auditoria e rastreabilidade das ações realizadas.</li>
-          </ul>
-
-          <div class="highlight">
-            <strong>Objetivo principal:</strong> criar um canal oficial, seguro
-            e rastreável para denúncias internas, reduzindo subnotificações e
-            apoiando decisões institucionais baseadas em dados.
-          </div>
         </section>
 
-        <!-- EQUIPE DE DESENVOLVIMENTO -->
+        <!-- ========================================= -->
+        <!-- EQUIPE -->
+        <!-- ========================================= -->
         <section id="equipe-desenvolvimento" class="section">
           <h2>Equipe de Desenvolvimento</h2>
           <p>
-            A equipe de desenvolvimento do IFala é composta por estudantes e
-            servidores do IFPI, organizada em papéis que podem variar por ciclo
-            de desenvolvimento. Utilize esta seção para registrar quem está
-            atualmente responsável por cada área.
+            A documentação foi pensada para ser colaborativa. A task de
+            documentação:
           </p>
-
-          <dl class="key-value">
-            <dt>Coordenação técnica:</dt>
-            <dd>
-              <!-- Preencher com nome(s) do(s) responsável(eis) técnico(s) -->
-            </dd>
-
-            <dt>Backend (Spring Boot):</dt>
-            <dd><!-- Nomes dos responsáveis pelo backend --></dd>
-
-            <dt>Frontend (React + Vite + TS):</dt>
-            <dd><!-- Nomes dos responsáveis pelo frontend --></dd>
-
-            <dt>Banco de Dados / DevOps:</dt>
-            <dd><!-- Nomes dos responsáveis por infra, BD, CI/CD --></dd>
-
-            <dt>Monitoramento & Observabilidade:</dt>
-            <dd><!-- Nomes responsáveis --></dd>
-
-            <dt>Product Owner / Requisitos:</dt>
-            <dd><!-- Responsável por priorização e backlog --></dd>
-          </dl>
-
-          <p class="muted">
-            Atualize esta tabela a cada troca de semestre ou reorganização da
-            equipe.
-          </p>
+          <ul>
+            <li>Não deve ser movida do Backlog;</li>
+            <li>Não deve ser associada a nenhum assignee específico;</li>
+            <li>Requer trabalho mútuo da equipe;</li>
+            <li>
+              É uma oportunidade para quem ainda não contribuiu com o projeto;
+            </li>
+            <li>
+              Interessados devem se manifestar diretamente com o
+              mantenedor/responsável.
+            </li>
+          </ul>
         </section>
 
+        <!-- ========================================= -->
         <!-- PRIMEIROS PASSOS -->
+        <!-- ========================================= -->
         <section id="primeiros-passos" class="section">
           <h2>Primeiros passos</h2>
+
+          <h3>Clonando o repositório</h3>
+          <div class="code-block">
+            git clone &lt;https://ifala.ifpi.edu.br&gt; cd projeto-IFala
+          </div>
+
+          <h3>Subindo o ambiente com Docker</h3>
           <p>
-            Esta seção orienta novos colaboradores sobre como configurar o
-            ambiente de desenvolvimento e entender rapidamente os módulos do
-            sistema.
+            O ambiente local é orquestrado via
+            <code>docker-compose.yml</code> na raiz do projeto.
           </p>
-
-          <div class="grid grid-2">
-            <div class="card">
-              <h3>1. Requisitos de ambiente</h3>
-              <ul>
-                <li>Git e acesso ao repositório do IFala (GitHub/GitLab).</li>
-                <li>Docker e Docker Compose instalados.</li>
-                <li>
-                  JDK 17+ (confirmar a versão exata utilizada no projeto) para o
-                  backend.
-                </li>
-                <li>
-                  Node.js (LTS) e pnpm/yarn/npm para o frontend (ver seção de
-                  tecnologias).
-                </li>
-                <li>IDE/Editor: IntelliJ IDEA / VS Code / outro.</li>
-              </ul>
-            </div>
-
-            <div class="card">
-              <h3>2. Clonando o projeto</h3>
-              <div class="code-block">
-                git clone &lt;URL_DO_REPOSITORIO_IFALA&gt;<br />
-                cd projeto-IFala
-              </div>
-              <p class="muted">
-                Consulte o README principal do repositório para detalhes
-                adicionais de configuração.
-              </p>
-            </div>
-          </div>
-
-          <div class="card">
-            <h3>3. Subindo a stack via Docker</h3>
-            <p>
-              O projeto disponibiliza uma orquestração via
-              <code class="code-inline">docker-compose</code> que sobe backend,
-              banco de dados e serviços auxiliares (como Prometheus, Grafana,
-              etc., dependendo da configuração atual).
-            </p>
-            <div class="code-block">
-              # subir todos os serviços em modo detached<br />
-              docker compose up -d --build
-            </div>
-            <p>
-              Após o build, verifique se os containers essenciais estão
-              saudáveis:
-            </p>
-            <div class="code-block">docker compose ps</div>
-          </div>
+          <div class="code-block">docker compose up -d --build</div>
+          <ul>
+            <li>Frontend (React + Vite): <code>http://localhost:5173</code></li>
+            <li>Backend (Spring Boot): <code>http://localhost:8080</code></li>
+            <li>PostgreSQL: <code>localhost:5432</code></li>
+            <li>Prometheus: <code>http://localhost:9090</code></li>
+            <li>Grafana: <code>http://localhost:3000</code></li>
+            <li>Loki: <code>http://localhost:3100</code></li>
+          </ul>
         </section>
 
+        <!-- ========================================= -->
         <!-- PARA O ALUNO -->
+        <!-- ========================================= -->
         <section id="para-aluno" class="section">
           <h2>Para o aluno</h2>
           <p>
-            O aluno acessa o IFala para registrar denúncias e acompanhar o
-            andamento das ocorrências que reportou. O foco é garantir facilidade
-            de uso e sensação de segurança/anonimato.
+            Esta seção descreve o fluxo de uso do IFala pelo aluno: como
+            registrar denúncias e como acompanhar o andamento.
           </p>
 
-          <section id="para-aluno-denuncia">
+          <section id="como-realizar-denuncia">
             <h3>Como realizar uma denúncia</h3>
             <ol>
+              <li>Acessar a interface do IFala destinada ao aluno.</li>
+              <li>Clicar em <strong>Nova denúncia</strong> ou equivalente.</li>
               <li>
-                Acessar a URL pública do IFala informada pela instituição (ex.:
-                portal do IFala).
+                Preencher:
+                <ul>
+                  <li>Categoria (assédio, bullying, discriminação, etc.);</li>
+                  <li>Descrição detalhada do ocorrido;</li>
+                  <li>Local, data e envolvidos (se desejar informar);</li>
+                  <li>Marcar se a denúncia será anônima ou identificada.</li>
+                </ul>
               </li>
+              <li>Anexar arquivos (opcional: prints, fotos, PDFs).</li>
               <li>
-                Selecionar a opção
-                <strong>“Registrar denúncia”</strong> na tela inicial.
-              </li>
-              <li>
-                Preencher os campos obrigatórios, como categoria da ocorrência,
-                descrição detalhada, local/data aproximada, pessoas envolvidas
-                (quando aplicável) e anexos (se disponível).
-              </li>
-              <li>
-                Confirmar se deseja enviar a denúncia de forma anônima ou
-                identificada (conforme política da instituição).
-              </li>
-              <li>
-                Enviar a denúncia e guardar o código de acompanhamento gerado
-                pelo sistema.
+                Enviar a denúncia e salvar o
+                <strong>código de acompanhamento</strong>.
               </li>
             </ol>
-            <p class="muted">
-              O código de acompanhamento é a chave para que o aluno acompanhe a
-              evolução da denúncia sem necessidade de login.
-            </p>
           </section>
 
-          <section id="para-aluno-acompanhamento">
+          <section id="como-acompanhar-denuncia">
             <h3>Como funciona o acompanhamento da denúncia</h3>
-            <p>
-              O acompanhamento pode ser feito pela tela pública de
-              <strong>“Acompanhar denúncia”</strong>, onde o aluno informa o
-              código gerado ao final do registro:
-            </p>
-            <ul>
+            <ol>
+              <li>Acessar a área <strong>Acompanhar denúncia</strong>.</li>
+              <li>Informar o código de acompanhamento gerado no envio.</li>
               <li>
-                O sistema exibe o <strong>status atual</strong> (ex.: Recebida,
-                Em análise, Em andamento, Concluída, Arquivada).
+                Visualizar:
+                <ul>
+                  <li>
+                    Status atual (Recebida, Em análise, Em andamento, Concluída,
+                    etc.);
+                  </li>
+                  <li>
+                    Histórico de movimentações (data, responsável, alteração de
+                    status);
+                  </li>
+                  <li>Mensagens da coordenação (quando apropriado).</li>
+                </ul>
               </li>
-              <li>
-                São mostrados registros de movimentações realizadas pelos
-                coordenadores, preservando a identidade do servidor.
-              </li>
-              <li>
-                Dependendo da configuração, o aluno pode receber notificações
-                por e-mail sobre mudanças de status (via módulo de
-                notificações).
-              </li>
-            </ul>
+            </ol>
           </section>
         </section>
 
+        <!-- ========================================= -->
         <!-- PARA O SERVIDOR COORDENADOR -->
+        <!-- ========================================= -->
         <section id="para-servidor" class="section">
           <h2>Para o servidor coordenador</h2>
           <p>
-            Servidores coordenadores são responsáveis por acessar o painel
-            interno, visualizar denúncias recebidas, atuar sobre elas e
-            registrar as ações tomadas.
+            Servidores coordenadores têm acesso ao painel administrativo do
+            IFala, com login, gerenciamento de usuários e acompanhamento de
+            denúncias.
           </p>
 
-          <section id="servidor-login">
+          <section id="login-servidor">
             <h3>Realizando o login</h3>
+            <p>
+              O login é realizado através da rota administrativa do frontend.
+            </p>
+            <div class="code-block">URL (dev): http://localhost:5173/admin</div>
             <ol>
+              <li>Informar e-mail institucional e senha.</li>
               <li>
-                Acessar a área restrita do IFala (ex.:
-                <code class="code-inline">/admin</code> ou rota equivalente).
+                A aplicação envia um <code>POST /api/auth/login</code> para o
+                backend.
               </li>
-              <li>Informar e-mail institucional e senha cadastrada.</li>
+              <li>O backend valida as credenciais e gera um token JWT.</li>
               <li>
-                Em caso de primeiro acesso, seguir o fluxo definido de
-                <em>“primeiro login”</em> (definir senha, aceitar termos etc.,
-                se existir).
+                O frontend armazena o token e usa em requisições autenticadas.
               </li>
             </ol>
           </section>
 
-          <section id="servidor-cadastro">
+          <section id="cadastro-servidor">
             <h3>Realizando o cadastro de um novo servidor</h3>
-            <p>
-              O cadastro de novos servidores coordenadores geralmente é feito
-              por um usuário com permissão elevada (Administrador/Coordenador
-              principal):
-            </p>
-            <ul>
-              <li>Acessar o menu de <strong>“Gestão de usuários”</strong>.</li>
-              <li>Clicar em <strong>“Adicionar servidor”</strong>.</li>
+            <ol>
               <li>
-                Preencher nome, e-mail institucional, campus/setor e perfil de
-                acesso.
+                Com um usuário autorizado, acessar o módulo de
+                <strong>Gestão de usuários</strong> no painel.
               </li>
+              <li>Clicar em <strong>Novo servidor</strong>.</li>
               <li>
-                Definir se o usuário receberá e-mail automático de criação de
-                conta para definir senha.
+                Informar dados do servidor (nome, e-mail, perfil, campus, etc.).
               </li>
-            </ul>
+              <li>Definir permissões (ex.: coordenador, administrador).</li>
+              <li>Salvar e orientar o servidor a realizar o primeiro login.</li>
+            </ol>
           </section>
 
-          <section id="servidor-painel">
+          <section id="painel-denuncias">
             <h3>Como funciona o painel de denúncias</h3>
-            <p>O painel interno apresenta:</p>
             <ul>
               <li>
-                Lista de denúncias com filtros por status, data e categoria.
+                Listagem de todas as denúncias com filtros (status, data,
+                categoria, campus).
+              </li>
+              <li>Busca por código de acompanhamento.</li>
+              <li>
+                Acesso ao detalhe da denúncia (descrição, anexos, histórico,
+                autor quando não anônimo).
               </li>
               <li>
-                Acesso ao detalhe da denúncia, incluindo histórico de
-                movimentações.
-              </li>
-              <li>
-                Ações disponíveis: atribuir responsáveis, mudar status etc.
+                Ação de alteração de status e inclusão de comentários internos.
               </li>
             </ul>
           </section>
 
-          <section id="servidor-acompanhamento">
-            <h3>Como funciona o acompanhamento de uma denúncia</h3>
-            <p>
-              Para cada denúncia, o servidor pode registrar atividades
-              (comentários internos, encaminhamentos, anexos) e alterar o status
-              do registro, o que eventualmente dispara notificações ao aluno.
-            </p>
+          <section id="acompanhar-servidor">
+            <h3>Como funciona o acompanhamento de uma denúncia (servidor)</h3>
+            <ol>
+              <li>Abrir o detalhe da denúncia no painel.</li>
+              <li>Avaliar o conteúdo, anexos e histórico.</li>
+              <li>
+                Registrar movimentações (por exemplo, “Encaminhado à coordenação
+                de curso”).
+              </li>
+              <li>Atualizar o status conforme a etapa de tratamento.</li>
+              <li>
+                As atualizações relevantes aparecem para o aluno no
+                acompanhamento.
+              </li>
+            </ol>
           </section>
         </section>
 
-        <!-- ARQUITETURA GERAL -->
-        <section id="arquitetura" class="section">
+        <!-- ========================================= -->
+        <!-- ARQUITETURA E SERVIÇOS -->
+        <!-- ========================================= -->
+        <section id="arquitetura-servicos" class="section">
           <h2>Arquitetura e Serviços</h2>
-
-          <h3>Arquitetura Geral</h3>
           <p>
-            O IFala segue uma arquitetura em camadas, com separação clara entre
-            frontend, backend, banco de dados e serviços de observabilidade.
+            O IFala é composto por três camadas principais: frontend web,
+            backend (API REST) e infraestrutura de banco de dados e
+            observabilidade.
           </p>
 
-          <div class="code-block">
-            [ Cliente (Aluno / Servidor) ]<br />
-            &nbsp;&nbsp;↕ HTTP (HTTPS recomendado)<br />
-            [ Frontend (React + Vite + TypeScript) ]<br />
-            &nbsp;&nbsp;↕ REST API / JSON<br />
-            [ Backend (Spring Boot) ]<br />
-            &nbsp;&nbsp;↕ JDBC / ORM (JPA/Hibernate)<br />
-            [ Banco de Dados Relacional ]<br />
-            <br />
-            [ Stack de Monitoramento: Actuator → Prometheus → Loki/Promptail →
-            Grafana ]
-          </div>
+          <section id="arquitetura-geral">
+            <h3>Arquitetura Geral</h3>
 
-          <p>
-            O backend expõe endpoints REST para o frontend consumir. O banco de
-            dados relacional armazena denúncias, usuários, logs de ações e
-            demais entidades, com
-            <strong>migrações gerenciadas por Flyway</strong>. Um conjunto de
-            serviços auxiliares (Prometheus, Grafana, Loki, Promptail) compõe a
-            camada de monitoramento.
-          </p>
-        </section>
-
-        <!-- FLUXO DE DADOS -->
-        <section id="fluxo-dados" class="section">
-          <h2>Fluxo de dados</h2>
-          <p>
-            O fluxo de dados ocorre majoritariamente em três eixos: registro de
-            denúncia, autenticação de usuários internos e envio de notificações.
-          </p>
-
-          <div class="code-block">
-            [1] Aluno preenche o formulário de denúncia no frontend<br />
-            &nbsp;&nbsp;→ [2] Frontend envia requisição POST /denuncias ao
-            backend<br />
-            &nbsp;&nbsp;&nbsp;&nbsp;→ [3] Backend valida dados, persiste no BD e
-            gera código de acompanhamento<br />
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ [4] Backend dispara evento
-            interno para módulo de notificações (quando aplicável)<br />
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ [5] Módulo de
-            notificações encaminha e-mail/aviso para coordenador e, se
-            permitido, para o aluno<br />
-            &nbsp;&nbsp;→ [6] Frontend recebe resposta com código de
-            acompanhamento e exibe ao aluno.
-          </div>
-
-          <p>
-            A autenticação de servidores coordenadores ocorre via módulo
-            dedicado, comunicando-se com o provedor de identidade configurado
-            (por exemplo, banco interno de usuários ou serviço externo).
-          </p>
-        </section>
-
-        <!-- BACKEND -->
-        <section id="backend" class="section">
-          <h2>Backend (Spring Boot)</h2>
-
-          <section id="backend-estrutura">
-            <h3>Estrutura de pacotes</h3>
-            <p>
-              A estrutura abaixo é um exemplo genérico. Atualize conforme o
-              projeto real:
-            </p>
+            <p>Visão geral dos componentes:</p>
             <div class="code-block">
-              br.edu.ifpi.ifala<br />
-              ├── config<br />
-              ├── core<br />
-              ├── denuncia<br />
-              │&nbsp;&nbsp;&nbsp;├── controller<br />
-              │&nbsp;&nbsp;&nbsp;├── service<br />
-              │&nbsp;&nbsp;&nbsp;├── repository<br />
-              │&nbsp;&nbsp;&nbsp;└── model<br />
-              ├── auth<br />
-              │&nbsp;&nbsp;&nbsp;├── controller<br />
-              │&nbsp;&nbsp;&nbsp;├── service<br />
-              │&nbsp;&nbsp;&nbsp;├── config<br />
-              │&nbsp;&nbsp;&nbsp;└── model<br />
-              ├── notificacao<br />
-              │&nbsp;&nbsp;&nbsp;├── controller<br />
-              │&nbsp;&nbsp;&nbsp;├── service<br />
-              │&nbsp;&nbsp;&nbsp;└── model<br />
-              └── monitoring<br />
+              [Aluno/Servidor] → Frontend (React + Vite, porta 5173) ↓ Backend
+              (Spring Boot, porta 8080) ↓ PostgreSQL (Banco de Dados) ↓
+              Monitoramento (Actuator → Prometheus → Grafana + Loki/Promtail)
+            </div>
+
+            <div class="code-block">
+              apps/ ├── ifala-backend/ # API (Spring Boot) │ └──
+              src/main/java/br/edu/ifpi/ifala/ │ ├── auth/ │ ├── denuncia/ │ ├──
+              notificacao/ │ ├── configuracao/ │ └── monitoring/ │ ├──
+              ifala-frontend/ # Interface web (React + Vite + TS) │ └── src/ │
+              ├── pages/ │ ├── components/ │ ├── layouts/ │ ├── router/ │ └──
+              services/api.ts │ └── docker/ # Arquivos de configuração de
+              monitoramento
             </div>
           </section>
 
-          <section id="backend-modulos">
-            <h3>Módulos funcionais</h3>
-
-            <section id="modulo-denuncias">
-              <h4>Módulo de denúncias</h4>
-              <p>
-                Responsável por todo o ciclo de vida da denúncia: criação,
-                atualização de status, inclusão de comentários internos,
-                anexos/mídias (se suportado) e auditoria.
-              </p>
-              <h4>Fluxo de criação e acompanhamento</h4>
-              <div class="code-block">
-                [Aluno] → Frontend (formulário de denúncia)<br />
-                &nbsp;&nbsp;→ POST /api/denuncias<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;→ Validações de negócio<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;→ Persistência com status "Recebida"<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;→ Geração de código de acompanhamento<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;→ Disparo de eventos para
-                notificações<br />
-                &nbsp;&nbsp;→ Resposta com código e status inicial<br />
-                <br />
-                [Servidor] → Painel administrativo<br />
-                &nbsp;&nbsp;→ GET /api/denuncias (filtro por status, data,
-                etc.)<br />
-                &nbsp;&nbsp;→ PUT /api/denuncias/{id} (atualização de status,
-                comentários, etc.)<br />
-                &nbsp;&nbsp;→ Histórico de ações armazenado em tabela própria
-                (ex.: denuncia_log).
-              </div>
-            </section>
-
-            <section id="modulo-autenticacao">
-              <h4>Módulo de Autenticação</h4>
-              <p>
-                Garante o login seguro de servidores coordenadores e outros
-                perfis internos, utilizando, por exemplo, JWT ou sessão com
-                cookies HTTP-only.
-              </p>
-              <h4>Fluxo de autenticação</h4>
-              <div class="code-block">
-                [Servidor] → Frontend (tela de login)<br />
-                &nbsp;&nbsp;→ POST /api/auth/login<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;→ Verificação de credenciais (e-mail +
-                senha ou provedor externo)<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;→ Geração de token (JWT) com
-                perfis/roles<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;→ Resposta para o frontend com token e
-                dados básicos<br />
-                &nbsp;&nbsp;→ Frontend armazena token com segurança (ex.:
-                localStorage ou cookie seguro)<br />
-                &nbsp;&nbsp;→ Todas as chamadas subsequentes incluem
-                Authorization: Bearer &lt;token&gt;.
-              </div>
-            </section>
-
-            <section id="modulo-notificacoes">
-              <h4>Módulo de Notificações</h4>
-              <p>
-                Centraliza o envio de notificações internas (para o painel) e
-                externas (e-mail, eventualmente outros canais).
-              </p>
-              <h4>Fluxo de notificações internas e externas</h4>
-              <div class="code-block">
-                [Backend] Evento de "Denúncia criada/atualizada"<br />
-                &nbsp;&nbsp;→ Publicação em canal interno (ex: ApplicationEvent,
-                fila, etc.)<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;→ Listener do módulo de notificações
-                consome o evento<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ Gera notificações:<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;• Internas:
-                registro em tabela de notificações e exibição no painel<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;• Externas:
-                envio de e-mail/sms dependendo da configuração.
-              </div>
-            </section>
+          <section id="fluxo-dados">
+            <h3>Fluxo de dados</h3>
+            <p>Exemplo de fluxo para criação e acompanhamento de denúncia:</p>
+            <div class="code-block">
+              [1] Frontend → POST /api/denuncias - Envia dados preenchidos pelo
+              aluno. [2] Backend: - Valida payload; - Gera código de
+              acompanhamento; - Persiste na tabela "denuncia"; - Registra
+              histórico inicial em "denuncia_log"; - Dispara evento para módulo
+              de notificações. [3] Banco de Dados (PostgreSQL): - Armazena
+              denúncia + logs. [4] Módulo de Notificações: - Envia alertas para
+              coordenadores (e-mail, painel interno). [5] Aluno → GET
+              /api/denuncias/acompanhamento/{codigo} - Recupera status +
+              histórico. [6] Servidor → PUT /api/denuncias/{id}/status -
+              Atualiza status e histórico, visível no acompanhamento do aluno.
+            </div>
           </section>
         </section>
 
+        <!-- ========================================= -->
+        <!-- BACKEND -->
+        <!-- ========================================= -->
+        <section id="backend" class="section">
+          <h2>Backend (Spring Boot)</h2>
+          <p>
+            O backend é baseado em Spring Boot, organizado por domínios
+            funcionais.
+          </p>
+
+          <section id="backend-estrutura-pacotes">
+            <h3>Estrutura de pacotes</h3>
+            <div class="code-block">
+              apps/ifala-backend/src/main/java/br/edu/ifpi/ifala/ ├── auth/ #
+              Autenticação (JWT, login) ├── denuncia/ # Fluxo de denúncias ├──
+              notificacao/ # Notificações internas/externas ├── configuracao/ #
+              Configurações globais (security, CORS, etc.) └── monitoring/ #
+              Integração com Actuator/monitoramento
+            </div>
+          </section>
+
+          <section id="backend-modulos-funcionais">
+            <h3>Módulos Funcionais</h3>
+
+            <h4>Módulo de denúncias</h4>
+            <p>Responsável pelo ciclo de vida completo das denúncias.</p>
+
+            <h4>Fluxo de criação e acompanhamento</h4>
+            <div class="code-block">
+              [1] POST /api/denuncias { "categoria": "Assédio", "descricao":
+              "...", "anonimo": true, "local": "Bloco B", "dataFato":
+              "2025-11-10" } [2] Service: - valida; - gera
+              codigo_acompanhamento; - salva na tabela "denuncia"; - cria
+              entrada em "denuncia_log"; - dispara evento para notificações. [3]
+              GET /api/denuncias/acompanhamento/{codigo} - consulta por
+              codigo_acompanhamento; - retorna status + histórico. [4] Servidor
+              atualiza status: PUT /api/denuncias/{id}/status
+            </div>
+
+            <h4>Módulo de Autenticação</h4>
+            <p>Responsável por autenticar servidores via JWT.</p>
+            <h4>Fluxo de autenticação</h4>
+            <div class="code-block">
+              [1] POST /api/auth/login { "email": "servidor@ifpi.edu.br",
+              "senha": "******" } [2] Backend: - Autentica usuário; - Gera JWT
+              com roles (ex.: ROLE_COORDENADOR); - Retorna token. [3] Frontend:-
+              Armazena token; - Envia Authorization: Bearer &lt;token&gt; em
+              rotas privadas.
+            </div>
+
+            <h4>Módulo de Notificações</h4>
+            <p>
+              Centraliza envio de notificações internas (painel) e externas
+              (e-mail), disparadas a partir de eventos do sistema.
+            </p>
+            <h4>Fluxo de notificações internas e externas</h4>
+            <div class="code-block">
+              [1] Nova denúncia criada → evento de domínio (ApplicationEvent).
+              [2] Listener de eventos: - Carrega denúncia e destinatários; -
+              Monta mensagem. [3] Notificações externas: - Envio de e-mail para
+              coordenadores. [4] Notificações internas: - Registra na tabela
+              "notificacao" para exibição no painel. [5] Atualização de status:
+              - Ao alterar status, novo evento pode disparar notificações ao
+              aluno (quando houver identificação) e responsáveis.
+            </div>
+          </section>
+        </section>
+
+        <!-- ========================================= -->
         <!-- FRONTEND -->
+        <!-- ========================================= -->
         <section id="frontend" class="section">
           <h2>Frontend (React + Vite + TypeScript)</h2>
 
           <section id="frontend-estrutura">
             <h3>Estrutura de pacotes</h3>
             <div class="code-block">
-              src/<br />
-              ├── assets/<br />
-              ├── components/<br />
-              ├── hooks/<br />
-              ├── layouts/<br />
-              ├── pages/<br />
-              │&nbsp;&nbsp;&nbsp;├── Public (Denúncia, Acompanhamento, etc.)<br />
-              │&nbsp;&nbsp;&nbsp;└── Admin (Login, Painel, Detalhe de Denúncia,
-              etc.)<br />
-              ├── router/<br />
-              ├── services/<br />
-              │&nbsp;&nbsp;&nbsp;└── api.ts<br />
-              ├── store/ (quando houver estado global)<br />
-              └── main.tsx
+              apps/ifala-frontend/src/ ├── pages/ │ ├── aluno/ │ │ ├──
+              CriarDenuncia.tsx │ │ └── AcompanharDenuncia.tsx │ └── admin/ │
+              ├── Login.tsx │ ├── Dashboard.tsx │ └── DetalheDenuncia.tsx ├──
+              components/ │ ├── Header.tsx │ ├── Sidebar.tsx │ └──
+              DenunciaCard.tsx ├── layouts/ │ ├── PublicLayout.tsx │ └──
+              AdminLayout.tsx ├── router/ │ └── index.tsx ├── services/ │ └──
+              api.ts └── main.tsx
             </div>
           </section>
 
           <section id="frontend-componentes">
             <h3>Componentes principais</h3>
             <ul>
-              <li>Formulário de registro de denúncia.</li>
-              <li>Tela de acompanhamento de denúncia por código.</li>
-              <li>Tela de login de servidores.</li>
-              <li>Painel de listagem de denúncias.</li>
-              <li>Tela de detalhes da denúncia.</li>
               <li>
-                Componentes compartilhados (header, footer, modais, etc.).
+                <strong>Header</strong> – Cabeçalho com título/logo e navegação
+                básica.
+              </li>
+              <li>
+                <strong>Sidebar</strong> – Menu lateral do painel
+                administrativo.
+              </li>
+              <li>
+                <strong>DenunciaCard</strong> – Componente para exibir uma
+                denúncia na listagem.
+              </li>
+              <li>
+                <strong>Formulários</strong> – Componentes controlados para
+                criação de denúncia, login, etc.
               </li>
             </ul>
           </section>
@@ -1155,511 +794,510 @@
           <section id="frontend-roteamento">
             <h3>Roteamento e Navegação</h3>
             <p>
-              Utiliza-se normalmente
-              <code class="code-inline">react-router</code>
-              ou outra biblioteca de roteamento compatível com Vite:
+              Usa React Router (ou similar) para mapear rotas públicas e
+              privadas.
             </p>
-            <ul>
-              <li>
-                Rotas públicas: página inicial, criar denúncia, acompanhar.
-              </li>
-              <li>
-                Rotas protegidas: painel interno, detalhes da denúncia, etc.
-              </li>
-            </ul>
+            <div class="code-block">
+              / (público) ├── "/" → CriarDenuncia └── "/acompanhar" →
+              AcompanharDenuncia /admin (privado) ├── "/admin" → Dashboard └──
+              "/admin/denuncia/:id" → DetalheDenuncia
+            </div>
           </section>
 
           <section id="frontend-integracao-api">
             <h3>Integração com a API (Spring Boot)</h3>
-            <p>
-              A comunicação é feita via HTTP, com JSON como formato padrão de
-              troca de dados.
-            </p>
+            <p>O cliente HTTP é configurado em <code>services/api.ts</code>.</p>
             <div class="code-block">
-              // Exemplo genérico de configuração de cliente HTTP<br />
-              import axios from "axios";<br /><br />
-
-              export const api = axios.create({<br />
-              &nbsp;&nbsp;baseURL: "http://localhost:8080/api", // ajustar para
-              a URL real<br />
-              });<br /><br />
-
-              // Exemplo de chamada<br />
-              export const criarDenuncia = (payload: any) =&gt;<br />
-              &nbsp;&nbsp;api.post("/denuncias", payload);
+              import axios from "axios"; export const api = axios.create({
+              baseURL: "http://localhost:8080/api", });
+              api.interceptors.request.use((config) =&gt; { const token =
+              localStorage.getItem("ifala_token"); if (token) {
+              config.headers.Authorization = `Bearer ${token}`; } return config;
+              });
             </div>
           </section>
         </section>
 
+        <!-- ========================================= -->
         <!-- BANCO DE DADOS -->
+        <!-- ========================================= -->
         <section id="banco-dados" class="section">
           <h2>Banco de Dados</h2>
 
-          <section id="bd-mer">
+          <section id="banco-mer">
             <h3>Modelo entidade-relacionamento</h3>
-            <p>
-              Esta subseção deve conter o diagrama ER oficial do projeto (pode
-              ser exportado de uma ferramenta como Draw.io, DBeaver, etc.). Aqui
-              apenas um resumo textual:
-            </p>
             <ul>
-              <li><strong>denuncia</strong>: armazena os dados principais.</li>
               <li>
-                <strong>usuario</strong>: servidores
+                <strong>denuncia</strong> – informação principal da denúncia.
+              </li>
+              <li>
+                <strong>denuncia_log</strong> – histórico de alterações de
+                status e comentários.
+              </li>
+              <li>
+                <strong>usuario</strong> – servidores
                 coordenadores/administradores.
               </li>
-              <li><strong>denuncia_log</strong>: histórico de ações/status.</li>
               <li>
-                <strong>notificacao</strong>: notificações geradas pelo sistema.
+                <strong>notificacao</strong> – notificações internas associadas
+                a eventos.
               </li>
             </ul>
           </section>
 
-          <section id="bd-flyway">
+          <section id="banco-flyway">
             <h3>Como funciona o processo de migração com Flyway</h3>
             <p>
-              O Flyway é usado para versionar o esquema do banco. Cada alteração
-              é representada por um arquivo de migração incremental.
+              As migrações são versionadas em
+              <code>src/main/resources/db/migration</code>.
             </p>
             <div class="code-block">
-              src/main/resources/db/migration/<br />
-              ├── V1__criacao_tabelas_iniciais.sql<br />
-              ├── V2__ajuste_campo_status_denuncia.sql<br />
-              └── V3__tabela_notificacoes.sql
+              apps/ifala-backend/src/main/resources/db/migration/ ├──
+              V1__criacao_tabelas_iniciais.sql ├── V2__ajustes_denuncia.sql └──
+              V3__tabela_notificacao.sql
             </div>
             <p>
-              Ao iniciar a aplicação, o Flyway compara o histórico de migrações
-              aplicadas no banco com os arquivos disponíveis e executa as
-              pendentes.
+              Ao subir o backend, o Flyway executa as migrações em ordem
+              numérica, garantindo que o banco esteja sempre alinhado com o
+              código.
             </p>
           </section>
         </section>
 
+        <!-- ========================================= -->
         <!-- MONITORAMENTO -->
+        <!-- ========================================= -->
         <section id="monitoramento" class="section">
           <h2>Monitoramento</h2>
 
           <section id="monitoramento-fluxo">
             <h3>Como funciona o fluxo de monitoramento</h3>
-            <p>
-              O monitoramento da aplicação é realizado combinando métricas do
-              Spring Boot Actuator, coleta pelo Prometheus, visualização via
-              Grafana e logs centralizados em Loki, alimentados por Promptail
-              (ou Promtail).
-            </p>
+            <div class="code-block">
+              [Backend] → expõe métricas no /actuator/prometheus ↓ [Prometheus]
+              coleta periodicamente essas métricas ↓ [Grafana] consome
+              Prometheus como datasource para dashboards ↓ [Promtail] envia logs
+              dos containers para o Loki ↓ [Loki] centraliza os logs ↓ [Grafana]
+              visualiza e pesquisa logs via Loki
+            </div>
           </section>
 
           <section id="monitoramento-actuator">
             <h3>Spring Boot Actuator</h3>
-            <p>
-              O Actuator expõe endpoints de saúde, métricas e informações
-              adicionais sobre a aplicação. Alguns endpoints comuns:
-            </p>
+            <p>Fornece endpoints de monitoramento, como:</p>
             <ul>
-              <li><code class="code-inline">/actuator/health</code></li>
-              <li><code class="code-inline">/actuator/metrics</code></li>
-              <li><code class="code-inline">/actuator/prometheus</code></li>
+              <li><code>/actuator/health</code></li>
+              <li><code>/actuator/info</code></li>
+              <li><code>/actuator/prometheus</code></li>
             </ul>
           </section>
 
           <section id="monitoramento-prometheus">
             <h3>Prometheus</h3>
             <p>
-              Responsável por <em>scrapar</em> as métricas expostas pelo
-              Actuator e armazená-las para consulta.
-            </p>
-            <p>
-              No arquivo de configuração do Prometheus, existe um <em>job</em>
-              configurado para o IFala apontando para o endpoint
-              <code class="code-inline">/actuator/prometheus</code> do backend.
+              Responsável por coletar e armazenar séries temporais de métricas.
+              A configuração inclui o backend como target no
+              <code>prometheus.yml</code>.
             </p>
           </section>
 
-          <section id="monitoramento-promptail">
-            <h3>Promptail</h3>
+          <section id="monitoramento-promtail">
+            <h3>Promtail</h3>
             <p>
-              Serviço responsável por coletar logs dos containers e encaminhar
-              para o Loki. Verificar nome correto no projeto real (Promptail vs.
-              Promtail).
+              Agente responsável por coletar logs dos containers Docker e enviar
+              para o Loki.
             </p>
           </section>
 
           <section id="monitoramento-grafana">
-            <h3>Grafana &amp; Loki</h3>
+            <h3>Grafana</h3>
             <p>
-              O Grafana é usado para visualização de métricas (Prometheus) e
-              logs (Loki), através de dashboards configuráveis.
+              Interface visual para dashboards de métricas e exploração de logs.
             </p>
+          </section>
 
-            <h4>Como acessar o Grafana</h4>
+          <section id="monitoramento-loki">
+            <h3>Loki</h3>
+            <p>
+              Banco de logs escalável, integrado com Grafana. Permite consultar
+              logs por labels, como nome do container, serviço, nível de log,
+              etc.
+            </p>
+          </section>
+
+          <section id="monitorar-producao">
+            <h3>Como monitorar a aplicação em produção</h3>
             <ul>
               <li>
-                URL:
-                <!-- Inserir URL interna do Grafana -->
+                Acompanhar dashboards de disponibilidade e uso de recursos (CPU,
+                memória, erros HTTP).
               </li>
-              <li>
-                Usuário padrão:
-                <!-- Ex: admin -->
-              </li>
-              <li>
-                Senha padrão:
-                <!-- Preencher em ambiente seguro -->
-              </li>
-            </ul>
-
-            <h4>Visualizando o dashboard da aplicação</h4>
-            <p>Um dashboard específico do IFala deve ser mantido com:</p>
-            <ul>
-              <li>Métricas de requisições HTTP (latência, taxa de erro).</li>
-              <li>Status dos serviços em produção.</li>
-              <li>Métricas de banco (conexões, tempo de query, etc.).</li>
-              <li>Volume de denúncias por período.</li>
+              <li>Monitorar taxas de erro (5xx, 4xx) por endpoint.</li>
+              <li>Observar volume de denúncias e tempo médio de resposta.</li>
             </ul>
           </section>
 
-          <section id="monitoramento-producao">
-            <h3>Como monitorar a aplicação em produção</h3>
-            <p>
-              Recomenda-se que qualquer incidente em produção seja analisado a
-              partir de:
-            </p>
+          <section id="acesso-grafana">
+            <h3>Como acessar o Grafana</h3>
+            <div class="code-block">
+              URL (dev): http://localhost:3000 Usuário/senha padrão (apenas
+              exemplo, ajustar em produção): - admin / admin
+            </div>
+          </section>
+
+          <section id="dashboard-aplicacao">
+            <h3>Visualizando o dashboard da aplicação</h3>
             <ol>
+              <li>Acessar o Grafana.</li>
+              <li>Selecionar o dashboard do IFala (quando configurado).</li>
               <li>
-                Verificação de status via
-                <code class="code-inline">/health</code>.
-              </li>
-              <li>Análise de dashboards no Grafana.</li>
-              <li>
-                Consulta a logs no Loki (busca por correlação de ID de
-                requisição).
+                Acompanhar gráficos de:
+                <ul>
+                  <li>Quantidade de requisições;</li>
+                  <li>Latência média;</li>
+                  <li>Erros por rota;</li>
+                  <li>Uso da base de dados e uso de recursos.</li>
+                </ul>
               </li>
             </ol>
           </section>
         </section>
 
+        <!-- ========================================= -->
         <!-- TECNOLOGIAS UTILIZADAS -->
+        <!-- ========================================= -->
         <section id="tecnologias" class="section">
           <h2>Tecnologias utilizadas</h2>
-          <p>Liste aqui as tecnologias oficiais e versões utilizadas:</p>
-
+          <p>
+            (Exemplos de versões – ajustar para os valores reais do projeto)
+          </p>
           <table>
             <thead>
               <tr>
-                <th>Camada</th>
                 <th>Tecnologia</th>
-                <th>Versão</th>
-                <th>Observações</th>
+                <th>Versão (exemplo)</th>
+                <th>Uso</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Backend</td>
+                <td>Java</td>
+                <td>17</td>
+                <td>Backend (Spring Boot)</td>
+              </tr>
+              <tr>
                 <td>Spring Boot</td>
-                <td><!-- Ex: 3.x.x --></td>
-                <td>Inclui Actuator, Spring Data, etc.</td>
+                <td>3.x</td>
+                <td>API REST, segurança, Actuator</td>
               </tr>
               <tr>
-                <td>Frontend</td>
-                <td>React + Vite + TypeScript</td>
-                <td><!-- Versões --></td>
-                <td>SPA para painéis público e interno.</td>
-              </tr>
-              <tr>
-                <td>Banco</td>
                 <td>PostgreSQL</td>
-                <td><!-- Versão --></td>
-                <td>Banco relacional principal.</td>
+                <td>15</td>
+                <td>Banco de dados relacional</td>
               </tr>
               <tr>
-                <td>Migrações</td>
                 <td>Flyway</td>
-                <td><!-- Versão --></td>
-                <td>Gerenciamento de schema.</td>
+                <td>9.x</td>
+                <td>Migração de banco</td>
               </tr>
               <tr>
-                <td>Monitoramento</td>
-                <td>Prometheus / Grafana / Loki</td>
-                <td><!-- Versões --></td>
-                <td>Stack de observabilidade.</td>
+                <td>Node.js</td>
+                <td>18.x</td>
+                <td>Ambiente para build do frontend</td>
               </tr>
               <tr>
-                <td>Infra</td>
-                <td>Docker / Docker Compose</td>
-                <td><!-- Versões --></td>
-                <td>Conteinerização e orquestração local.</td>
+                <td>React</td>
+                <td>18.x</td>
+                <td>Interface do usuário</td>
               </tr>
               <tr>
-                <td>Gateway</td>
+                <td>Vite</td>
+                <td>4.x</td>
+                <td>Bundler para o frontend</td>
+              </tr>
+              <tr>
+                <td>TypeScript</td>
+                <td>5.x</td>
+                <td>Tipagem estática no frontend</td>
+              </tr>
+              <tr>
+                <td>Docker</td>
+                <td>20+</td>
+                <td>Conteinerização</td>
+              </tr>
+              <tr>
+                <td>Prometheus</td>
+                <td>2.x</td>
+                <td>Coleta de métricas</td>
+              </tr>
+              <tr>
+                <td>Grafana</td>
+                <td>9.x</td>
+                <td>Dashboards e visualização</td>
+              </tr>
+              <tr>
+                <td>Loki</td>
+                <td>2.x</td>
+                <td>Centralização de logs</td>
+              </tr>
+              <tr>
+                <td>Promtail</td>
+                <td>2.x</td>
+                <td>Coleta de logs</td>
+              </tr>
+              <tr>
                 <td>NGINX</td>
-                <td><!-- Versão --></td>
-                <td>Proxy reverso e roteamento.</td>
+                <td>1.23+</td>
+                <td>Gateway / Reverse Proxy (produção)</td>
               </tr>
             </tbody>
           </table>
         </section>
 
+        <!-- ========================================= -->
         <!-- GUIA DE DESENVOLVIMENTO -->
-        <section id="dev-branches" class="section">
+        <!-- ========================================= -->
+        <section id="guia-dev" class="section">
           <h2>Guia de Desenvolvimento</h2>
+          <p>Boas práticas para contribuir com o IFala.</p>
 
-          <h3>Criação de uma Nova Branch</h3>
-          <p>
-            O fluxo padrão de branches deve seguir a convenção definida pela
-            equipe (por exemplo, Git Flow simplificado ou trunk-based).
-          </p>
-          <div class="code-block">
-            # Atualizar branch base (ex.: development)<br />
-            git switch development<br />
-            git pull origin development<br /><br />
+          <section id="criar-branch">
+            <h3>Criação de uma Nova Branch</h3>
+            <div class="code-block">
+              # Atualizar branch base (development, por exemplo) git switch
+              development git pull origin development # Criar nova branch de
+              feature/bugfix/docs git switch -c feature/nome-da-feature # ou git
+              switch -c docs/documentacao-ifala
+            </div>
+          </section>
 
-            # Criar branch de feature vinculada a uma task<br />
-            git switch -c feature/task-XYZ-descricao-curta
-          </div>
-          <p class="muted">
-            Utilize o código da issue/task no nome da branch sempre que
-            possível.
-          </p>
+          <section id="boas-praticas-commits">
+            <h3>Boas Práticas de Commits</h3>
+            <ul>
+              <li>Mensagens curtas e objetivas;</li>
+              <li>
+                Prefixos semânticos:
+                <ul>
+                  <li><code>feat:</code> nova funcionalidade;</li>
+                  <li><code>fix:</code> correção de bug;</li>
+                  <li><code>docs:</code> documentação;</li>
+                  <li>
+                    <code>refactor:</code> melhoria de código sem mudar
+                    comportamento;
+                  </li>
+                  <li><code>test:</code> testes;</li>
+                  <li><code>chore:</code> tarefas de manutenção.</li>
+                </ul>
+              </li>
+            </ul>
+            <div class="code-block">
+              feat: adiciona fluxo de acompanhamento de denúncia fix: corrige
+              validação de login no backend docs: adiciona documentação de
+              arquitetura do IFala
+            </div>
+          </section>
+
+          <section id="criar-pr">
+            <h3>Criar Pull Request</h3>
+            <ol>
+              <li>
+                Subir a branch para o repositório remoto:
+                <div class="code-block">
+                  git push origin feature/nome-da-feature
+                </div>
+              </li>
+              <li>Abrir o repositório no GitHub.</li>
+              <li>
+                Criar um Pull Request da branch para
+                <code>development</code> (ou branch principal definida).
+              </li>
+              <li>
+                Adicionar descrição clara, prints (se aplicável) e link de
+                issues.
+              </li>
+              <li>Aguardar revisão e ajustes solicitados.</li>
+            </ol>
+          </section>
+
+          <section id="deploy-producao">
+            <h3>Deploy em produção</h3>
+            <p>Pode ser realizado via pipeline CI/CD ou manualmente.</p>
+          </section>
+
+          <section id="docker">
+            <h3>Conteinerização com Docker</h3>
+            <p>
+              O <code>docker-compose.yml</code> define os serviços principais:
+              backend, frontend, banco, Prometheus, Grafana, Loki e Promtail.
+            </p>
+            <div class="code-block">
+              services: ifala-db: image: postgres:15 container_name: ifala-db
+              environment: POSTGRES_DB: ifala POSTGRES_USER: ifala_user
+              POSTGRES_PASSWORD: ${IFALA_DB_PASSWORD} ports: - "5432:5432"
+              ifala-backend: build: ./apps/ifala-backend container_name:
+              ifala-backend ports: - "8080:8080" depends_on: - ifala-db
+              ifala-frontend: build: ./apps/ifala-frontend container_name:
+              ifala-frontend ports: - "5173:5173" depends_on: - ifala-backend
+            </div>
+          </section>
+
+          <section id="nginx-gateway">
+            <h3>Sobre o NGINX Gateway</h3>
+            <p>
+              Em produção, o NGINX pode atuar como gateway/reverse proxy,
+              centralizando o acesso:
+            </p>
+            <ul>
+              <li>
+                Redirecionar <code>https://ifala.ifpi.edu.br/</code> → frontend.
+              </li>
+              <li>Encaminhar <code>/api</code> → backend (Spring Boot).</li>
+              <li>Aplicar HTTPS, rate limiting, cache estático, etc.</li>
+            </ul>
+          </section>
+
+          <section id="variaveis-ambiente">
+            <h3>Variáveis de Ambiente</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Variável</th>
+                  <th>Descrição</th>
+                  <th>Exemplo (não real)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>IFALA_DB_URL</td>
+                  <td>URL de conexão com o banco</td>
+                  <td>jdbc:postgresql://ifala-db:5432/ifala</td>
+                </tr>
+                <tr>
+                  <td>IFALA_DB_USER</td>
+                  <td>Usuário do banco</td>
+                  <td>ifala_user</td>
+                </tr>
+                <tr>
+                  <td>IFALA_DB_PASSWORD</td>
+                  <td>Senha do banco</td>
+                  <td><!-- preencher apenas em ambiente protegido --></td>
+                </tr>
+                <tr>
+                  <td>IFALA_JWT_SECRET</td>
+                  <td>Chave JWT</td>
+                  <td><!-- preencher apenas em ambiente protegido --></td>
+                </tr>
+                <tr>
+                  <td>VITE_API_URL</td>
+                  <td>URL da API usada pelo frontend</td>
+                  <td>http://localhost:8080/api</td>
+                </tr>
+                <tr>
+                  <td>SMTP_HOST</td>
+                  <td>Servidor SMTP para envio de e-mail</td>
+                  <td>smtp.ifpi.edu.br</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section id="credenciais-producao">
+            <h3>Credenciais para produção</h3>
+            <p>
+              As credenciais de produção (senhas, tokens, chaves privadas) NÃO
+              devem ser versionadas neste arquivo. Devem ser:
+            </p>
+            <ul>
+              <li>
+                Armazenadas em cofre de segredos (ex.: Vault, Secret Manager);
+              </li>
+              <li>Carregadas via variáveis de ambiente no servidor;</li>
+              <li>Gerenciadas apenas por responsáveis autorizados.</li>
+            </ul>
+          </section>
+
+          <section id="pipelines">
+            <h3>Pipelines</h3>
+            <p>A pipeline (CI/CD) pode executar automaticamente:</p>
+            <ul>
+              <li>Build do backend (maven/gradle) e testes;</li>
+              <li>Build do frontend (Vite);</li>
+              <li>Criação de imagens Docker;</li>
+              <li>Deploy em ambiente de staging/produção.</li>
+            </ul>
+          </section>
+
+          <section id="passo-a-passo-cli">
+            <h3>Passo a passo via linha de comando</h3>
+            <div class="code-block">
+              # Acessar servidor ssh usuario@servidor-ifala # Ir para pasta do
+              projeto cd /caminho/para/projeto-IFala # Atualizar código git pull
+              origin main # Subir/recriar containers docker compose pull docker
+              compose up -d --build
+            </div>
+          </section>
+
+          <section id="deploy-tui">
+            <h3>Como realizar o deploy via arquivo tui.sh</h3>
+            <p>
+              Em vez de rodar os comandos manualmente, o script
+              <code>tui.sh</code> oferece uma interface em modo texto (TUI).
+            </p>
+            <div class="code-block">
+              # Garantir permissão de execução chmod +x tui.sh # Executar TUI
+              ./tui.sh
+            </div>
+          </section>
+
+          <section id="sobre-tui">
+            <h3>Sobre o Terminal User Interface (TUI)</h3>
+            <p>O TUI facilita operações administrativas como:</p>
+            <ul>
+              <li>Atualizar o código da aplicação;</li>
+              <li>Recriar containers com Docker Compose;</li>
+              <li>Ver status dos serviços;</li>
+              <li>Visualizar rapidamente logs ou mensagens de erro.</li>
+            </ul>
+          </section>
         </section>
 
-        <section id="dev-commits" class="section">
-          <h3>Boas Práticas de Commits</h3>
-          <ul>
-            <li>Commits pequenos, focados em uma mudança lógica.</li>
-            <li>Mensagens padronizadas, por exemplo:</li>
-          </ul>
-          <div class="code-block">
-            feat: adiciona fluxo de cadastro de denúncia<br />
-            fix: corrige validação de e-mail no módulo de autenticação<br />
-            refactor: reorganiza serviços de notificações<br />
-            docs: atualiza instruções de deploy em produção
-          </div>
-        </section>
-
-        <section id="dev-pr" class="section">
-          <h3>Criar Pull Request</h3>
-          <ol>
-            <li>Garantir que todos os testes locais foram executados.</li>
-            <li>Subir a branch para o repositório remoto.</li>
-          </ol>
-          <div class="code-block">
-            git push origin feature/task-XYZ-descricao-curta
-          </div>
-          <ol start="3">
-            <li>
-              Abrir PR apontando para a branch de destino (ex.: development).
-            </li>
-            <li>Preencher descrição com:</li>
-          </ol>
-          <ul>
-            <li>Resumo das mudanças.</li>
-            <li>Issue/Task relacionada.</li>
-            <li>Checklist de testes realizados.</li>
-          </ul>
-        </section>
-
-        <section id="dev-deploy" class="section">
-          <h3>Deploy em produção</h3>
-          <p>
-            O deploy em produção pode ser automatizado via pipeline (CI/CD) e/ou
-            apoiado em scripts, como o <code class="code-inline">tui.sh</code>.
-          </p>
-        </section>
-
-        <section id="dev-docker" class="section">
-          <h3>Conteinerização com Docker</h3>
-          <p>
-            O projeto utiliza Docker para padronizar ambiente. Cada serviço
-            (backend, frontend, banco, monitoramento) possui um
-            <code class="code-inline">Dockerfile</code> ou é referenciado em
-            <code class="code-inline">docker-compose.yml</code>.
-          </p>
-          <div class="code-block">
-            # Build de imagem do backend (exemplo)<br />
-            docker build -t ifala-backend:latest ./apps/ifala-backend<br /><br />
-
-            # Subir stack completa<br />
-            docker compose up -d --build
-          </div>
-        </section>
-
-        <section id="dev-nginx" class="section">
-          <h3>Sobre o NGINX Gateway</h3>
-          <p>
-            O NGINX atua como gateway/reverso proxy, recebendo as requisições
-            externas (HTTPS), roteando para o frontend (arquivos estáticos) e
-            backend (API), além de aplicar regras de segurança básicas.
-          </p>
-          <p>Exemplos de responsabilidades:</p>
-          <ul>
-            <li>Redirecionamento HTTP → HTTPS.</li>
-            <li>Configuração de CORS, se necessário.</li>
-            <li>Rate limiting (se configurado).</li>
-          </ul>
-        </section>
-
-        <section id="dev-env-vars" class="section">
-          <h3>Variáveis de Ambiente</h3>
-          <p>
-            As variáveis de ambiente controlam URLs de conexão, segredos e
-            parâmetros sensíveis. Elas <strong>não</strong> devem ser
-            versionadas em repositórios públicos.
-          </p>
-
-          <div class="todo-box">
-            <strong>TODO – Equipe:</strong> completar esta tabela apenas em
-            canal seguro (ex.: documentação privada ou repositório interno).
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Descrição</th>
-                <th>Exemplo (não real)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>IFALA_DB_URL</td>
-                <td>URL de conexão com o banco em produção</td>
-                <td>jdbc:postgresql://db-ifala:5432/ifala</td>
-              </tr>
-              <tr>
-                <td>IFALA_DB_USER</td>
-                <td>Usuário do banco em produção</td>
-                <td>ifala_user</td>
-              </tr>
-              <tr>
-                <td>IFALA_DB_PASSWORD</td>
-                <td>Senha do banco em produção</td>
-                <td><!-- Preencher em ambiente seguro --></td>
-              </tr>
-              <tr>
-                <td>IFALA_JWT_SECRET</td>
-                <td>Chave secreta usada para assinar tokens JWT</td>
-                <td><!-- Preencher em ambiente seguro --></td>
-              </tr>
-              <tr>
-                <td>IFALA_SMTP_HOST</td>
-                <td>Servidor SMTP para e-mails</td>
-                <td><!-- Ex: smtp.seudominio.com --></td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section id="dev-credenciais" class="section">
-          <h3>Credenciais para produção</h3>
-          <div class="todo-box">
-            <strong>IMPORTANTE:</strong> As credenciais de produção (usuários,
-            senhas, tokens, chaves de API)
-            <strong>não devem ser registradas diretamente neste arquivo</strong>
-            se ele estiver em qualquer ambiente público ou repositório sem
-            proteção.<br /><br />
-            Mantenha-as em:<br />
-            • Cofre de segredos (Vault, Secret Manager, etc.),<br />
-            • Documentação interna protegida,<br />
-            • Variáveis de ambiente nos servidores ou repositórios privados.
-          </div>
-        </section>
-
-        <section id="dev-pipelines" class="section">
-          <h3>Pipelines</h3>
-          <p>
-            As pipelines (CI/CD) automatizam testes, build de imagens e deploy.
-            Adapte esta seção para refletir a ferramenta usada (GitHub Actions,
-            GitLab CI, etc.).
-          </p>
-        </section>
-
-        <section id="dev-pipelines-cli" class="section">
-          <h3>Passo a passo via linha de comando</h3>
-          <p>Fluxo genérico para deploy manual:</p>
-          <div class="code-block">
-            # 1. Build da imagem backend<br />
-            docker build -t registry/ifala-backend:&lt;TAG&gt;
-            ./apps/ifala-backend<br /><br />
-
-            # 2. Push para o registry<br />
-            docker push registry/ifala-backend:&lt;TAG&gt;<br /><br />
-
-            # 3. Atualizar stack no servidor (exemplo)<br />
-            ssh user@servidor<br />
-            cd /caminho/da/stack/ifala<br />
-            docker compose pull<br />
-            docker compose up -d
-          </div>
-        </section>
-
-        <section id="dev-pipelines-tui" class="section">
-          <h3>Como realizar o deploy via arquivo tui.sh</h3>
-          <p>
-            O script <code class="code-inline">tui.sh</code> (Terminal User
-            Interface) facilita operações comuns de deploy através de uma
-            interface textual no terminal.
-          </p>
-          <ol>
-            <li>Certificar-se de que o script possui permissão de execução.</li>
-          </ol>
-          <div class="code-block">chmod +x tui.sh</div>
-          <ol start="2">
-            <li>Executar o script e seguir as opções do menu.</li>
-          </ol>
-          <div class="code-block">./tui.sh</div>
-          <p>
-            O TUI pode incluir operações como: atualizar imagens, reiniciar
-            containers, visualizar logs, verificar status de serviços, etc.
-          </p>
-
-          <h3>Sobre o Terminal User Interface (TUI)</h3>
-          <p>
-            O TUI é uma forma amigável de consolidar comandos repetitivos de
-            operação em um menu textual, reduzindo erros e padronizando o
-            processo de deploy e manutenção.
-          </p>
-        </section>
-
+        <!-- ========================================= -->
+        <!-- ENCERRAMENTO -->
+        <!-- ========================================= -->
         <section class="section">
-          <h2>Anotações finais</h2>
+          <h2>Encerramento</h2>
           <p>
-            Esta documentação é um ponto de partida. Cada seção deve ser
-            aprofundada e atualizada pelos membros da equipe à medida que novas
-            features são desenvolvidas, a arquitetura evolui e o fluxo de
-            monitoramento/deploy se consolida.
+            Esta documentação consolida a visão geral, arquitetura, fluxos e
+            práticas de desenvolvimento do IFala. Ela deve ser mantida viva:
+            sempre que novas features forem criadas ou ajustes significativos
+            forem feitos, a documentação precisa ser atualizada.
           </p>
-          <p class="muted">
-            Lembre-se: documentar bem hoje economiza muitas horas de
-            <em>debug</em> e alinhamento no futuro. 😉
+          <p style="color: var(--text-muted); margin-top: 0.5rem">
+            Qualquer membro interessado pode contribuir, respeitando as boas
+            práticas descritas na seção de Guia de Desenvolvimento.
           </p>
         </section>
       </main>
     </div>
 
     <script>
-      // Destaque da seção ativa no menu lateral
       const navLinks = document.querySelectorAll('.nav-link');
-      const sections = Array.from(document.querySelectorAll('section[id]'));
+      const sections = document.querySelectorAll('section[id]');
 
       function onScroll() {
-        const scrollPos = window.scrollY + 120;
+        const pos = window.scrollY + 120;
         let current = null;
 
-        for (const sec of sections) {
-          if (sec.offsetTop <= scrollPos) {
+        sections.forEach((sec) => {
+          if (sec.offsetTop <= pos) {
             current = sec;
-          } else {
-            break;
           }
-        }
+        });
 
         if (!current) return;
-        const id = current.getAttribute('id');
 
         navLinks.forEach((link) => {
-          link.classList.toggle(
-            'active',
-            link.getAttribute('href') === `#${id}`,
-          );
+          const href = link.getAttribute('href');
+          link.classList.toggle('active', href === `#${current.id}`);
         });
       }
 
