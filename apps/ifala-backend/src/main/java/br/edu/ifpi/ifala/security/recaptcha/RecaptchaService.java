@@ -10,8 +10,7 @@ import org.slf4j.LoggerFactory;
 import br.edu.ifpi.ifala.security.recaptcha.recaptchaDTO.RecaptchaResponseDto;
 
 /**
- * Serviço para validação do reCAPTCHA do Google. Esta classe utiliza o
- * RestClient para enviar
+ * Serviço para validação do reCAPTCHA do Google. Esta classe utiliza o RestClient para enviar
  * requisições ao serviço reCAPTCHA e validar tokens.
  *
  * @author Jhonatas G Ribeiro
@@ -34,11 +33,8 @@ public class RecaptchaService {
     formData.add("response", token);
 
     try {
-      RecaptchaResponseDto dto = restClient.post()
-          .uri(recaptchaConfig.getUrl())
-          .body(formData)
-          .retrieve()
-          .body(RecaptchaResponseDto.class);
+      RecaptchaResponseDto dto = restClient.post().uri(recaptchaConfig.getUrl()).body(formData)
+          .retrieve().body(RecaptchaResponseDto.class);
 
       if (dto == null) {
         log.warn("Falha na validação do reCAPTCHA: resposta nula.");
@@ -46,12 +42,13 @@ public class RecaptchaService {
       }
 
       boolean isSuccess = dto.isSuccess() && dto.getAction() != null
-          && dto.getAction().equalsIgnoreCase(actionEsperada)
-          && dto.getScore() >= scoreMinimo;
+          && dto.getAction().equalsIgnoreCase(actionEsperada) && dto.getScore() >= scoreMinimo;
       if (isSuccess) {
-        log.info("reCAPTCHA validado com sucesso: ação '{}' com score {}.", dto.getAction(), dto.getScore());
+        log.info("reCAPTCHA validado com sucesso: ação '{}' com score {}.", dto.getAction(),
+            dto.getScore());
       } else {
-        log.warn("Falha na validação do reCAPTCHA: ação esperada '{}', ação recebida '{}', score recebido {}.",
+        log.warn(
+            "Falha na validação do reCAPTCHA: ação esperada '{}', ação recebida '{}', score recebido {}.",
             actionEsperada, dto.getAction(), dto.getScore());
       }
       return isSuccess;

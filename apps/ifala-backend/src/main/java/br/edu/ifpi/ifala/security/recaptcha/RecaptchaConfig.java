@@ -4,10 +4,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * Configurações do reCAPTCHA do Google.
- * Esta classe carrega as propriedades de configuração do reCAPTCHA a partir do
- * arquivo application.properties.
- * Só deve ser configurado em produção.
+ * Configurações do reCAPTCHA do Google. Esta classe carrega as propriedades de configuração do
+ * reCAPTCHA a partir do arquivo application.properties. Só deve ser configurado em produção.
  *
  * @author Jhonatas G Ribeiro
  */

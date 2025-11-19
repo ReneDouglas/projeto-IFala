@@ -2,7 +2,12 @@ package br.edu.ifpi.ifala.notificacao;
 
 import br.edu.ifpi.ifala.denuncia.Denuncia;
 import br.edu.ifpi.ifala.notificacao.enums.TiposNotificacao;
+import jakarta.persistence.Convert;
+import org.hibernate.annotations.JdbcTypeCode;
+import java.sql.Types;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,8 +21,10 @@ import java.time.LocalDateTime;
  * de leitura.
  *
  * @author Renê Morais
+ * @author Phaola
  */
 @Entity
+@Table(name = "notificacoes")
 public class Notificacao implements Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -27,13 +34,20 @@ public class Notificacao implements Serializable {
   private Long id;
 
   private String conteudo;
+  @Convert(converter = TiposNotificacaoConverter.class)
+  @Column(name = "tipo", columnDefinition = "tipos_notificacao_enum")
+  @JdbcTypeCode(Types.OTHER)
   private TiposNotificacao tipo;
 
   @ManyToOne
   private Denuncia denuncia;
 
   private Boolean lida;
+
+  @Column(name = "lida_por")
   private String lidaPor;
+
+  @Column(name = "data_envio")
   private LocalDateTime dataEnvio;
 
   /**
