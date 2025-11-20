@@ -7,6 +7,7 @@ import br.edu.ifpi.ifala.autenticacao.Usuario;
 import br.edu.ifpi.ifala.notificacao.dto.EmailRequest;
 import br.edu.ifpi.ifala.notificacao.enums.TiposNotificacao;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,7 +48,13 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     final String subject = "[IFala] Nova Denúncia Cadastrada";
 
     // 2. Corpo do E-mail (HTML Template) — usar token de acompanhamento (exibe últimas 3 chars)
-    final String body = buildNovaDenunciaBody(novaDenuncia.getTokenAcompanhamento());
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    String criadoEmStr =
+        (novaDenuncia.getCriadoEm() != null) ? novaDenuncia.getCriadoEm().format(formatter) : "N/D";
+    String detalheSituacao =
+        (novaDenuncia.getStatus() != null) ? novaDenuncia.getStatus().name() : "N/D";
+    final String body =
+        buildNovaDenunciaBody(novaDenuncia.getTokenAcompanhamento(), criadoEmStr, detalheSituacao);
 
     // 3. Buscar E-mails de TODOS os usuários do sistema
     List<String> emails = usuarioRepository.findAll().stream().map(Usuario::getEmail)
@@ -136,9 +143,8 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     }
   }
 
-  private String buildNovaDenunciaBody(java.util.UUID tokenAcompanhamento) {
-    String detalheSituacao = "N/D";
-    String criadoEm = "N/D";
+  private String buildNovaDenunciaBody(java.util.UUID tokenAcompanhamento, String criadoEm,
+      String detalheSituacao) {
     String token = "*******" + getShortToken(tokenAcompanhamento);
 
     String painelLink = getFrontendUrl("/painel-denuncias");
@@ -187,6 +193,10 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     String id = "*******" + getShortToken(tokenAcompanhamento);
 
     String painelLink = getFrontendUrl("/painel-denuncias");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    String dataEnvio =
+        (mensagem.getDataEnvio() != null) ? mensagem.getDataEnvio().format(formatter) : "N/D";
+
     return """
         <!doctype html>
         <html>
@@ -213,6 +223,7 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
                         %s
                     </div>
                     <p>Esta mensagem foi enviada pelo denunciante. Acesse o sistema para ler a mensagem completa e prosseguir com o acompanhamento.</p>
+                    <p><strong>Data/Hora da mensagem:</strong> %s</p>
                     <p><a class="btn" href="%s">Abrir Denúncia</a></p>
                 </div>
                 <div class="footer">Equipe IFala — <em>Notificações Automáticas</em></div>
@@ -220,7 +231,7 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
         </body>
         </html>
         """
-        .formatted(id, (trecho != null ? trecho : "(sem conteúdo)"), painelLink);
+        .formatted(id, (trecho != null ? trecho : "(sem conteúdo)"), dataEnvio, painelLink);
   }
 
   private String getShortToken(java.util.UUID token) {
