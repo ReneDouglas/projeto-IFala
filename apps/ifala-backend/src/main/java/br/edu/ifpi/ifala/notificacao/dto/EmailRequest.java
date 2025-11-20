@@ -4,9 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * DTO para requisições de envio de e-mail.
@@ -14,9 +11,6 @@ import lombok.NoArgsConstructor;
  * @author Phaola
  */
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class EmailRequest {
 
   // Lista de destinatários (ao menos um)

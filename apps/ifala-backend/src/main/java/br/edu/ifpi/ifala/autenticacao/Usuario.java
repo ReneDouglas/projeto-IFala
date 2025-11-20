@@ -15,8 +15,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import java.io.Serializable;
 import java.sql.Types;
@@ -33,8 +31,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "usuarios")
-@NoArgsConstructor
-@AllArgsConstructor
+
 public class Usuario implements Serializable {
   private static final long serialVersionUID = 1L;
   @Id

@@ -2,9 +2,6 @@ package br.edu.ifpi.ifala.notificacao.dto;
 
 import br.edu.ifpi.ifala.notificacao.enums.TiposNotificacao;
 import java.time.LocalDateTime;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * DTO para transferência de dados de Notificação.
@@ -12,9 +9,6 @@ import lombok.NoArgsConstructor;
  * @author Phaola
  */
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class NotificacaoDto {
   private Long id;
   private String conteudo;
