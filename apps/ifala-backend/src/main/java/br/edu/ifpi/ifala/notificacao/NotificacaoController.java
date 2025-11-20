@@ -79,14 +79,9 @@ public class NotificacaoController {
   private NotificacaoDto toDto(Notificacao n) {
     if (n == null)
       return null;
-    NotificacaoDto dto = new NotificacaoDto();
-    dto.setId(n.getId());
-    dto.setConteudo(n.getConteudo());
-    dto.setTipo(n.getTipo());
-    dto.setDenunciaId(n.getDenuncia() != null ? n.getDenuncia().getId() : null);
-    dto.setLida(n.getLida());
-    dto.setLidaPor(n.getLidaPor());
-    dto.setDataEnvio(n.getDataEnvio());
+    NotificacaoDto dto = new NotificacaoDto(n.getId(), n.getConteudo(), n.getTipo(),
+        n.getDenuncia() != null ? n.getDenuncia().getId() : null, n.getLida(), n.getLidaPor(),
+        n.getDataEnvio());
     return dto;
   }
 }

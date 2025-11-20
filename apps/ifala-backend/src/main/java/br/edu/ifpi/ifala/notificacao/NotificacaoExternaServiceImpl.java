@@ -8,7 +8,7 @@ import br.edu.ifpi.ifala.notificacao.dto.EmailRequest;
 import br.edu.ifpi.ifala.notificacao.enums.TiposNotificacao;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -64,11 +64,8 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     if (!emails.isEmpty()) {
       log.info("Preparando envio de notificação de nova denúncia '{}' para {} destinatários: {}",
           subject, emails.size(), emails);
-      EmailRequest req = new EmailRequest();
-      req.setTo(emails);
-      req.setSubject(subject);
-      req.setBody(body);
-      req.setHtml(true);
+      EmailRequest req =
+          new EmailRequest(emails, new ArrayList<>(), new ArrayList<>(), subject, body, true);
       // Persistir notificação (não-lida) para que apareça na lista do sistema
       try {
         Notificacao n = new Notificacao();
@@ -113,11 +110,8 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     if (!emails.isEmpty()) {
       log.info("Preparando envio de notificação de nova mensagem '{}' para {} destinatários: {}",
           subject, emails.size(), emails);
-      EmailRequest req = new EmailRequest();
-      req.setTo(emails);
-      req.setSubject(subject);
-      req.setBody(body);
-      req.setHtml(true);
+      EmailRequest req =
+          new EmailRequest(emails, new ArrayList<>(), new ArrayList<>(), subject, body, true);
       // Persistir notificação (não-lida)
       try {
         Notificacao n = new Notificacao();

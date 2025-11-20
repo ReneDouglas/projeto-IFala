@@ -50,8 +50,8 @@ public class SmtpEmailService implements EmailService {
       MimeMessageHelper helper = new MimeMessageHelper(message,
           MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
-      String subject = Objects.requireNonNull(request.getSubject());
-      String body = Objects.requireNonNull(request.getBody());
+      String subject = Objects.requireNonNull(request.subject());
+      String body = Objects.requireNonNull(request.body());
 
       helper.setSubject(subject);
       if (fromAddress != null && !fromAddress.isBlank()) {
@@ -59,19 +59,19 @@ public class SmtpEmailService implements EmailService {
       }
 
       // To
-      if (request.getTo() != null && !request.getTo().isEmpty()) {
-        helper.setTo(request.getTo().toArray(new String[0]));
+      if (request.to() != null && !request.to().isEmpty()) {
+        helper.setTo(request.to().toArray(new String[0]));
       }
 
       // CC/BCC
-      if (request.getCc() != null && !request.getCc().isEmpty()) {
-        helper.setCc(request.getCc().toArray(new String[0]));
+      if (request.cc() != null && !request.cc().isEmpty()) {
+        helper.setCc(request.cc().toArray(new String[0]));
       }
-      if (request.getBcc() != null && !request.getBcc().isEmpty()) {
-        helper.setBcc(request.getBcc().toArray(new String[0]));
+      if (request.bcc() != null && !request.bcc().isEmpty()) {
+        helper.setBcc(request.bcc().toArray(new String[0]));
       }
 
-      helper.setText(body, request.isHtml());
+      helper.setText(body, request.html());
 
       mailSender.send(message);
     } catch (Exception ex) {
