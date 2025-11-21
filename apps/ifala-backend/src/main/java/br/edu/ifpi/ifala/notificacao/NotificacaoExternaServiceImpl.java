@@ -3,14 +3,12 @@ package br.edu.ifpi.ifala.notificacao;
 import br.edu.ifpi.ifala.denuncia.Denuncia;
 import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
 import br.edu.ifpi.ifala.autenticacao.UsuarioRepository;
-import br.edu.ifpi.ifala.autenticacao.Usuario;
 import br.edu.ifpi.ifala.notificacao.dto.EmailRequest;
 import br.edu.ifpi.ifala.notificacao.enums.TiposNotificacao;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,8 +55,7 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
         buildNovaDenunciaBody(novaDenuncia.getTokenAcompanhamento(), criadoEmStr, detalheSituacao);
 
     // 3. Buscar E-mails de TODOS os usuários do sistema
-    List<String> emails = usuarioRepository.findAll().stream().map(Usuario::getEmail)
-        .filter(email -> email != null && !email.isBlank()).collect(Collectors.toList());
+    List<String> emails = usuarioRepository.findAllEmailsExcludingBlanks();
 
     // 4. Enviar E-mail para todos os usuários (usa DTO para suportar html/bcc)
     if (!emails.isEmpty()) {
@@ -108,8 +105,8 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     final String body = buildNovaMensagemBody(denuncia.getTokenAcompanhamento(), mensagem);
 
     // 3. Buscar E-mails de TODOS os usuários do sistema
-    List<String> emails = usuarioRepository.findAll().stream().map(Usuario::getEmail)
-        .filter(email -> email != null && !email.isBlank()).collect(Collectors.toList());
+
+    List<String> emails = usuarioRepository.findAllEmailsExcludingBlanks();
 
     // 4. Enviar E-mail
     if (!emails.isEmpty()) {
@@ -165,7 +162,7 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
             .content{padding:18px}
             .footer{background:#f6f6f6;padding:12px;text-align:center;color:#666;font-size:13px}
             /* Botão ajustado: background com a mesma cor do header (#004d99) para consistência, e negrito para alto contraste */
-            .btn{display:inline-block;padding:10px 16px;background:#004d99;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold}
+            .btn{display:inline-block;padding:10px 16px;background:#004d99;color:#fff !important ;text-decoration:none;border-radius:6px;font-weight:bold}
           </style>
         </head>
         <body>
@@ -182,7 +179,7 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
                 <li><strong>Situação:</strong> %s</li>
               </ul>
               <p>Para visualizar a denúncia completa e tomar as providências, acesse o painel do sistema.</p>
-              <p><a class="btn" href="%s">Abrir Painel de Denúncias</a></p>
+              <p><a class="btn" href="%s" style="color:#ffffff !important;">Abrir Painel de Denúncias</a></p>
             </div>
             <!-- Mensagem de e-mail automático adicionada ao rodapé -->
             <div class="footer">Equipe IFala — <em>Notificações Automáticas</em><br/>Este é um e-mail automático. Por favor, não responda a esta mensagem.</div>
@@ -216,7 +213,7 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
           .footer{background:#f6f6f6;padding:12px;text-align:center;color:#666;font-size:13px}
           .snippet{background:#fafafa;border-left:4px solid #007bff;padding:10px;margin:12px 0;border-radius:4px}
           /* Botão ajustado: background com a mesma cor do header (#004d99) para consistência, e negrito para alto contraste */
-          .btn{display:inline-block;padding:10px 16px;background:#004d99;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold}
+          .btn{display:inline-block;padding:10px 16px;background:#004d99;color:#fff !important;text-decoration:none;border-radius:6px;font-weight:bold}
             </style>
         </head>
         <body>
@@ -232,7 +229,7 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
                     </div>
                     <p>Esta mensagem foi enviada pelo denunciante. Acesse o sistema para ler a mensagem completa e prosseguir com o acompanhamento.</p>
                     <p><strong>Data/Hora da mensagem:</strong> %s</p>
-                    <p><a class="btn" href="%s">Abrir Denúncia</a></p>
+                    <p><a class="btn" href="%s " style="color:#ffffff !important;">Abrir Denúncia</a></p>
                 </div>
                 <div class="footer">Equipe IFala — <em>Notificações Automáticas</em><br/>Este é um e-mail automático. Por favor, não responda a esta mensagem.</div>
             </div>

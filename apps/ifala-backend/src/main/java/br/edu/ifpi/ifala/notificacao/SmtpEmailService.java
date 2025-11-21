@@ -84,7 +84,7 @@ public class SmtpEmailService implements EmailService {
 
       mailSender.send(message);
 
-      log.info("<<<< E-mail enviado com sucesso (Assunto: '{}' | Thread: {})", request.subject(),
+      log.info("E-mail enviado com sucesso (Assunto: '{}' | Thread: {})", request.subject(),
           threadName);
 
     } catch (Exception ex) {
