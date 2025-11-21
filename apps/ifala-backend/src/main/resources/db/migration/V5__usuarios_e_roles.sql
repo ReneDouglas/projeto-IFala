@@ -34,13 +34,15 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 -- Inserir usuários
 INSERT INTO usuarios (nome, email, senha, must_change_password, username)
 VALUES 
-  ('Phaola', 'cacor.2024121tads0008@aluno.ifpi.edu.br', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'phaola')
+  ('Phaola', 'cacor.2024121tads0008@aluno.ifpi.edu.br', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'phaola'),
+  ('Phaola', 'paixaphaola@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'pha')
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO usuarios_perfil (usuarios_id, perfil)
 SELECT id, 'admin'
 FROM usuarios
 WHERE email IN (
-  'cacor.2024121tads0008@aluno.ifpi.edu.br'
+  'cacor.2024121tads0008@aluno.ifpi.edu.br',
+  'paixaphaola@gmail.com'
 )
 ON CONFLICT (usuarios_id, perfil) DO NOTHING;

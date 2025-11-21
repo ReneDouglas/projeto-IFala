@@ -2,7 +2,6 @@ package br.edu.ifpi.ifala;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableAsync;
 
 
 /**
@@ -11,7 +10,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * @author Renê Morais
  */
 @SpringBootApplication
-@EnableAsync
 public class IfalaApplication {
 
   /**

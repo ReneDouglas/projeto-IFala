@@ -62,10 +62,15 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
 
     // 4. Enviar E-mail para todos os usuários (usa DTO para suportar html/bcc)
     if (!emails.isEmpty()) {
-      log.info("Preparando envio de notificação de nova denúncia '{}' para {} destinatários: {}",
-          subject, emails.size(), emails);
+      // Alteração: Envio via Cópia Oculta (BCC) para não expor os e-mails dos destinatários
+      log.info(
+          "Preparando envio de notificação de nova denúncia '{}' via BCC para {} destinatários.",
+          subject, emails.size());
+
+      // Mudar os destinatários de 'to' (primeiro parâmetro) para 'bcc' (terceiro parâmetro)
       EmailRequest req =
-          new EmailRequest(emails, new ArrayList<>(), new ArrayList<>(), subject, body, true);
+          new EmailRequest(new ArrayList<>(), new ArrayList<>(), emails, subject, body, true);
+
       // Persistir notificação (não-lida) para que apareça na lista do sistema
       try {
         Notificacao n = new Notificacao();
@@ -108,10 +113,15 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
 
     // 4. Enviar E-mail
     if (!emails.isEmpty()) {
-      log.info("Preparando envio de notificação de nova mensagem '{}' para {} destinatários: {}",
-          subject, emails.size(), emails);
+      // Alteração: Envio via Cópia Oculta (BCC) para não expor os e-mails dos destinatários
+      log.info(
+          "Preparando envio de notificação de nova mensagem '{}' via BCC para {} destinatários.",
+          subject, emails.size());
+
+      // Mudar os destinatários de 'to' (primeiro parâmetro) para 'bcc' (terceiro parâmetro)
       EmailRequest req =
-          new EmailRequest(emails, new ArrayList<>(), new ArrayList<>(), subject, body, true);
+          new EmailRequest(new ArrayList<>(), new ArrayList<>(), emails, subject, body, true);
+
       // Persistir notificação (não-lida)
       try {
         Notificacao n = new Notificacao();
@@ -154,7 +164,8 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
             .header{background:#004d99;color:#fff;padding:16px}
             .content{padding:18px}
             .footer{background:#f6f6f6;padding:12px;text-align:center;color:#666;font-size:13px}
-            .btn{display:inline-block;padding:10px 16px;background:#007bff;color:#fff;text-decoration:none;border-radius:6px}
+            /* Botão ajustado: background com a mesma cor do header (#004d99) para consistência, e negrito para alto contraste */
+            .btn{display:inline-block;padding:10px 16px;background:#004d99;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold}
           </style>
         </head>
         <body>
@@ -173,7 +184,8 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
               <p>Para visualizar a denúncia completa e tomar as providências, acesse o painel do sistema.</p>
               <p><a class="btn" href="%s">Abrir Painel de Denúncias</a></p>
             </div>
-            <div class="footer">Equipe IFala — <em>Notificações Automáticas</em></div>
+            <!-- Mensagem de e-mail automático adicionada ao rodapé -->
+            <div class="footer">Equipe IFala — <em>Notificações Automáticas</em><br/>Este é um e-mail automático. Por favor, não responda a esta mensagem.</div>
           </div>
         </body>
         </html>
@@ -197,12 +209,14 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
         <head>
             <meta charset="utf-8">
             <style>
-                body{font-family:Arial,Helvetica,sans-serif;color:#333}
-                .card{max-width:600px;margin:20px auto;border:1px solid #e1e1e1;border-radius:8px;overflow:hidden}
-                .header{background:#004d99;color:#fff;padding:16px}
-                .content{padding:18px}
-                .footer{background:#f6f6f6;padding:12px;text-align:center;color:#666;font-size:13px}
-                .snippet{background:#fafafa;border-left:4px solid #007bff;padding:10px;margin:12px 0;border-radius:4px}
+          body{font-family:Arial,Helvetica,sans-serif;color:#333}
+          .card{max-width:600px;margin:20px auto;border:1px solid #e1e1e1;border-radius:8px;overflow:hidden}
+          .header{background:#004d99;color:#fff;padding:16px}
+          .content{padding:18px}
+          .footer{background:#f6f6f6;padding:12px;text-align:center;color:#666;font-size:13px}
+          .snippet{background:#fafafa;border-left:4px solid #007bff;padding:10px;margin:12px 0;border-radius:4px}
+          /* Botão ajustado: background com a mesma cor do header (#004d99) para consistência, e negrito para alto contraste */
+          .btn{display:inline-block;padding:10px 16px;background:#004d99;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold}
             </style>
         </head>
         <body>
@@ -220,13 +234,14 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
                     <p><strong>Data/Hora da mensagem:</strong> %s</p>
                     <p><a class="btn" href="%s">Abrir Denúncia</a></p>
                 </div>
-                <div class="footer">Equipe IFala — <em>Notificações Automáticas</em></div>
+                <div class="footer">Equipe IFala — <em>Notificações Automáticas</em><br/>Este é um e-mail automático. Por favor, não responda a esta mensagem.</div>
             </div>
         </body>
         </html>
         """
         .formatted(id, (trecho != null ? trecho : "(sem conteúdo)"), dataEnvio, painelLink);
   }
+
 
   private String getShortToken(java.util.UUID token) {
     if (token == null) {

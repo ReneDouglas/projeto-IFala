@@ -15,5 +15,4 @@ public interface EmailService {
    */
   void sendEmail(EmailRequest request);
 
-
 }

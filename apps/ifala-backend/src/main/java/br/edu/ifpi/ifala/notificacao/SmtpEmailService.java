@@ -42,10 +42,18 @@ public class SmtpEmailService implements EmailService {
     }
   }
 
+  /**
+   * Envia um e-mail de forma assíncrona. A execução será realizada pelo Thread Pool
+   * 'notificationTaskExecutor' configurado no AsyncConfig.
+   */
   @Override
   @Async
   public void sendEmail(EmailRequest request) {
+    String threadName = Thread.currentThread().getName();
     try {
+      log.info("[ASYNC] Iniciando envio de e-mail (Assunto: '{}') na thread: {}", request.subject(),
+          threadName);
+
       MimeMessage message = mailSender.createMimeMessage();
       MimeMessageHelper helper = new MimeMessageHelper(message,
           MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
@@ -64,21 +72,25 @@ public class SmtpEmailService implements EmailService {
       }
 
       // CC/BCC
-      if (request.cc() != null && !request.cc().isEmpty()) {
-        helper.setCc(request.cc().toArray(new String[0]));
-      }
       if (request.bcc() != null && !request.bcc().isEmpty()) {
         helper.setBcc(request.bcc().toArray(new String[0]));
       }
+      if (request.cc() != null && !request.cc().isEmpty()) {
+        helper.setCc(request.cc().toArray(new String[0]));
+      }
+
 
       helper.setText(body, request.html());
 
       mailSender.send(message);
+
+      log.info("<<<< E-mail enviado com sucesso (Assunto: '{}' | Thread: {})", request.subject(),
+          threadName);
+
     } catch (Exception ex) {
-      log.error("Erro ao enviar e-mail", ex);
+      log.error("Erro ao enviar e-mail de forma assíncrona. Assunto: {}. Erro: {}",
+          request.subject(), ex.getMessage(), ex);
       throw new EmailServiceException(ex.getMessage());
     }
   }
-
-
 }
