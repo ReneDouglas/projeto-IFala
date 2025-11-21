@@ -152,39 +152,41 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
 
     return """
         <!doctype html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body{font-family:Arial,Helvetica,sans-serif;color:#333}
-            .card{max-width:600px;margin:20px auto;border:1px solid #e1e1e1;border-radius:8px;overflow:hidden}
-            .header{background:#004d99;color:#fff;padding:16px}
-            .content{padding:18px}
-            .footer{background:#f6f6f6;padding:12px;text-align:center;color:#666;font-size:13px}
-            /* Botão ajustado: background com a mesma cor do header (#004d99) para consistência, e negrito para alto contraste */
-            .btn{display:inline-block;padding:10px 16px;background:#004d99;color:#fff !important ;text-decoration:none;border-radius:6px;font-weight:bold}
-          </style>
-        </head>
+          <html>
+            <head>
+            <meta charset="utf-8">
+            <style>
+              body{font-family:Arial,Helvetica,sans-serif;color:#333}
+              .card{max-width:600px;margin:20px auto;border:1px solid #e1e1e1;border-radius:8px;overflow:hidden}
+              .header{background:#004d99;color:#fff;padding:16px}
+              .content{padding:18px}
+              /* .footer{background:#f6f6f6;padding:12px;text-align:center;color:#666;font-size:13px} */ /* REMOVIDO */
+              /* Botão ajustado: background com a mesma cor do header (#004d99) para consistência, e negrito para alto contraste */
+              .btn{display:inline-block;padding:10px 16px;background:#004d99;color:#fff !important ;text-decoration:none;border-radius:6px;font-weight:bold}
+            </style>
+          </head>
         <body>
           <div class="card">
             <div class="header">
-              <h2 style="margin:0;font-size:18px">IFala — Nova Denúncia Cadastrada</h2>
+               <h2 style="margin:0;font-size:18px">IFala — Nova Denúncia Cadastrada</h2>
             </div>
-            <div class="content">
-              <p>Olá,</p>
-              <p>Uma nova denúncia foi cadastrada no sistema IFala. Seguem os principais detalhes:</p>
-              <ul>
-                <li><strong>Token:</strong> %s</li>
-                <li><strong>Data/Hora:</strong> %s</li>
-                <li><strong>Situação:</strong> %s</li>
-              </ul>
-              <p>Para visualizar a denúncia completa e tomar as providências, acesse o painel do sistema.</p>
-              <p><a class="btn" href="%s" style="color:#ffffff !important;">Abrir Painel de Denúncias</a></p>
+             <div class="content">
+                <p>Olá,</p>
+                <p>Uma nova denúncia foi cadastrada no sistema IFala. Seguem os principais detalhes:</p>
+                <ul>
+                  <li><strong>Token:</strong> %s</li>
+                  <li><strong>Data/Hora:</strong> %s</li>
+                  <li><strong>Situação:</strong> %s</li>
+                </ul>
+                <p>Para visualizar a denúncia completa e tomar as providências, acesse o painel do sistema.</p>
+                <p><a class="btn" href="%s" style="color:#ffffff !important;">Abrir Painel de Denúncias</a></p>
+                          <p style="margin-top:20px; text-align:center; color:#666; font-size:13px; border-top: 1px solid #e1e1e1; padding-top: 10px;">
+                <strong>Equipe IFala</strong> — <em>Notificações Automáticas</em><br/>
+                  Este é um e-mail automático. Por favor, **não responda a esta mensagem**.
+                </p>
+              </div>
             </div>
-            <!-- Mensagem de e-mail automático adicionada ao rodapé -->
-            <div class="footer">Equipe IFala — <em>Notificações Automáticas</em><br/>Este é um e-mail automático. Por favor, não responda a esta mensagem.</div>
-          </div>
-        </body>
+          </body>
         </html>
         """
         .formatted(token, criadoEm, detalheSituacao, painelLink);
