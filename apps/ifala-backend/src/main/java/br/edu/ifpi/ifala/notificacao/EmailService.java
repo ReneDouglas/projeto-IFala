@@ -15,4 +15,13 @@ public interface EmailService {
    */
   void sendEmail(EmailRequest request);
 
+  /**
+   * Envia um e-mail de redefinição de senha.
+   * 
+   * @param email E-mail do destinatário
+   * @param subject Assunto do e-mail
+   * @param body Corpo do e-mail
+   */
+  void sendPasswordResetEmail(String email, String subject, String body);
+
 }

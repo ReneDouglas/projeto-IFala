@@ -18,4 +18,12 @@ public interface NotificacaoExternaService {
    * @param mensagem A nova mensagem recebida.
    */
   void notificarNovaMensagem(Acompanhamento mensagem);
+
+  /**
+   * Envia e-mail de redefinição de senha para o usuário.
+   * 
+   * @param email E-mail do destinatário
+   * @param resetLink Link de redefinição de senha
+   */
+  void enviarEmailRedefinicaoSenha(String email, String resetLink);
 }

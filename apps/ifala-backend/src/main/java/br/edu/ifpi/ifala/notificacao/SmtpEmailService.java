@@ -93,4 +93,35 @@ public class SmtpEmailService implements EmailService {
       throw new EmailServiceException(ex.getMessage());
     }
   }
+
+  @Override
+  @Async
+  public void sendPasswordResetEmail(String email, String subject, String body) {
+    String threadName = Thread.currentThread().getName();
+    try {
+      log.info("[ASYNC] Iniciando envio de e-mail de redefinição de senha para: {} na thread: {}",
+          email, threadName);
+
+      MimeMessage message = mailSender.createMimeMessage();
+      MimeMessageHelper helper = new MimeMessageHelper(message,
+          MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+
+      helper.setSubject(subject);
+      if (fromAddress != null && !fromAddress.isBlank()) {
+        helper.setFrom(fromAddress);
+      }
+      helper.setTo(email);
+      helper.setText(body, true);
+
+      mailSender.send(message);
+
+      log.info("E-mail de redefinição de senha enviado com sucesso para: {} (Thread: {})", email,
+          threadName);
+
+    } catch (Exception ex) {
+      log.error("Erro ao enviar e-mail de redefinição de senha para {}. Erro: {}", email,
+          ex.getMessage(), ex);
+      throw new EmailServiceException(ex.getMessage());
+    }
+  }
 }

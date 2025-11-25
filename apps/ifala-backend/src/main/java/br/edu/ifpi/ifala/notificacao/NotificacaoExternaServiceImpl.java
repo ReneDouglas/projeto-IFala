@@ -287,4 +287,60 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     }
     return conteudo;
   }
+
+  @Override
+  public void enviarEmailRedefinicaoSenha(String email, String resetLink) {
+    log.info("Enviando e-mail de redefinição de senha para: {}", email);
+
+    // 1. Formatar o corpo do e-mail
+    final String subject = "Redefinição de senha - IFala";
+    final String body = buildPasswordResetBody(resetLink);
+
+    try {
+      emailService.sendPasswordResetEmail(email, subject, body);
+      log.info("E-mail de redefinição de senha delegado com sucesso ao EmailService para: {}",
+          email);
+    } catch (Exception e) {
+      log.error("Falha ao enviar e-mail de redefinição de senha para {}: {}", email, e.getMessage(),
+          e);
+      throw e;
+    }
+  }
+
+  private String buildPasswordResetBody(String resetLink) {
+    return """
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body{font-family:Arial,Helvetica,sans-serif;color:#333}
+              .card{max-width:600px;margin:20px auto;border:1px solid #e1e1e1;border-radius:8px;overflow:hidden}
+              .header{background:#004d99;color:#fff;padding:16px}
+              .content{padding:18px}
+              .btn{display:inline-block;padding:10px 16px;background:#004d99;color:#fff !important;text-decoration:none;border-radius:6px;font-weight:bold}
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <div class="header">
+                <h2 style="margin:0;font-size:18px">IFala — Redefinição de Senha</h2>
+              </div>
+              <div class="content">
+                <p>Olá,</p>
+                <p>Recebemos uma solicitação para redefinir a senha da sua conta no sistema IFala.</p>
+                <p>Para criar uma nova senha, clique no botão abaixo:</p>
+                <p><a class="btn" href="%s" style="color:#ffffff !important;">Redefinir Senha</a></p>
+                <p style="margin-top:20px;color:#666;font-size:14px;">Se você não solicitou esta alteração, ignore esta mensagem. Sua senha permanecerá inalterada.</p>
+                <p style="margin-top:20px; text-align:center; color:#666; font-size:13px; border-top: 1px solid #e1e1e1; padding-top: 10px;">
+                  <strong>Equipe IFala</strong> — <em>Notificações Automáticas</em><br/>
+                  Este é um e-mail automático. Por favor, não responda a esta mensagem.
+                </p>
+              </div>
+            </div>
+          </body>
+        </html>
+        """
+        .formatted(resetLink);
+  }
 }
