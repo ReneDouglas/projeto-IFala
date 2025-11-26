@@ -5,7 +5,12 @@ import java.util.Optional;
 
 public interface NotificacaoService {
 
-  List<Notificacao> listar(Boolean unreadOnly);
+  /**
+   * Lista as notificações não lidas mais antigas (limitado a 10).
+   * 
+   * @return Lista com no máximo 10 notificações não lidas
+   */
+  List<Notificacao> listarNaoLidas();
 
   Optional<Notificacao> marcarComoLida(Long id, String usuario);
 

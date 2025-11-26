@@ -2,6 +2,7 @@ package br.edu.ifpi.ifala.notificacao;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,11 +16,9 @@ public class NotificacaoServiceImpl implements NotificacaoService {
   }
 
   @Override
-  public List<Notificacao> listar(Boolean unreadOnly) {
-    if (Boolean.TRUE.equals(unreadOnly)) {
-      return repository.findByLidaFalse();
-    }
-    return repository.findAll();
+  public List<Notificacao> listarNaoLidas() {
+    // Limita o retorno para 5 itens (mais antigas primeiro) para otimizar UI e performance
+    return repository.findLidaFalseOrderByDataEnvioAsc(PageRequest.of(0, 5));
   }
 
   @Override

@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,11 +28,15 @@ public class NotificacaoController {
     this.service = service;
   }
 
+  /**
+   * Lista as notificações não lidas mais antigas (máximo 10). Retorna apenas notificações não lidas
+   * para otimizar performance e UX.
+   * 
+   * @return Lista de DTOs com no máximo 10 notificações não lidas
+   */
   @GetMapping
-  public List<NotificacaoDto> listar(
-      @RequestParam(value = "unreadOnly", required = false) Boolean unreadOnly) {
-    List<Notificacao> list =
-        Boolean.TRUE.equals(unreadOnly) ? service.listar(true) : service.listar(false);
+  public List<NotificacaoDto> listar() {
+    List<Notificacao> list = service.listarNaoLidas();
     return list.stream().map(this::toDto).toList();
   }
 

@@ -25,18 +25,19 @@ const NotificacaoBell: React.FC = () => {
   async function fetchNotificacoes() {
     setLoading(true);
     try {
-      // buscar apenas não lidas para badge (e mergear com as existentes)
-      const data = await listarNotificacoes(true);
+      // buscar apenas não lidas (backend já retorna filtrado e limitado a 10)
+      const data = await listarNotificacoes();
 
       if (!mounted.current) return;
 
-      // merge: manter também notificações já carregadas (úteis para exibir histórico)
+      // Merge para manter notificações já carregadas (inclui as que foram marcadas como lidas)
+      // Backend retorna apenas as 10 não lidas mais antigas, então fazemos merge para UX
       setNotificacoes((prev) => {
-        // replace or merge by id
         const map = new Map<number, Notificacao>();
         prev.forEach((p) => map.set(p.id, p));
         data.forEach((d) => map.set(d.id, d));
 
+        // Ordenar da mais recente para a mais antiga para exibição no dropdown
         return Array.from(map.values()).sort((a, b) => {
           const ta = a.dataEnvio ? new Date(a.dataEnvio).getTime() : 0;
           const tb = b.dataEnvio ? new Date(b.dataEnvio).getTime() : 0;
