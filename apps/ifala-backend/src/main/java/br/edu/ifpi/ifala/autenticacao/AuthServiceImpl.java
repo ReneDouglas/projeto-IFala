@@ -2,7 +2,7 @@ package br.edu.ifpi.ifala.autenticacao;
 
 import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDto;
 import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDTO;
@@ -244,7 +244,7 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   @Transactional
-  public LoginResponseDTO changePassword(MudarSenhaRequestDTO req) {
+  public LoginResponseDTO changePassword(MudarSenhaRequestDto req) {
     logger.info("Tentativa de mudança de senha recebida para o e-mail: {}", req.email());
 
     Optional<Usuario> userOpt = userRepository.findByEmail(req.email());

@@ -2,7 +2,7 @@ package br.edu.ifpi.ifala.autenticacao;
 
 import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDto;
 import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
@@ -41,7 +41,7 @@ public interface AuthService {
    * 
    * @return O DTO de resposta de login com novos tokens após a mudança de senha.
    */
-  LoginResponseDTO changePassword(MudarSenhaRequestDTO req);
+  LoginResponseDTO changePassword(MudarSenhaRequestDto req);
 
   /**
    * Obtém o email do usuário pelo token de redefinição de senha.
