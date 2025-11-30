@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDto;
+import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDTO;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.CriarDenunciaDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
 import jakarta.persistence.EntityNotFoundException;
@@ -106,13 +106,13 @@ public class DenunciaPublicController {
       @ApiResponse(responseCode = "200", description = "Acompanhamentos listados com sucesso"),
       @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
           content = @Content)})
-  public ResponseEntity<List<AcompanhamentoDto>> listarAcompanhamentos(
+  public ResponseEntity<List<AcompanhamentoDTO>> listarAcompanhamentos(
       @Parameter(description = "Token de acompanhamento da denúncia",
           required = true) @PathVariable UUID tokenAcompanhamento) {
     log.info("Recebida requisição para listar acompanhamentos (público) por token: {}",
         tokenAcompanhamento);
     try {
-      List<AcompanhamentoDto> acompanhamentos =
+      List<AcompanhamentoDTO> acompanhamentos =
           denunciaService.listarAcompanhamentosPorToken(tokenAcompanhamento);
       return ResponseEntity.ok(acompanhamentos);
     } catch (EntityNotFoundException e) {
@@ -128,18 +128,18 @@ public class DenunciaPublicController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Acompanhamento adicionado com sucesso",
           content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = AcompanhamentoDto.class))),
+              schema = @Schema(implementation = AcompanhamentoDTO.class))),
       @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
           content = @Content)})
 
-  public ResponseEntity<AcompanhamentoDto> adicionarAcompanhamento(
+  public ResponseEntity<AcompanhamentoDTO> adicionarAcompanhamento(
       @Parameter(description = "Token de acompanhamento da denúncia",
           required = true) @PathVariable UUID tokenAcompanhamento,
-      @Valid @RequestBody AcompanhamentoDto novoAcompanhamento) {
+      @Valid @RequestBody AcompanhamentoDTO novoAcompanhamento) {
     log.info("Recebida requisição para adicionar acompanhamento (público) por token: {}",
         tokenAcompanhamento);
     try {
-      AcompanhamentoDto acompanhamentoSalvo = denunciaService
+      AcompanhamentoDTO acompanhamentoSalvo = denunciaService
           .adicionarAcompanhamentoDenunciante(tokenAcompanhamento, novoAcompanhamento);
       return ResponseEntity.status(HttpStatus.CREATED).body(acompanhamentoSalvo);
     } catch (EntityNotFoundException e) {

@@ -16,7 +16,7 @@ import jakarta.validation.constraints.Size;
 @Schema(name = "Acompanhamento",
     description = "Representa uma mensagem no histórico de uma denúncia.")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record AcompanhamentoDto(
+public record AcompanhamentoDTO(
     @Schema(description = "Identificador único da mensagem de acompanhamento.", example = "1",
         accessMode = Schema.AccessMode.READ_ONLY) Long id,
 
@@ -38,7 +38,7 @@ public record AcompanhamentoDto(
    *
    * @param mensagem Conteúdo da mensagem
    */
-  public AcompanhamentoDto(String mensagem) {
+  public AcompanhamentoDTO(String mensagem) {
     this(null, mensagem, null, null);
   }
 }

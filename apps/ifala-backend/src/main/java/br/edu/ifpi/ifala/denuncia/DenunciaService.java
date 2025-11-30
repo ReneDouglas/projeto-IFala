@@ -3,7 +3,7 @@ package br.edu.ifpi.ifala.denuncia;
 import org.springframework.stereotype.Service;
 import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
 import br.edu.ifpi.ifala.acompanhamento.AcompanhamentoRepository;
-import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDto;
+import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDTO;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.*;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
@@ -213,7 +213,7 @@ public class DenunciaService {
   }
 
   @Transactional(readOnly = true)
-  public List<AcompanhamentoDto> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
+  public List<AcompanhamentoDTO> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
     log.info("Listando acompanhamentos (público) para o token: {}", tokenAcompanhamento);
     Denuncia denuncia =
         denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
@@ -224,7 +224,7 @@ public class DenunciaService {
   }
 
   @Transactional(readOnly = true)
-  public List<AcompanhamentoDto> listarAcompanhamentosPorId(Long id) {
+  public List<AcompanhamentoDTO> listarAcompanhamentosPorId(Long id) {
     log.info("Listando acompanhamentos (admin) para a denúncia ID: {}", id);
     Denuncia denuncia = denunciaRepository.findById(id).orElseThrow(
         () -> new EntityNotFoundException("Denúncia não encontrada com o ID informado."));
@@ -233,8 +233,8 @@ public class DenunciaService {
         .collect(Collectors.toList());
   }
 
-  public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento,
-      AcompanhamentoDto dto) {
+  public AcompanhamentoDTO adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento,
+      AcompanhamentoDTO dto) {
     log.info("Adicionando acompanhamento (público) para o token: {}", tokenAcompanhamento);
     Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
         .filter(d -> d.getStatus() != Status.RESOLVIDO && d.getStatus() != Status.REJEITADO)
@@ -279,7 +279,7 @@ public class DenunciaService {
 
   }
 
-  public AcompanhamentoDto adicionarAcompanhamentoAdmin(Long id, AcompanhamentoDto dto,
+  public AcompanhamentoDTO adicionarAcompanhamentoAdmin(Long id, AcompanhamentoDTO dto,
       String nomeAdmin) {
     log.info("Adicionando acompanhamento (admin) para a denúncia ID: {}", id);
     Denuncia denuncia = denunciaRepository.findById(id)
@@ -358,8 +358,8 @@ public class DenunciaService {
         denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm());
   }
 
-  private AcompanhamentoDto mapToAcompanhamentoResponseDto(Acompanhamento acompanhamento) {
-    return new AcompanhamentoDto(acompanhamento.getId(), acompanhamento.getMensagem(),
+  private AcompanhamentoDTO mapToAcompanhamentoResponseDto(Acompanhamento acompanhamento) {
+    return new AcompanhamentoDTO(acompanhamento.getId(), acompanhamento.getMensagem(),
         acompanhamento.getAutor().getDisplayName(), acompanhamento.getDataEnvio());
   }
 

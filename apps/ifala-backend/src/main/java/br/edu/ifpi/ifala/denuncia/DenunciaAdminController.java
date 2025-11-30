@@ -1,6 +1,6 @@
 package br.edu.ifpi.ifala.denuncia;
 
-import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDto;
+import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDTO;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.AlterarStatusDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.AtualizarDenunciaDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaAdminResponseDto;
@@ -183,11 +183,11 @@ public class DenunciaAdminController {
           content = @Content),
       @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
           content = @Content)})
-  public ResponseEntity<List<AcompanhamentoDto>> listarAcompanhamentos(
+  public ResponseEntity<List<AcompanhamentoDTO>> listarAcompanhamentos(
       @Parameter(description = "ID da denúncia", required = true) @PathVariable Long id) {
 
     log.info("Listando acompanhamentos da denúncia ID {}", id);
-    List<AcompanhamentoDto> acompanhamentos = denunciaService.listarAcompanhamentosPorId(id);
+    List<AcompanhamentoDTO> acompanhamentos = denunciaService.listarAcompanhamentosPorId(id);
     log.info("Retornados {} acompanhamentos para a denúncia ID {}", acompanhamentos.size(), id);
     return ResponseEntity.ok(acompanhamentos);
   }
@@ -207,18 +207,18 @@ public class DenunciaAdminController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Acompanhamento adicionado com sucesso",
           content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = AcompanhamentoDto.class))),
+              schema = @Schema(implementation = AcompanhamentoDTO.class))),
       @ApiResponse(responseCode = "401",
           description = "Acesso não autorizado. O token de autenticação (JWT) é inválido ou não foi fornecido.",
           content = @Content),
       @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
           content = @Content)})
-  public ResponseEntity<AcompanhamentoDto> adicionarAcompanhamento(
+  public ResponseEntity<AcompanhamentoDTO> adicionarAcompanhamento(
       @Parameter(description = "ID da denúncia", required = true) @PathVariable Long id,
-      @Valid @RequestBody AcompanhamentoDto novoAcompanhamento, Authentication authentication) {
+      @Valid @RequestBody AcompanhamentoDTO novoAcompanhamento, Authentication authentication) {
     log.info("Admin requisitou adicionar acompanhamento à denúncia ID {}", id);
     String nomeAdmin = authentication.getName();
-    AcompanhamentoDto acompanhamentoSalvo =
+    AcompanhamentoDTO acompanhamentoSalvo =
         denunciaService.adicionarAcompanhamentoAdmin(id, novoAcompanhamento, nomeAdmin);
     log.info("Acompanhamento adicionado à denúncia ID {}: {}", id, acompanhamentoSalvo);
     return ResponseEntity.status(HttpStatus.CREATED).body(acompanhamentoSalvo);
