@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import br.edu.ifpi.ifala.security.recaptcha.RecaptchaService;
+import br.edu.ifpi.ifala.notificacao.NotificacaoExternaService;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
@@ -33,6 +34,7 @@ import org.springframework.http.HttpStatus;
  *
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
+ * @author Phaola
  */
 
 @Service
@@ -44,6 +46,7 @@ public class DenunciaService {
   private final DenunciaRepository denunciaRepository;
   private final AcompanhamentoRepository acompanhamentoRepository;
   private final RecaptchaService recaptchaService;
+  private final NotificacaoExternaService notificacaoExternaService;
   private final PolicyFactory policy;
 
   // A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO
@@ -58,10 +61,12 @@ public class DenunciaService {
   // }
 
   public DenunciaService(DenunciaRepository denunciaRepository,
-      AcompanhamentoRepository acompanhamentoRepository, RecaptchaService recaptchaService) {
+      AcompanhamentoRepository acompanhamentoRepository, RecaptchaService recaptchaService,
+      NotificacaoExternaService notificacaoExternaService) {
     this.denunciaRepository = denunciaRepository;
     this.acompanhamentoRepository = acompanhamentoRepository;
     this.recaptchaService = recaptchaService;
+    this.notificacaoExternaService = notificacaoExternaService;
     this.policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
   }
 
@@ -118,6 +123,15 @@ public class DenunciaService {
     primeiroAcompanhamento.setAutor(Perfis.ANONIMO);
     acompanhamentoRepository.save(primeiroAcompanhamento);
     log.info("Primeiro acompanhamento criado automaticamente com o relato da denúncia.");
+
+    // Notificar administradores/usuários externos sobre a nova denúncia
+    try {
+      notificacaoExternaService.notificarNovaDenuncia(denunciaSalva);
+      log.info("Notificação externa enviada sobre nova denúncia ID {}", denunciaSalva.getId());
+    } catch (Exception e) {
+      log.error("Erro ao notificar administradores sobre nova denúncia ID {}: {}",
+          denunciaSalva.getId(), e.getMessage(), e);
+    }
 
     return mapToDenunciaResponseDto(denunciaSalva);
   }
@@ -249,6 +263,18 @@ public class DenunciaService {
 
     Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
     log.info("Acompanhamento adicionado com sucesso a denúncia de token: {}", tokenAcompanhamento);
+    // Disparar notificação externa para informar que uma nova mensagem do denunciante
+    // foi recebida para a denúncia. Envolve apenas mensagens enviadas pelo denunciante
+    // (perfil ANONIMO) — trata-se do fluxo público.
+    try {
+      notificacaoExternaService.notificarNovaMensagem(salvo);
+      log.info("Notificação externa enviada para nova mensagem (denúncia ID {}).",
+          salvo.getDenuncia().getId());
+    } catch (Exception e) {
+      log.error("Erro ao enviar notificação externa para nova mensagem (denúncia ID {}): {}",
+          salvo.getDenuncia().getId(), e.getMessage(), e);
+    }
+
     return mapToAcompanhamentoResponseDto(salvo);
 
   }

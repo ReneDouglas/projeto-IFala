@@ -10,13 +10,12 @@ import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
 import br.edu.ifpi.ifala.security.JwtUtil;
 import br.edu.ifpi.ifala.security.TokenBlacklistService;
+import br.edu.ifpi.ifala.notificacao.NotificacaoExternaService;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -59,23 +58,23 @@ public class AuthServiceImpl implements AuthService {
   private final JwtUtil jwtUtil;
   private final TokenBlacklistService tokenBlacklistService;
   private final RefreshTokenService refreshTokenService;
-  private final JavaMailSender mailSender;
+  private final NotificacaoExternaService notificacaoExternaService;
 
   private final AuthenticationManager authenticationManager;
 
-  @Value("${app.frontend.reset-password-url:http://localhost:3000/reset-password}")
+  @Value("${app.frontend.reset-password-url:http://localhost:5173/redefinir-senha}")
   private String resetPasswordUrl;
 
   public AuthServiceImpl(UsuarioRepository userRepository, PasswordEncoder passwordEncoder,
       JwtUtil jwtUtil, TokenBlacklistService tokenBlacklistService,
-      RefreshTokenService refreshTokenService, JavaMailSender mailSender,
+      RefreshTokenService refreshTokenService, NotificacaoExternaService notificacaoExternaService,
       AuthenticationManager authenticationManager) {
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.jwtUtil = jwtUtil;
     this.tokenBlacklistService = tokenBlacklistService;
     this.refreshTokenService = refreshTokenService;
-    this.mailSender = mailSender;
+    this.notificacaoExternaService = notificacaoExternaService;
     this.authenticationManager = authenticationManager;
   }
 
@@ -152,27 +151,21 @@ public class AuthServiceImpl implements AuthService {
   @Override
   @Transactional
   public void sendPasswordReset(Usuario user) {
-    logger.info("Iniciando envio de e-mail de redefinição para {}", user.getEmail());
+    logger.info("Iniciando processo de redefinição de senha para {}", user.getEmail());
 
-    // 1. Geração e Salvamento do Token
+    // 1. Geração e Salvamento do Token (Responsabilidade de Segurança)
     String token = UUID.randomUUID().toString();
     user.setPasswordResetToken(token);
     user.setPasswordResetExpires(Instant.now().plus(1, ChronoUnit.HOURS));
     userRepository.save(user);
 
-    // 2. Geração do Link
+    // 2. Geração do Link (Responsabilidade de Segurança)
     String link = resetPasswordUrl + "/" + token;
 
-    // 3. Envio do E-mail
-    SimpleMailMessage msg = new SimpleMailMessage();
-    msg.setTo(user.getEmail());
-    msg.setSubject("Redefinição de senha - IFala");
-    msg.setText("Olá,\n\nAcesse o link abaixo para redefinir sua senha:\n" + link
-        + "\n\nSe não solicitou, ignore esta mensagem.");
-
+    // 3. Delegação do Envio de E-mail (Responsabilidade de Comunicação)
     try {
-      mailSender.send(msg);
-      logger.info("E-mail de redefinição de senha enviado com sucesso para: {}", user.getEmail());
+      notificacaoExternaService.enviarEmailRedefinicaoSenha(user.getEmail(), link);
+      logger.info("E-mail de redefinição de senha delegado com sucesso para: {}", user.getEmail());
     } catch (Exception e) {
       logger.error("Falha ao enviar e-mail de redefinição para {}: {}", user.getEmail(),
           e.getMessage(), e);
