@@ -2,7 +2,7 @@ package br.edu.ifpi.ifala.autenticacao;
 
 import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDTO;
-import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDto;
+import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
@@ -80,7 +80,7 @@ public class AuthController {
    */
   @PostMapping("/redefinir-senha")
   public ResponseEntity<LoginResponseDTO> changePassword(
-      @Valid @RequestBody MudarSenhaRequestDto req) {
+      @Valid @RequestBody MudarSenhaRequestDTO req) {
     logger.info("Tentativa de redefinição/mudança de senha para o e-mail: {}", req.email());
     LoginResponseDTO response = authService.changePassword(req);
     return ResponseEntity.ok(response);
