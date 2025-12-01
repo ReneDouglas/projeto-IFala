@@ -1,19 +1,18 @@
 package br.edu.ifpi.ifala.denuncia;
 
-import org.springframework.stereotype.Service;
 import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
 import br.edu.ifpi.ifala.acompanhamento.AcompanhamentoRepository;
 import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDto;
-import br.edu.ifpi.ifala.denuncia.denunciaDTO.*;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.AtualizarDenunciaDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.CriarDenunciaDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.DadosDeIdentificacaoDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaAdminResponseDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
+import br.edu.ifpi.ifala.notificacao.NotificacaoExternaService;
+import br.edu.ifpi.ifala.security.recaptcha.RecaptchaService;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
 import br.edu.ifpi.ifala.shared.enums.Status;
-import org.owasp.html.PolicyFactory;
-import org.owasp.html.Sanitizers;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
@@ -22,15 +21,21 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.owasp.html.PolicyFactory;
+import org.owasp.html.Sanitizers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import br.edu.ifpi.ifala.security.recaptcha.RecaptchaService;
-import br.edu.ifpi.ifala.notificacao.NotificacaoExternaService;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Classe de serviço responsável por manipular operações relacionadas a denúncias.
+ * Classe de serviço responsável por manipular operações relacionadas a
+ * denúncias.
  *
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
@@ -143,52 +148,57 @@ public class DenunciaService {
   }
 
   /*
-   * tipo Page é uma interface do Spring Data que encapsula uma página de dados Pageable é uma
-   * interface que define a paginação e ordenação Specification é uma interface do Spring Data JPA
-   * que permite construir consultas dinamicamente predicate é uma condição usada em consultas para
+   * tipo Page é uma interface do Spring Data que encapsula uma página de dados
+   * Pageable é uma
+   * interface que define a paginação e ordenação Specification é uma interface do
+   * Spring Data JPA
+   * que permite construir consultas dinamicamente predicate é uma condição usada
+   * em consultas para
    * filtrar resultados
    */
 
   @Transactional(readOnly = true)
-    public Page<DenunciaAdminResponseDto> listarTodas(String search, Status status, Categorias categoria, Pageable pageable) {
-        Specification<Denuncia> spec = (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
+  public Page<DenunciaAdminResponseDto> listarTodas(String search, Status status, Categorias categoria,
+      Pageable pageable) {
+    Specification<Denuncia> spec = (root, query, criteriaBuilder) -> {
+      List<Predicate> predicates = new ArrayList<>();
 
-            // filtro por Status
-            if (status != null) {
-                predicates.add(criteriaBuilder.equal(root.get("status"), status));
-            }
+      // filtro por Status
+      if (status != null) {
+        predicates.add(criteriaBuilder.equal(root.get("status"), status));
+      }
 
-            // filtro por Categoria
-            if (categoria != null) {
-                predicates.add(criteriaBuilder.equal(root.get("categoria"), categoria));
-            }
+      // filtro por Categoria
+      if (categoria != null) {
+        predicates.add(criteriaBuilder.equal(root.get("categoria"), categoria));
+      }
 
-            // filtro por Busca Textual (Search)
-            if (search != null && !search.trim().isEmpty()) {
-                String likePattern = "%" + search.toLowerCase() + "%";
-                // busca na descrição OU no ID (se for numérico)
-                Predicate descricaoPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("descricao")), likePattern);
-                
-                // opcional: Se quiser buscar por ID também
-                // Predicate idPredicate = criteriaBuilder.equal(root.get("id").as(String.class), search);
-                
-                predicates.add(criteriaBuilder.or(descricaoPredicate));
-            }
+      // filtro por Busca Textual (Search)
+      if (search != null && !search.trim().isEmpty()) {
+        String likePattern = "%" + search.toLowerCase() + "%";
+        // busca na descrição OU no ID (se for numérico)
+        Predicate descricaoPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("descricao")), likePattern);
 
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
+        // opcional: Se quiser buscar por ID também
+        // Predicate idPredicate =
+        // criteriaBuilder.equal(root.get("id").as(String.class), search);
 
-        return denunciaRepository.findAll(spec, pageable).map(this::mapToDenunciaAdminResponseDto);
-    }
+        predicates.add(criteriaBuilder.or(descricaoPredicate));
+      }
 
-    // buscar denúncia por ID
-    @Transactional(readOnly = true)
-    public DenunciaAdminResponseDto buscarPorId(Long id) {
-        return denunciaRepository.findById(id)
-            .map(this::mapToDenunciaAdminResponseDto)
-            .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada com o ID: " + id));
-    }
+      return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+    };
+
+    return denunciaRepository.findAll(spec, pageable).map(this::mapToDenunciaAdminResponseDto);
+  }
+
+  // buscar denúncia por ID
+  @Transactional(readOnly = true)
+  public DenunciaAdminResponseDto buscarPorId(Long id) {
+    return denunciaRepository.findById(id)
+        .map(this::mapToDenunciaAdminResponseDto)
+        .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada com o ID: " + id));
+  }
 
   public Optional<DenunciaAdminResponseDto> atualizarDenuncia(Long id, AtualizarDenunciaDto dto,
       String adminName) {
@@ -233,9 +243,8 @@ public class DenunciaService {
   @Transactional(readOnly = true)
   public List<AcompanhamentoDto> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
     log.info("Listando acompanhamentos (público) para o token: {}", tokenAcompanhamento);
-    Denuncia denuncia =
-        denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
-            () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
+    Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
+        () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
 
     return denuncia.getAcompanhamentos().stream().map(this::mapToAcompanhamentoResponseDto)
         .collect(Collectors.toList());
@@ -254,7 +263,7 @@ public class DenunciaService {
   public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento,
       AcompanhamentoDto dto) {
     log.info("Adicionando acompanhamento (público) para o token: {}", tokenAcompanhamento);
-    
+
     Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
         .filter(d -> d.getStatus() != Status.RESOLVIDO && d.getStatus() != Status.REJEITADO)
         .orElseThrow(() -> new EntityNotFoundException(
@@ -262,29 +271,32 @@ public class DenunciaService {
 
     // verificar se a última mensagem foi do admin (anti-flood)
     Optional<Acompanhamento> ultimoOpt = acompanhamentoRepository
-            .findTopByDenuncia_TokenAcompanhamentoOrderByDataEnvioDesc(tokenAcompanhamento);
+        .findTopByDenuncia_TokenAcompanhamentoOrderByDataEnvioDesc(tokenAcompanhamento);
 
-        if (ultimoOpt.isPresent()) {
-            Acompanhamento ultimo = ultimoOpt.get();
-            if (ultimo.getAutor() == Perfis.ANONIMO) {
-                log.warn("Bloqueio de flood no token: {}", tokenAcompanhamento);
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Você precisa aguardar a resposta do administrador antes de enviar outra mensagem.");
-            }
-        }
+    if (ultimoOpt.isPresent()) {
+      Acompanhamento ultimo = ultimoOpt.get();
+      if (ultimo.getAutor() == Perfis.ANONIMO) {
+        log.warn("Bloqueio de flood no token: {}", tokenAcompanhamento);
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+            "Você precisa aguardar a resposta do administrador antes de enviar outra mensagem.");
+      }
+    }
 
     Acompanhamento novoAcompanhamento = new Acompanhamento();
     novoAcompanhamento.setMensagem(policy.sanitize(dto.mensagem()));
     novoAcompanhamento.setDenuncia(denuncia);
 
-    // Define o perfil do autor como ANONIMO (denunciantes são sempre anônimos no acompanhamento
+    // Define o perfil do autor como ANONIMO (denunciantes são sempre anônimos no
+    // acompanhamento
     // público)
     novoAcompanhamento.setAutor(Perfis.ANONIMO);
 
     Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
     log.info("Acompanhamento adicionado com sucesso a denúncia de token: {}", tokenAcompanhamento);
-    // Disparar notificação externa para informar que uma nova mensagem do denunciante
-    // foi recebida para a denúncia. Envolve apenas mensagens enviadas pelo denunciante
+    // Disparar notificação externa para informar que uma nova mensagem do
+    // denunciante
+    // foi recebida para a denúncia. Envolve apenas mensagens enviadas pelo
+    // denunciante
     // (perfil ANONIMO) — trata-se do fluxo público.
     try {
       notificacaoExternaService.notificarNovaMensagem(salvo);
