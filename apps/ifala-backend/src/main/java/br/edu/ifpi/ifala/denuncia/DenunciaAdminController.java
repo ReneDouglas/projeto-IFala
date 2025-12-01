@@ -82,6 +82,7 @@ public class DenunciaAdminController {
       value = {@ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
           @ApiResponse(responseCode = "401", description = "Não autorizado", content = @Content)})
   public ResponseEntity<Page<DenunciaAdminResponseDto>> listarTodas(
+    @Parameter(description = "Busca textual na descrição") @RequestParam(required = false) String search,
       @Parameter(description = "Filtrar por status") @RequestParam(required = false) Status status,
       @Parameter(description = "Filtrar por categoria") @RequestParam(
           required = false) Categorias categoria,
@@ -89,23 +90,29 @@ public class DenunciaAdminController {
           example = "0") @RequestParam(defaultValue = "0") int pageNumber,
       @Parameter(description = "Tamanho da página",
           example = "10") @RequestParam(defaultValue = "10") int size,
+          @Parameter(description = "Campo para ordenação", example = "id") @RequestParam(defaultValue = "id") String sortProperty,
       @Parameter(description = "Direção da ordenação (ASC ou DESC)",
           example = "DESC") @RequestParam(defaultValue = "DESC") String sortDirection) {
-    String sortProperty = "id"; // se não for especificado, ordena por ID crescente
-    Sort.Direction direction =
-        sortDirection.equalsIgnoreCase("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC;
+    
+    Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC;
     Pageable pageable = PageRequest.of(pageNumber, size, Sort.by(direction, sortProperty));
-
+    
     log.info(
         "Admin requisitou listagem de denúncias: page={}, size={}, sort={}, filtros(status={}, categoria={})",
         pageNumber, size, sortDirection, status, categoria);
 
-    Page<DenunciaAdminResponseDto> denunciasPage =
-        denunciaService.listarTodas(status, categoria, pageable);
-    log.info("Retornadas {} denúncias para a página {}.", denunciasPage.getNumberOfElements(),
+    Page<DenunciaAdminResponseDto> page = denunciaService.listarTodas(search, status, categoria, pageable);
+    log.info("Retornadas {} denúncias para a página {}.", page.getNumberOfElements(),
         pageNumber);
-    return ResponseEntity.ok(denunciasPage);
+    return ResponseEntity.ok(page);
   }
+
+  @GetMapping("/{id}")
+    @Operation(summary = "Obtém detalhes de uma denúncia pelo ID")
+    public ResponseEntity<DenunciaAdminResponseDto> buscarPorId(@PathVariable Long id) {
+        log.info("Admin solicitou detalhes da denúncia ID: {}", id);
+        return ResponseEntity.ok(denunciaService.buscarPorId(id));
+    }
 
   /**
    * Atualiza uma denúncia existente.

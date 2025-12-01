@@ -149,28 +149,46 @@ public class DenunciaService {
    * filtrar resultados
    */
 
-  @Transactional(readOnly = true) // apenas leitura
-  public Page<DenunciaAdminResponseDto> listarTodas(Status status, Categorias categoria,
-      Pageable pageable) {
-    Specification<Denuncia> spec = (root, query, criteriaBuilder) -> {
-      List<Predicate> predicates = new ArrayList<>();
+  @Transactional(readOnly = true)
+    public Page<DenunciaAdminResponseDto> listarTodas(String search, Status status, Categorias categoria, Pageable pageable) {
+        Specification<Denuncia> spec = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-      if (status != null) {
-        predicates.add(criteriaBuilder.equal(root.get("status"), status));
-      }
-      if (categoria != null) {
-        predicates.add(criteriaBuilder.equal(root.get("categoria"), categoria));
-      }
+            // filtro por Status
+            if (status != null) {
+                predicates.add(criteriaBuilder.equal(root.get("status"), status));
+            }
 
-      if (query != null) {
-        query.distinct(true);
-      }
+            // filtro por Categoria
+            if (categoria != null) {
+                predicates.add(criteriaBuilder.equal(root.get("categoria"), categoria));
+            }
 
-      return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-    };
+            // filtro por Busca Textual (Search)
+            if (search != null && !search.trim().isEmpty()) {
+                String likePattern = "%" + search.toLowerCase() + "%";
+                // busca na descrição OU no ID (se for numérico)
+                Predicate descricaoPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("descricao")), likePattern);
+                
+                // opcional: Se quiser buscar por ID também
+                // Predicate idPredicate = criteriaBuilder.equal(root.get("id").as(String.class), search);
+                
+                predicates.add(criteriaBuilder.or(descricaoPredicate));
+            }
 
-    return denunciaRepository.findAll(spec, pageable).map(this::mapToDenunciaAdminResponseDto);
-  }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return denunciaRepository.findAll(spec, pageable).map(this::mapToDenunciaAdminResponseDto);
+    }
+
+    // buscar denúncia por ID
+    @Transactional(readOnly = true)
+    public DenunciaAdminResponseDto buscarPorId(Long id) {
+        return denunciaRepository.findById(id)
+            .map(this::mapToDenunciaAdminResponseDto)
+            .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada com o ID: " + id));
+    }
 
   public Optional<DenunciaAdminResponseDto> atualizarDenuncia(Long id, AtualizarDenunciaDto dto,
       String adminName) {
@@ -236,22 +254,24 @@ public class DenunciaService {
   public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento,
       AcompanhamentoDto dto) {
     log.info("Adicionando acompanhamento (público) para o token: {}", tokenAcompanhamento);
+    
     Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
         .filter(d -> d.getStatus() != Status.RESOLVIDO && d.getStatus() != Status.REJEITADO)
         .orElseThrow(() -> new EntityNotFoundException(
             "Denúncia não encontrada, finalizada ou token inválido."));
 
-    // Verificar se a última mensagem foi do admin (anti-flood)
-    List<Acompanhamento> acompanhamentos = new ArrayList<>(denuncia.getAcompanhamentos());
-    if (!acompanhamentos.isEmpty()) {
-      Acompanhamento ultimaMensagem = acompanhamentos.get(acompanhamentos.size() - 1);
-      if (ultimaMensagem.getAutor() == Perfis.ANONIMO) {
-        log.warn("Tentativa de envio de mensagem consecutiva pelo denunciante no token: {}",
-            tokenAcompanhamento);
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-            "Você precisa aguardar a resposta do administrador antes de enviar outra mensagem.");
-      }
-    }
+    // verificar se a última mensagem foi do admin (anti-flood)
+    Optional<Acompanhamento> ultimoOpt = acompanhamentoRepository
+            .findTopByDenuncia_TokenAcompanhamentoOrderByDataEnvioDesc(tokenAcompanhamento);
+
+        if (ultimoOpt.isPresent()) {
+            Acompanhamento ultimo = ultimoOpt.get();
+            if (ultimo.getAutor() == Perfis.ANONIMO) {
+                log.warn("Bloqueio de flood no token: {}", tokenAcompanhamento);
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Você precisa aguardar a resposta do administrador antes de enviar outra mensagem.");
+            }
+        }
 
     Acompanhamento novoAcompanhamento = new Acompanhamento();
     novoAcompanhamento.setMensagem(policy.sanitize(dto.mensagem()));
