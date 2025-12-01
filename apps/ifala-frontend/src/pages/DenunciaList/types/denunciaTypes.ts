@@ -1,14 +1,15 @@
 export interface Denuncia {
   id: number;
-  token: string;
-  titulo: string;
-  descricao: string;
+  tokenAcompanhamento: string;
   categoria: string;
   status: string;
-  dataCriacao: string;
-  hasUnreadMessages: boolean;
-  ultimaAtualizacao: string;
+  criadoEm: string;
+  alteradoEm?: string;
+  descricao?: string;
+  titulo?: string;
+  hasUnreadMessages?: boolean;
 }
+
 
 export interface SearchParams {
   search: string;
@@ -17,13 +18,21 @@ export interface SearchParams {
   ordenacao: string;
 }
 
-export interface DenunciasResponse {
+/*export interface DenunciasResponse {
   content: Denuncia[];
   totalPages: number;
   totalElements: number;
   size: number;
   first: boolean;
   last: boolean;
+}*/
+
+export interface DenunciasResponse {
+  content: Denuncia[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;        // página atual
 }
 
 export interface FieldErrors {
