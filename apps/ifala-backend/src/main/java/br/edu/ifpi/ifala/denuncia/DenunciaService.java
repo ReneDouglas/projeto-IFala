@@ -175,15 +175,14 @@ public class DenunciaService {
 
       // filtro por Busca Textual (Search)
       if (search != null && !search.trim().isEmpty()) {
-        String likePattern = "%" + search.toLowerCase() + "%";
-        // busca na descrição OU no ID (se for numérico)
-        Predicate descricaoPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("descricao")), likePattern);
+        try {
+          UUID token = UUID.fromString(search.trim());
+          predicates.add(criteriaBuilder.equal(root.get("tokenAcompanhamento"), token));
 
-        // opcional: Se quiser buscar por ID também
-        // Predicate idPredicate =
-        // criteriaBuilder.equal(root.get("id").as(String.class), search);
-
-        predicates.add(criteriaBuilder.or(descricaoPredicate));
+        } catch (IllegalArgumentException e) {
+          log.error("Erro ao processar o filtro de busca textual: {}", e.getMessage(), e);
+          predicates.add(criteriaBuilder.disjunction()); // Nenhum resultado
+        }
       }
 
       return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
