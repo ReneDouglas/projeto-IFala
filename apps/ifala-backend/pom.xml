@@ -87,11 +87,6 @@
       <artifactId>nimbus-jose-jwt</artifactId>
       <version>9.37.3</version> 
     </dependency>
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <optional>true</optional>
-    </dependency>
 
     <!-- JWT -->
     <dependency>

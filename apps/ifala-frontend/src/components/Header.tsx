@@ -1,6 +1,7 @@
 import './Header.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ifalaLogo from '../assets/IFala-logo.png';
+import NotificacaoBell from '../pages/notificacao/notificacao';
 
 interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
@@ -9,6 +10,7 @@ interface HeaderProps {
 
 function Header({ setSidebarOpen, variant = 'home' }: HeaderProps) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleHomeClick = () => {
     navigate('/');
@@ -46,6 +48,8 @@ function Header({ setSidebarOpen, variant = 'home' }: HeaderProps) {
 
         {/* --- LADO DIREITO DO HEADER --- */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Componente de notificações: exibe apenas no painel de denúncias */}
+          {location.pathname === '/painel-denuncias' && <NotificacaoBell />}
           {/* Sempre mostra o menu hamburger para navegação */}
           <button
             className='hamburger-menu'
