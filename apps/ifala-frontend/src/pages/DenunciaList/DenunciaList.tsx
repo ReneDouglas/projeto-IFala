@@ -11,24 +11,32 @@ export function DenunciasList() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
   const [searchParams, setSearchParams] = useState<SearchParams>({
-    search: "",
-    categoria: "",
-    status: "",
-    sortProperty: "id",
-    sortDirection: "DESC",
+    search: '',
+    categoria: '',
+    status: '',
+    sortProperty: 'id',
+    sortDirection: 'DESC',
   });
 
-
-  const { denuncias, loading, error, totalPages, refetch } = useDenuncias(currentPage, searchParams);
+  const { denuncias, loading, error, totalPages, refetch } = useDenuncias(
+    currentPage,
+    searchParams,
+  );
   const [showWelcome, setShowWelcome] = useState(true);
 
   const handleFilterChange = (field: keyof SearchParams, value: string) => {
-    setSearchParams(prev => ({ ...prev, [field]: value }));
+    setSearchParams((prev) => ({ ...prev, [field]: value }));
     setCurrentPage(0);
   };
 
   const handleClearFilters = () => {
-    setSearchParams({ search: '', categoria: '', status: '', sortProperty: "id", sortDirection: "DESC"});
+    setSearchParams({
+      search: '',
+      categoria: '',
+      status: '',
+      sortProperty: 'id',
+      sortDirection: 'DESC',
+    });
     setCurrentPage(0);
   };
 
@@ -57,7 +65,10 @@ export function DenunciasList() {
         <div className='container'>
           <div className='hero-content'>
             <h1 className='hero-title'>IFala Corrente</h1>
-            <p className='hero-subtitle'>Gerencie e acompanhe todas as denúncias do sistema de forma segura e organizada.</p>
+            <p className='hero-subtitle'>
+              Gerencie e acompanhe todas as denúncias do sistema de forma segura
+              e organizada.
+            </p>
           </div>
         </div>
       </section>
@@ -67,12 +78,19 @@ export function DenunciasList() {
           {showWelcome && (
             <div className='welcome-message'>
               <div className='welcome-content'>
-                <span className='material-symbols-outlined welcome-icon'>waving_hand</span>
+                <span className='material-symbols-outlined welcome-icon'>
+                  waving_hand
+                </span>
                 <div className='welcome-text'>
                   <h3>Bem-vindo ao Painel de Denúncias!</h3>
-                  <p>Use os filtros abaixo para encontrar denúncias específicas.</p>
+                  <p>
+                    Use os filtros abaixo para encontrar denúncias específicas.
+                  </p>
                 </div>
-                <button className='welcome-close' onClick={() => setShowWelcome(false)}>
+                <button
+                  className='welcome-close'
+                  onClick={() => setShowWelcome(false)}
+                >
                   <span className='material-symbols-outlined'>close</span>
                 </button>
               </div>
@@ -82,7 +100,13 @@ export function DenunciasList() {
           <Filters
             searchParams={searchParams}
             loading={loading}
-            fieldErrors={{ search: '', categoria: '', status: '', sortProperty: "id", sortDirection: "DESC"}}
+            fieldErrors={{
+              search: '',
+              categoria: '',
+              status: '',
+              sortProperty: 'id',
+              sortDirection: 'DESC',
+            }}
             onFilterChange={handleFilterChange}
             onClearFilters={handleClearFilters}
             onRefresh={refetch}
@@ -91,7 +115,9 @@ export function DenunciasList() {
           <section className='denuncias-section'>
             {error && (
               <div className='error-state'>
-                <div className='error-icon'><span className='material-symbols-outlined'>error</span></div>
+                <div className='error-icon'>
+                  <span className='material-symbols-outlined'>error</span>
+                </div>
                 <div className='error-content'>
                   <h3>Ocorreu um erro</h3>
                   <p>{error}</p>
@@ -135,11 +161,20 @@ export function DenunciasList() {
                     ))
                   ) : (
                     <div className='no-results'>
-                      <span className='material-symbols-outlined'>search_off</span>
+                      <span className='material-symbols-outlined'>
+                        search_off
+                      </span>
                       <h3>Nenhuma denúncia encontrada</h3>
-                      <p>Tente ajustar os filtros ou limpar todas as filtragens.</p>
-                      <button onClick={handleClearFilters} className='btn-clear-all'>
-                        <span className='material-symbols-outlined'>clear_all</span>
+                      <p>
+                        Tente ajustar os filtros ou limpar todas as filtragens.
+                      </p>
+                      <button
+                        onClick={handleClearFilters}
+                        className='btn-clear-all'
+                      >
+                        <span className='material-symbols-outlined'>
+                          clear_all
+                        </span>
                         Limpar Todos os Filtros
                       </button>
                     </div>

@@ -173,7 +173,7 @@ export const Filters = ({
                     Categoria:{' '}
                     {
                       categoriaOptions.find(
-                        (opt) => opt.value === searchParams.categoria
+                        (opt) => opt.value === searchParams.categoria,
                       )?.label
                     }
                     <button
@@ -190,7 +190,7 @@ export const Filters = ({
                     Status:{' '}
                     {
                       statusOptions.find(
-                        (opt) => opt.value === searchParams.status
+                        (opt) => opt.value === searchParams.status,
                       )?.label
                     }
                     <button

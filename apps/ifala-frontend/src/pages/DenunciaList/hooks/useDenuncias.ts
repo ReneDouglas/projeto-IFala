@@ -1,10 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
-import type { Denuncia, DenunciasResponse, SearchParams } from "../types/denunciaTypes";
-import { listarDenunciasAdmin } from "../../../services/admin-denuncias-api";
+import { useState, useEffect, useCallback } from 'react';
+import type {
+  Denuncia,
+  DenunciasResponse,
+  SearchParams,
+} from '../types/denunciaTypes';
+import { listarDenunciasAdmin } from '../../../services/admin-denuncias-api';
 
 export const useDenuncias = (
   currentPage: number,
-  searchParams: SearchParams
+  searchParams: SearchParams,
 ) => {
   const [denuncias, setDenuncias] = useState<Denuncia[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,21 +22,19 @@ export const useDenuncias = (
 
       const response: DenunciasResponse = await listarDenunciasAdmin(
         currentPage,
-        searchParams
+        searchParams,
       );
 
       setDenuncias(response.content || []);
       setTotalPages(response.totalPages || 0);
-
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Erro ao carregar denúncias.");
+      setError(err?.response?.data?.message || 'Erro ao carregar denúncias.');
       setDenuncias([]);
       setTotalPages(0);
     } finally {
       setLoading(false);
     }
   }, [currentPage, JSON.stringify(searchParams)]);
-
 
   useEffect(() => {
     load();

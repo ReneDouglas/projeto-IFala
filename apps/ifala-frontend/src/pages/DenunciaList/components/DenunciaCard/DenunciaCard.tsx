@@ -13,7 +13,6 @@ export const DenunciaCard = ({
   contador,
   onViewDetails,
 }: DenunciaCardProps) => {
-
   const formatDate = (dateString: string) => {
     if (!dateString) return '---';
 
@@ -60,15 +59,15 @@ export const DenunciaCard = ({
 
   return (
     <div className={`denuncia-card ${getPriorityColor(denuncia.status)}`}>
-      
-      <div className="denuncia-header">
-        <div className="header-left">
-          <div className="denuncia-token">
-            <span className="material-symbols-outlined token-icon">
+      <div className='denuncia-header'>
+        <div className='header-left'>
+          <div className='denuncia-token'>
+            <span className='material-symbols-outlined token-icon'>
               fingerprint
             </span>
-            <span className="token-value">
-              Denúncia {contador}: {formatToken(String(denuncia.tokenAcompanhamento))}
+            <span className='token-value'>
+              Denúncia {contador}:{' '}
+              {formatToken(String(denuncia.tokenAcompanhamento))}
             </span>
           </div>
         </div>
@@ -76,48 +75,49 @@ export const DenunciaCard = ({
         <StatusBadge status={denuncia.status} />
       </div>
 
-      <div className="denuncia-content">
-        <div className="denuncia-metadata">
-
-          <div className="metadata-item categoria">
-            <span className={`material-symbols-outlined icon ${getCategoriaIcon(denuncia.categoria)}`}>
+      <div className='denuncia-content'>
+        <div className='denuncia-metadata'>
+          <div className='metadata-item categoria'>
+            <span
+              className={`material-symbols-outlined icon ${getCategoriaIcon(denuncia.categoria)}`}
+            >
               {getCategoriaIcon(denuncia.categoria)}
             </span>
-            <span className="metadata-text">{denuncia.categoria}</span>
+            <span className='metadata-text'>{denuncia.categoria}</span>
           </div>
 
           {/* Aqui está o campo correto enviado pelo backend */}
-          <div className="metadata-item data">
-            <span className="material-symbols-outlined icon">calendar_today</span>
-            <span className="metadata-text">
+          <div className='metadata-item data'>
+            <span className='material-symbols-outlined icon'>
+              calendar_today
+            </span>
+            <span className='metadata-text'>
               Criado em: {formatDate(denuncia.criadoEm)}
             </span>
           </div>
 
-
-          <div className="metadata-item data">
-            <span className="material-symbols-outlined icon">update</span>
-            <span className="metadata-text">
-              Atualizado em: {denuncia.alteradoEm ? formatDate(denuncia.alteradoEm) : '---'}
+          <div className='metadata-item data'>
+            <span className='material-symbols-outlined icon'>update</span>
+            <span className='metadata-text'>
+              Atualizado em:{' '}
+              {denuncia.alteradoEm ? formatDate(denuncia.alteradoEm) : '---'}
             </span>
           </div>
-
         </div>
       </div>
 
-
-      <div className="denuncia-actions">
+      <div className='denuncia-actions'>
         <button
-          className="btn-details"
-          title="Ver Detalhes da Denúncia"
+          className='btn-details'
+          title='Ver Detalhes da Denúncia'
           onClick={() => onViewDetails(denuncia.id)} // passar id
         >
-          <span className="material-symbols-outlined">visibility</span>
+          <span className='material-symbols-outlined'>visibility</span>
           <span>Ver Detalhes</span>
         </button>
       </div>
 
-      <div className="card-hover-effect"></div>
+      <div className='card-hover-effect'></div>
     </div>
   );
 };

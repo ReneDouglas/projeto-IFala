@@ -10,14 +10,12 @@ export interface Denuncia {
   hasUnreadMessages?: boolean;
 }
 
-
 export interface SearchParams {
   search: string;
   categoria: string;
   status: string;
   sortProperty?: string;
-  sortDirection?: "ASC" | "DESC";
-
+  sortDirection?: 'ASC' | 'DESC';
 }
 
 /*export interface DenunciasResponse {
@@ -34,7 +32,7 @@ export interface DenunciasResponse {
   totalPages: number;
   totalElements: number;
   size: number;
-  number: number;        // página atual
+  number: number; // página atual
 }
 
 export interface FieldErrors {
@@ -42,8 +40,7 @@ export interface FieldErrors {
   categoria: string;
   status: string;
   sortProperty?: string;
-  sortDirection?: "ASC" | "DESC";
-
+  sortDirection?: 'ASC' | 'DESC';
 }
 
 export interface StatusConfig {
