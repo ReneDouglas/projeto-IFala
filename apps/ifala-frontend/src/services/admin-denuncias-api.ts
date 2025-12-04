@@ -5,18 +5,16 @@ export async function listarDenunciasAdmin(
   page: number,
   searchParams: any
 ): Promise<DenunciasResponse> {
+  
   const params: any = {
-    pageNumber: page,   // ← CORRETO PARA SEU BACKEND
+    pageNumber: page,
     size: 10,
+    search: searchParams.search || "",
+    categoria: searchParams.categoria || "",
+    status: searchParams.status || "",
+    sortProperty: searchParams.sortProperty || "id",
+    sortDirection: searchParams.sortDirection || "DESC",
   };
-
-  if (searchParams.search) params.search = searchParams.search;
-  if (searchParams.status) params.status = searchParams.status;
-  if (searchParams.categoria) params.categoria = searchParams.categoria;
-
-  if (searchParams.ordenacao) {
-    params.sort = searchParams.ordenacao;
-  }
 
   console.debug("[API] Params enviados:", params);
 

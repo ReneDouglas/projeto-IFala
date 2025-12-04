@@ -22,9 +22,11 @@ export const Filters = ({
 }: FiltersProps) => {
   const categoriaOptions = [
     { value: '', label: 'Todas as categorias' },
-    { value: 'ASSEDIO', label: 'Assédio' },
+    { value: 'VANDALISMO', label: 'Vandalismo' },
     { value: 'VIOLENCIA', label: 'Violência' },
-    { value: 'DISCRIMINACAO', label: 'Discriminação' },
+    { value: 'BULLYING', label: 'Bullying' },
+    { value: 'DROGAS', label: 'Drogas' },
+    { value: 'ACADEMICO', label: 'Academico' },
     { value: 'OUTROS', label: 'Outros' },
   ];
 
@@ -37,11 +39,12 @@ export const Filters = ({
     { value: 'REJEITADO', label: 'Rejeitado' },
   ];
 
+  // Mapeamento visual para algo como "campo,direção"
   const ordenacaoOptions = [
-    { value: 'dataCriacao,desc', label: 'Mais recentes' },
-    { value: 'dataCriacao,asc', label: 'Mais antigas' },
-    { value: 'titulo,asc', label: 'Título (A-Z)' },
-    { value: 'titulo,desc', label: 'Título (Z-A)' },
+    { value: 'criadoEm,desc', label: 'Mais recentes' },
+    { value: 'criadoEm,asc', label: 'Mais antigas' },
+    { value: 'categoria,asc', label: 'Categoria (A-Z)' },
+    { value: 'categoria,desc', label: 'Categoria (Z-A)' },
   ];
 
   return (
@@ -65,7 +68,7 @@ export const Filters = ({
         </div>
 
         <div className='filters-form'>
-          {/* Busca por texto com validação em tempo real */}
+          {/* BUSCA */}
           <Input
             label='Buscar por Token'
             value={searchParams.search}
@@ -76,7 +79,7 @@ export const Filters = ({
           />
 
           <div className='filters-row'>
-            {/* Filtro por categoria */}
+            {/* CATEGORIA */}
             <Select
               label='Categoria'
               value={searchParams.categoria}
@@ -86,7 +89,7 @@ export const Filters = ({
               icon='category'
             />
 
-            {/* Filtro por status */}
+            {/* STATUS */}
             <Select
               label='Status'
               value={searchParams.status}
@@ -96,18 +99,23 @@ export const Filters = ({
               icon='pending'
             />
 
-            {/* Ordenação */}
+            {/* ORDENAR POR — CORRIGIDO */}
             <Select
               label='Ordenar por'
-              value={searchParams.ordenacao}
-              onChange={(value) => onFilterChange('ordenacao', value)}
+              // Pegamos sortProperty + sortDirection e montamos o value visual
+              value={`${searchParams.sortProperty},${searchParams.sortDirection}`}
+              onChange={(value) => {
+                const [property, direction] = value.split(',');
+                onFilterChange('sortProperty', property);
+                onFilterChange('sortDirection', direction.toUpperCase());
+              }}
               options={ordenacaoOptions}
-              error={fieldErrors.ordenacao}
+              // remove fieldErrors.ordenacao (não existe mais no tipo)
               icon='sort'
             />
           </div>
 
-          {/* Botões de ação com estados melhorados */}
+          {/* BOTÕES */}
           <div className='filters-actions'>
             <button
               onClick={onClearFilters}
@@ -137,7 +145,7 @@ export const Filters = ({
             </button>
           </div>
 
-          {/* Resumo de filtros ativos */}
+          {/* RESUMO DOS ATIVOS */}
           {(searchParams.search ||
             searchParams.categoria ||
             searchParams.status) && (
@@ -146,6 +154,7 @@ export const Filters = ({
                 <span className='material-symbols-outlined'>tune</span>
                 Filtros Ativos:
               </div>
+
               <div className='filter-chips'>
                 {searchParams.search && (
                   <span className='filter-chip search-chip'>
@@ -158,12 +167,13 @@ export const Filters = ({
                     </button>
                   </span>
                 )}
+
                 {searchParams.categoria && (
                   <span className='filter-chip category-chip'>
                     Categoria:{' '}
                     {
                       categoriaOptions.find(
-                        (opt) => opt.value === searchParams.categoria,
+                        (opt) => opt.value === searchParams.categoria
                       )?.label
                     }
                     <button
@@ -174,12 +184,13 @@ export const Filters = ({
                     </button>
                   </span>
                 )}
+
                 {searchParams.status && (
                   <span className='filter-chip status-chip'>
                     Status:{' '}
                     {
                       statusOptions.find(
-                        (opt) => opt.value === searchParams.status,
+                        (opt) => opt.value === searchParams.status
                       )?.label
                     }
                     <button

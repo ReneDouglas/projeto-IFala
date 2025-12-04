@@ -31,7 +31,8 @@ export const useDenuncias = (
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchParams]);
+  }, [currentPage, JSON.stringify(searchParams)]);
+
 
   useEffect(() => {
     load();

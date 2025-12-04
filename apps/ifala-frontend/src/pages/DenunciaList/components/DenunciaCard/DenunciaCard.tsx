@@ -32,14 +32,16 @@ export const DenunciaCard = ({
   const formatToken = (token: string) => {
     if (!token) return '---';
     if (token.length <= 4) return token;
-    return `*******${token.slice(-4)}`;
+    return `*****${token.slice(-4)}`;
   };
 
   const getCategoriaIcon = (categoria: string) => {
     const icons: Record<string, string> = {
-      ASSEDIO: 'warning',
       VIOLENCIA: 'security',
-      DISCRIMINACAO: 'diversity_3',
+      VANDALISMO: 'build',
+      BULLYING: 'sentiment_very_dissatisfied',
+      DROGAS: 'no_drinks',
+      ACADEMICO: 'menu_book',
       OUTROS: 'help',
     };
     return icons[categoria] || 'help';

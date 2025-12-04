@@ -43,7 +43,7 @@ VALUES
   ('Edilucia', 'ediluciamendesbarbosa@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'edilucia'),
   ('Rafael', 'cacor.2021121tads0038@aluno.ifpi.edu.br', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'rafael'),
   ('Elissandra', 'elissandrav563@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'elissandra'),
-  ('Keyllane', 'keyllaneguede@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'keyllane'),
+  ('Keyllane', 'keyllaneguede@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', FALSE, 'keyllane'),
   ('Mateus', 'matheuscatalao99@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'mateus'),
   ('Guilherme', 'coradodasilva33@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'guilherme'),
   ('Thiago', 'thiagomoraisjacobina@gmail.com', '$2a$10$DCKsrhe8UKFWv0hMeTueU..fjNsAicFCTxRNH/4eWuzYDrY1/6n02', TRUE, 'thiago'),

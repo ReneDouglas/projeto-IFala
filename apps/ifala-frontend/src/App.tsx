@@ -33,7 +33,7 @@ export function App() {
               <Route path='/painel-denuncias' element={<DenunciasList />} />
               {/* Acompanhamento administrativo usando id */}
               <Route
-                path='/admin/denuncias/:id/acompanhamentos'
+                path='/admin/denuncias/:denunciaId/acompanhamento'
                 element={<Acompanhamento />}
               />
             </Route>

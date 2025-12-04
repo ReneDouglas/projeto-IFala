@@ -11,11 +11,13 @@ export function DenunciasList() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
   const [searchParams, setSearchParams] = useState<SearchParams>({
-    search: '',
-    categoria: '',
-    status: '',
-    ordenacao: 'dataCriacao,desc',
+    search: "",
+    categoria: "",
+    status: "",
+    sortProperty: "id",
+    sortDirection: "DESC",
   });
+
 
   const { denuncias, loading, error, totalPages, refetch } = useDenuncias(currentPage, searchParams);
   const [showWelcome, setShowWelcome] = useState(true);
@@ -26,13 +28,13 @@ export function DenunciasList() {
   };
 
   const handleClearFilters = () => {
-    setSearchParams({ search: '', categoria: '', status: '', ordenacao: 'dataCriacao,desc' });
+    setSearchParams({ search: '', categoria: '', status: '', sortProperty: "id", sortDirection: "DESC"});
     setCurrentPage(0);
   };
 
   // navega para acompanhamento do admin pelo id
   const handleViewDetails = (denunciaId: number) => {
-    navigate(`/admin/denuncias/${denunciaId}/acompanhamentos`);
+    navigate(`/admin/denuncias/${denunciaId}/acompanhamento`);
   };
 
   const handlePageChange = (page: number) => {
@@ -80,7 +82,7 @@ export function DenunciasList() {
           <Filters
             searchParams={searchParams}
             loading={loading}
-            fieldErrors={{ search: '', categoria: '', status: '', ordenacao: '' }}
+            fieldErrors={{ search: '', categoria: '', status: '', sortProperty: "id", sortDirection: "DESC"}}
             onFilterChange={handleFilterChange}
             onClearFilters={handleClearFilters}
             onRefresh={refetch}
@@ -127,7 +129,7 @@ export function DenunciasList() {
                       <DenunciaCard
                         key={denuncia.id}
                         denuncia={denuncia}
-                        contador={index + 1}
+                        contador={currentPage * 10 + (index + 1)}
                         onViewDetails={handleViewDetails}
                       />
                     ))
