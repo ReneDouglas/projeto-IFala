@@ -16,7 +16,9 @@ import {
 } from '@mui/material';
 import {
   consultarDenunciaPorToken,
+  consultarDenunciaPorId,
   listarMensagens,
+  listarAcompanhamentosPorId,
   enviarMensagem,
   enviarMensagemAdmin,
   alterarStatusDenuncia,
@@ -85,9 +87,15 @@ const formatarHora = (dataISO: string): string => {
 };
 
 export function Acompanhamento() {
-  const { token } = useParams<{ token: string }>();
+  const { token, denunciaId: denunciaIdParam } = useParams<{
+    token?: string;
+    denunciaId?: string;
+  }>();
   const navigate = useNavigate();
   const { user, isLoggedIn } = useAuth();
+
+  // Converter denunciaId para número se existir
+  const denunciaId = denunciaIdParam ? parseInt(denunciaIdParam, 10) : null;
 
   const [detalhes, setDetalhes] = useState<AcompanhamentoDetalhes | null>(null);
   const [mensagens, setMensagens] = useState<MensagemAcompanhamento[]>([]);
@@ -106,8 +114,12 @@ export function Acompanhamento() {
   const isAdmin = isLoggedIn && user?.roles?.includes('ADMIN');
   const statusMenuAberto = Boolean(anchorElStatus);
 
+  // Determinar modo de acesso (token ou ID)
+  const modoToken = !!token && !denunciaId;
+  const modoAdmin = !!denunciaId && isAdmin;
+
   const handleAbrirMenuStatus = (event: React.MouseEvent<HTMLElement>) => {
-    if (isAdmin) {
+    if (isAdmin && modoAdmin) {
       setAnchorElStatus(event.currentTarget);
     }
   };
@@ -117,7 +129,7 @@ export function Acompanhamento() {
   };
 
   const handleAlterarStatus = async (novoStatus: string) => {
-    if (!detalhes || !isAdmin) return;
+    if (!detalhes || !isAdmin || !modoAdmin) return;
 
     handleFecharMenuStatus();
     setAlterandoStatus(true);
@@ -138,12 +150,18 @@ export function Acompanhamento() {
     }
   };
 
-  // Função para carregar mensagens
+  // Função para carregar mensagens de acordo com o modo
   const carregarMensagens = async () => {
-    if (!token) return;
     try {
-      const mensagensData = await listarMensagens(token);
-      setMensagens(mensagensData);
+      if (modoToken && token) {
+        const mensagensData = await listarMensagens(token);
+        setMensagens(mensagensData);
+      } else if (modoAdmin && denunciaId) {
+        const acompanhamentosData =
+          await listarAcompanhamentosPorId(denunciaId);
+        // Adaptar a resposta da API para o formato esperado
+        setMensagens(acompanhamentosData);
+      }
     } catch (err) {
       console.error('Erro ao carregar mensagens:', err);
     }
@@ -151,15 +169,44 @@ export function Acompanhamento() {
 
   // Verifica se a mensagem pertence ao usuário atual
   const ehMinhaMensagem = (mensagemId: number, autor: string): boolean => {
-    if (!token) return false;
-
-    // Se é admin autenticado
-    if (isAdmin) {
-      return autor === 'Admin';
+    // Modo token: usuário anônimo
+    if (modoToken) {
+      return autor === 'Usuário Anônimo';
     }
 
-    // Todas as mensagens do "Usuário Anônimo" são dele
-    return autor === 'Usuário Anônimo';
+    // Modo admin: admin autenticado
+    if (modoAdmin && isAdmin) {
+      return autor === 'Admin' || autor === user?.nome || autor === user?.email;
+    }
+
+    return false;
+  };
+
+  // Função para carregar detalhes da denúncia
+  const carregarDetalhesDenuncia = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      let denunciaData: AcompanhamentoDetalhes;
+
+      if (modoToken && token) {
+        denunciaData = await consultarDenunciaPorToken(token);
+      } else if (modoAdmin && denunciaId) {
+        denunciaData = await consultarDenunciaPorId(denunciaId);
+      } else {
+        throw new Error('Modo de acesso inválido');
+      }
+
+      setDetalhes(denunciaData);
+    } catch (err) {
+      console.error('Erro ao carregar detalhes:', err);
+      setError(
+        (err as { message?: string }).message ||
+          'Erro ao carregar dados. Token ou ID podem ser inválidos.',
+      );
+      throw err;
+    }
   };
 
   useEffect(() => {
@@ -170,8 +217,15 @@ export function Acompanhamento() {
 
   // Carregar dados da denúncia e mensagens
   useEffect(() => {
-    if (!token) {
-      setError('Token não fornecido');
+    if (!token && !denunciaId) {
+      setError('Token ou ID da denúncia não fornecidos');
+      setLoading(false);
+      return;
+    }
+
+    // Verificar se é admin quando acessando por ID
+    if (denunciaId && !isAdmin) {
+      setError('Acesso não autorizado. É necessário ser administrador.');
       setLoading(false);
       return;
     }
@@ -182,29 +236,24 @@ export function Acompanhamento() {
         setError(null);
 
         // Carregar detalhes da denúncia e mensagens em paralelo
-        const [denunciaData, mensagensData] = await Promise.all([
-          consultarDenunciaPorToken(token),
-          listarMensagens(token),
-        ]);
-
-        setDetalhes(denunciaData);
-        setMensagens(mensagensData);
+        await Promise.all([carregarDetalhesDenuncia(), carregarMensagens()]);
       } catch (err) {
         console.error('Erro ao carregar dados:', err);
-        setError(
-          (err as { message?: string }).message ||
-            'Erro ao carregar dados. Token pode ser inválido.',
-        );
+        // O erro já foi definido nas funções individuais
       } finally {
         setLoading(false);
       }
     };
 
     carregarDados();
-  }, [token]);
+  }, [token, denunciaId, isAdmin]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !token) return;
+    if (!newMessage.trim()) return;
+
+    // Validar modo de acesso
+    if (modoToken && !token) return;
+    if (modoAdmin && !denunciaId) return;
 
     try {
       setSending(true);
@@ -212,14 +261,22 @@ export function Acompanhamento() {
 
       let novaMensagem: MensagemAcompanhamento;
 
-      // Admin usa endpoint diferente (sem restrição de flood)
-      if (isAdmin && detalhes?.id) {
-        novaMensagem = await enviarMensagemAdmin(
-          detalhes.id,
-          newMessage.trim(),
-        );
+      if (modoAdmin && denunciaId) {
+        // Admin enviando mensagem via ID
+        novaMensagem = await enviarMensagemAdmin(denunciaId, newMessage.trim());
+      } else if (modoToken && token) {
+        // Usuário anônimo ou admin enviando via token
+        if (isAdmin) {
+          // Admin também pode enviar via token se estiver nesse modo
+          novaMensagem = await enviarMensagemAdmin(
+            detalhes!.id,
+            newMessage.trim(),
+          );
+        } else {
+          novaMensagem = await enviarMensagem(token, newMessage.trim());
+        }
       } else {
-        novaMensagem = await enviarMensagem(token, newMessage.trim());
+        throw new Error('Modo de envio inválido');
       }
 
       setMensagens([...mensagens, novaMensagem]);
@@ -232,9 +289,10 @@ export function Acompanhamento() {
       const errorMessage = error?.message || '';
 
       if (
-        errorMessage.includes('aguardar') ||
-        errorMessage.includes('administrador') ||
-        error?.status === 403
+        (errorMessage.includes('aguardar') ||
+          errorMessage.includes('administrador') ||
+          error?.status === 403) &&
+        modoToken
       ) {
         setAvisoFlood(true);
         setTimeout(() => setAvisoFlood(false), 5000);
@@ -248,8 +306,11 @@ export function Acompanhamento() {
   };
 
   const podeEnviarMensagem = (): boolean => {
-    // Admin sempre pode enviar mensagens
-    if (isAdmin) return true;
+    // Admin sempre pode enviar mensagens no modo admin
+    if (modoAdmin && isAdmin) return true;
+
+    // No modo token, admin também pode enviar
+    if (modoToken && isAdmin) return true;
 
     // Verificar se a denúncia está finalizada (Resolvida ou Rejeitada)
     if (detalhes) {
@@ -260,7 +321,9 @@ export function Acompanhamento() {
       }
     }
 
-    // Se não há mensagens ainda, não pode enviar
+    // Se não há mensagens ainda, usuário comum pode enviar a primeira
+    if (mensagens.length === 0 && modoToken) return true;
+
     if (mensagens.length === 0) return false;
 
     const ultimaMensagem = mensagens[mensagens.length - 1];
@@ -300,8 +363,8 @@ export function Acompanhamento() {
             {error || 'Denúncia não encontrada'}
           </Alert>
           <Typography variant='body1' sx={{ mb: 3 }}>
-            Verifique se o token está correto ou se a denúncia ainda existe no
-            sistema.
+            Verifique se o {modoToken ? 'token' : 'ID'} está correto ou se a
+            denúncia ainda existe no sistema.
           </Typography>
           <Button
             variant='contained'
@@ -340,7 +403,7 @@ export function Acompanhamento() {
                 Detalhes da Denúncia
               </Typography>
 
-              {isAdmin && !denunciaFinalizada && (
+              {isAdmin && modoAdmin && !denunciaFinalizada && (
                 <Typography
                   variant='caption'
                   sx={{ color: 'text.secondary', display: 'block', mb: 1 }}
@@ -350,7 +413,7 @@ export function Acompanhamento() {
               )}
 
               {/* Aviso de denúncia finalizada (apenas admin) */}
-              {isAdmin && denunciaFinalizada && (
+              {isAdmin && modoAdmin && denunciaFinalizada && (
                 <Alert severity='info' sx={{ mb: 2 }}>
                   <Typography variant='body2' sx={{ fontWeight: 600 }}>
                     Status Final
@@ -373,7 +436,7 @@ export function Acompanhamento() {
                   <span className='material-symbols-outlined'>schedule</span>
                 }
                 onClick={
-                  isAdmin && !denunciaFinalizada
+                  isAdmin && modoAdmin && !denunciaFinalizada
                     ? handleAbrirMenuStatus
                     : undefined
                 }
@@ -381,10 +444,12 @@ export function Acompanhamento() {
                   fontWeight: 'bold',
                   mb: 2,
                   cursor:
-                    isAdmin && !denunciaFinalizada ? 'pointer' : 'default',
+                    isAdmin && modoAdmin && !denunciaFinalizada
+                      ? 'pointer'
+                      : 'default',
                   opacity: denunciaFinalizada ? 0.8 : 1,
                   '&:hover':
-                    isAdmin && !denunciaFinalizada
+                    isAdmin && modoAdmin && !denunciaFinalizada
                       ? {
                           opacity: 0.8,
                           transform: 'scale(1.02)',
@@ -394,76 +459,78 @@ export function Acompanhamento() {
                 }}
               />
 
-              {/* Menu dropdown de status (apenas admin) */}
-              <Menu
-                anchorEl={anchorElStatus}
-                open={statusMenuAberto}
-                onClose={handleFecharMenuStatus}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'left',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'left',
-                }}
-              >
-                <MenuItem
-                  onClick={() => handleAlterarStatus('RECEBIDO')}
-                  disabled={detalhes.status === 'RECEBIDO'}
+              {/* Menu dropdown de status (apenas admin no modo admin) */}
+              {isAdmin && modoAdmin && (
+                <Menu
+                  anchorEl={anchorElStatus}
+                  open={statusMenuAberto}
+                  onClose={handleFecharMenuStatus}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'left',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'left',
+                  }}
                 >
-                  <Chip
-                    label='Recebido'
-                    color='success'
-                    size='small'
-                    sx={{ mr: 1 }}
-                  />
-                </MenuItem>
-                <MenuItem
-                  onClick={() => handleAlterarStatus('EM_ANALISE')}
-                  disabled={detalhes.status === 'EM_ANALISE'}
-                >
-                  <Chip
-                    label='Em Análise'
-                    color='warning'
-                    size='small'
-                    sx={{ mr: 1 }}
-                  />
-                </MenuItem>
-                <MenuItem
-                  onClick={() => handleAlterarStatus('AGUARDANDO')}
-                  disabled={detalhes.status === 'AGUARDANDO'}
-                >
-                  <Chip
-                    label='Aguardando Informações'
-                    color='warning'
-                    size='small'
-                    sx={{ mr: 1 }}
-                  />
-                </MenuItem>
-                <MenuItem
-                  onClick={() => handleAlterarStatus('RESOLVIDO')}
-                  disabled={detalhes.status === 'RESOLVIDO'}
-                >
-                  <Chip
-                    label='Resolvido'
-                    color='success'
-                    size='small'
-                    sx={{ mr: 1 }}
-                  />
-                </MenuItem>
-                <MenuItem
-                  onClick={() => handleAlterarStatus('REJEITADO')}
-                  disabled={detalhes.status === 'REJEITADO'}
-                >
-                  <Chip
-                    label='Rejeitado'
-                    color='error'
-                    size='small'
-                    sx={{ mr: 1 }}
-                  />
-                </MenuItem>
-              </Menu>
+                  <MenuItem
+                    onClick={() => handleAlterarStatus('RECEBIDO')}
+                    disabled={detalhes.status === 'RECEBIDO'}
+                  >
+                    <Chip
+                      label='Recebido'
+                      color='success'
+                      size='small'
+                      sx={{ mr: 1 }}
+                    />
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => handleAlterarStatus('EM_ANALISE')}
+                    disabled={detalhes.status === 'EM_ANALISE'}
+                  >
+                    <Chip
+                      label='Em Análise'
+                      color='warning'
+                      size='small'
+                      sx={{ mr: 1 }}
+                    />
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => handleAlterarStatus('AGUARDANDO')}
+                    disabled={detalhes.status === 'AGUARDANDO'}
+                  >
+                    <Chip
+                      label='Aguardando Informações'
+                      color='warning'
+                      size='small'
+                      sx={{ mr: 1 }}
+                    />
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => handleAlterarStatus('RESOLVIDO')}
+                    disabled={detalhes.status === 'RESOLVIDO'}
+                  >
+                    <Chip
+                      label='Resolvido'
+                      color='success'
+                      size='small'
+                      sx={{ mr: 1 }}
+                    />
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => handleAlterarStatus('REJEITADO')}
+                    disabled={detalhes.status === 'REJEITADO'}
+                  >
+                    <Chip
+                      label='Rejeitado'
+                      color='error'
+                      size='small'
+                      sx={{ mr: 1 }}
+                    />
+                  </MenuItem>
+                </Menu>
+              )}
 
               {/* Indicador de carregamento durante alteração */}
               {alterandoStatus && (
@@ -486,11 +553,11 @@ export function Acompanhamento() {
             <Stack spacing={2}>
               <Box>
                 <Typography variant='caption' sx={{ color: 'text.secondary' }}>
-                  Token
+                  Token de Acompanhamento
                 </Typography>
                 <Typography
                   variant='body1'
-                  sx={{ fontFamily: 'monospace', fontWeight: 500 }}
+                  sx={{ fontFamily: 'monospace', fontWeight: 600 }}
                 >
                   {detalhes.tokenAcompanhamento}
                 </Typography>
@@ -544,7 +611,9 @@ export function Acompanhamento() {
                 variant='subtitle2'
                 sx={{ color: 'text.secondary', mt: 1 }}
               >
-                Converse com os administradores sobre sua denúncia
+                {modoToken
+                  ? 'Converse com os administradores sobre sua denúncia'
+                  : 'Acompanhamento da denúncia'}
               </Typography>
             </Box>
 
@@ -576,7 +645,7 @@ export function Acompanhamento() {
                 </Box>
               ) : (
                 mensagens.map((msg) => {
-                  // Determinar se é minha mensagem (considerando admin ou denunciante)
+                  // Determinar se é minha mensagem
                   const minhaMsg = ehMinhaMensagem(msg.id, msg.autor);
 
                   return (
@@ -640,8 +709,8 @@ export function Acompanhamento() {
                 </Alert>
               )}
 
-              {/* Aviso de denúncia finalizada (apenas para usuário comum) */}
-              {denunciaFinalizada && !isAdmin && (
+              {/* Aviso de denúncia finalizada (apenas para usuário comum no modo token) */}
+              {denunciaFinalizada && modoToken && !isAdmin && (
                 <Alert severity='info' sx={{ mb: 2 }}>
                   <Typography variant='body2' sx={{ fontWeight: 600 }}>
                     Esta denúncia foi{' '}
@@ -658,12 +727,16 @@ export function Acompanhamento() {
               )}
 
               {/* Aviso de aguardar resposta do admin (regra de flood) */}
-              {!usuarioPodeEnviar && !isAdmin && !denunciaFinalizada && (
-                <Alert severity='info' sx={{ mb: 2 }}>
-                  Aguarde a resposta do administrador para enviar outra
-                  mensagem.
-                </Alert>
-              )}
+              {!usuarioPodeEnviar &&
+                modoToken &&
+                !isAdmin &&
+                !denunciaFinalizada && (
+                  <Alert severity='info' sx={{ mb: 2 }}>
+                    Aguarde a resposta do administrador para enviar outra
+                    mensagem.
+                  </Alert>
+                )}
+
               <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
                 <TextField
                   fullWidth
@@ -673,7 +746,9 @@ export function Acompanhamento() {
                   placeholder={
                     usuarioPodeEnviar
                       ? 'Escreva uma mensagem...'
-                      : 'Aguardando resposta do administrador...'
+                      : modoToken && !isAdmin
+                        ? 'Aguardando resposta do administrador...'
+                        : 'Digite uma mensagem...'
                   }
                   variant='outlined'
                   value={newMessage}

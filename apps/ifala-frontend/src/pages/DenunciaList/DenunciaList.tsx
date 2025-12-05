@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDenuncias } from './hooks/useDenuncias';
 import type { SearchParams } from './types/denunciaTypes';
 import { Filters } from './components/Filters/Filters';
@@ -7,19 +8,20 @@ import { Pagination } from './components/Pagination/Pagination';
 import './DenunciaList.css';
 
 export function DenunciasList() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     search: '',
     categoria: '',
     status: '',
-    ordenacao: 'dataCriacao,desc',
+    sortProperty: 'id',
+    sortDirection: 'DESC',
   });
 
   const { denuncias, loading, error, totalPages, refetch } = useDenuncias(
     currentPage,
     searchParams,
   );
-
   const [showWelcome, setShowWelcome] = useState(true);
 
   const handleFilterChange = (field: keyof SearchParams, value: string) => {
@@ -32,45 +34,29 @@ export function DenunciasList() {
       search: '',
       categoria: '',
       status: '',
-      ordenacao: 'dataCriacao,desc',
+      sortProperty: 'id',
+      sortDirection: 'DESC',
     });
     setCurrentPage(0);
   };
 
-  const handleViewDetails = (token: string) => {
-    // Simulação de navegação para detalhes
-    console.log(`Navegando para detalhes da denúncia: ${token}`);
-    alert(
-      `🔍 Visualizando detalhes da denúncia: ${token}\n\nEsta funcionalidade irá navegar para a página de detalhes.`,
-    );
-  };
-
-  const handleViewMessages = (token: string) => {
-    // Simulação de navegação para mensagens
-    console.log(`Navegando para mensagens da denúncia: ${token}`);
-    alert(
-      `💬 Abrindo mensagens da denúncia: ${token}\n\nEsta funcionalidade irá abrir o painel de mensagens.`,
-    );
+  // navega para acompanhamento do admin pelo id
+  const handleViewDetails = (denunciaId: number) => {
+    navigate(`/admin/denuncias/${denunciaId}/acompanhamento`);
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Scroll suave para o topo
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Esconder welcome message após 5 segundos
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowWelcome(false);
-    }, 5000);
-
+    const timer = setTimeout(() => setShowWelcome(false), 5000);
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <div className='denuncias-page'>
-      {/* Hero Section Premium */}
       <section className='hero-section'>
         <div className='hero-background'>
           <div className='hero-gradient'></div>
@@ -89,7 +75,6 @@ export function DenunciasList() {
 
       <main className='main-content'>
         <div className='container'>
-          {/* Welcome Message */}
           {showWelcome && (
             <div className='welcome-message'>
               <div className='welcome-content'>
@@ -112,7 +97,6 @@ export function DenunciasList() {
             </div>
           )}
 
-          {/* Filtros Avançados */}
           <Filters
             searchParams={searchParams}
             loading={loading}
@@ -120,16 +104,15 @@ export function DenunciasList() {
               search: '',
               categoria: '',
               status: '',
-              ordenacao: '',
+              sortProperty: 'id',
+              sortDirection: 'DESC',
             }}
             onFilterChange={handleFilterChange}
             onClearFilters={handleClearFilters}
             onRefresh={refetch}
           />
 
-          {/* Lista de Denúncias */}
           <section className='denuncias-section'>
-            {/* Estado de Erro */}
             {error && (
               <div className='error-state'>
                 <div className='error-icon'>
@@ -146,7 +129,6 @@ export function DenunciasList() {
               </div>
             )}
 
-            {/* Estado de Carregamento */}
             {loading && (
               <div className='loading-state'>
                 <div className='loading-spinner-large'>
@@ -157,73 +139,48 @@ export function DenunciasList() {
                 <div className='loading-content'>
                   <h3>Carregando denúncias</h3>
                   <p>Estamos buscando as informações mais recentes...</p>
-                  <div className='loading-progress'>
-                    <div className='progress-bar'>
-                      <div className='progress-fill'></div>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
 
-            {/* Conteúdo Principal */}
             {!loading && !error && (
               <>
                 <div className='denuncias-header'>
-                  <div className='header-content'>
-                    <h2 className='section-title'>Denúncias</h2>
-                  </div>
+                  <h2 className='section-title'>Denúncias</h2>
                 </div>
 
-                {/* Lista de Denúncias ou Estado de Nenhum Resultado */}
                 <div className='denuncias-grid'>
                   {denuncias.length > 0 ? (
                     denuncias.map((denuncia, index) => (
                       <DenunciaCard
                         key={denuncia.id}
                         denuncia={denuncia}
-                        contador={index + 1}
+                        contador={currentPage * 10 + (index + 1)}
                         onViewDetails={handleViewDetails}
-                        onViewMessages={handleViewMessages}
                       />
                     ))
                   ) : (
                     <div className='no-results'>
-                      <div className='no-results-icon'>
+                      <span className='material-symbols-outlined'>
+                        search_off
+                      </span>
+                      <h3>Nenhuma denúncia encontrada</h3>
+                      <p>
+                        Tente ajustar os filtros ou limpar todas as filtragens.
+                      </p>
+                      <button
+                        onClick={handleClearFilters}
+                        className='btn-clear-all'
+                      >
                         <span className='material-symbols-outlined'>
-                          search_off
+                          clear_all
                         </span>
-                      </div>
-                      <div className='no-results-content'>
-                        <h3>Nenhuma denúncia encontrada</h3>
-                        <p>
-                          Não encontramos denúncias que correspondam aos seus
-                          critérios de busca. Tente ajustar os filtros ou limpar
-                          todas as filtragens para ver todos os resultados.
-                        </p>
-                        <div className='no-results-actions'>
-                          <button
-                            onClick={handleClearFilters}
-                            className='btn-clear-all'
-                          >
-                            <span className='material-symbols-outlined'>
-                              clear_all
-                            </span>
-                            Limpar Todos os Filtros
-                          </button>
-                          <button onClick={refetch} className='btn-refresh'>
-                            <span className='material-symbols-outlined'>
-                              refresh
-                            </span>
-                            Recarregar Dados
-                          </button>
-                        </div>
-                      </div>
+                        Limpar Todos os Filtros
+                      </button>
                     </div>
                   )}
                 </div>
 
-                {/* Paginação */}
                 {totalPages > 1 && (
                   <Pagination
                     currentPage={currentPage}

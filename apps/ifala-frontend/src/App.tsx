@@ -15,21 +15,27 @@ export function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Rotas de autenticação - sem o MainLayout */}
+          {/* Rotas sem layout */}
           <Route path='/login' element={<Login />} />
           <Route path='/redefinir-senha/:token' element={<RedefinirSenha />} />
 
-          {/* Rota "pai" que renderiza o Layout Principal */}
+          {/* Layout principal */}
           <Route element={<MainLayout />}>
-            {/* Rotas "filhas" que serão renderizadas dentro do <Outlet> do Layout */}
             <Route path='/' element={<Home />} />
             <Route path='/denuncia' element={<Denuncia />} />
             <Route path='/denuncia/sucesso' element={<DenunciaSucesso />} />
+
+            {/* Acompanhamento público */}
             <Route path='/acompanhamento/:token' element={<Acompanhamento />} />
 
-            {/* Rotas protegidas - requerem autenticação */}
+            {/* Rotas protegidas */}
             <Route element={<ProtectedRoute />}>
               <Route path='/painel-denuncias' element={<DenunciasList />} />
+              {/* Acompanhamento administrativo usando id */}
+              <Route
+                path='/admin/denuncias/:denunciaId/acompanhamento'
+                element={<Acompanhamento />}
+              />
             </Route>
           </Route>
         </Routes>

@@ -3,7 +3,7 @@
   border-radius: 16px;
   border: 1px solid var(--cinza-claro);
   padding: 1.5rem;
-  height: 100%;
+  height: 320px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -64,7 +64,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   flex-shrink: 0;
   gap: 0.75rem;
   flex-wrap: wrap;
@@ -169,8 +169,8 @@
 
 /* Conteúdo */
 .denuncia-content {
-  margin-bottom: 1.5rem;
-  flex-grow: 1;
+  margin-bottom: 1rem;
+  flex-grow: 0;
   display: flex;
   flex-direction: column;
 }
@@ -192,7 +192,7 @@
   color: var(--cinza-medio);
   line-height: 1.5;
   margin-bottom: 1rem;
-  flex-grow: 1;
+  flex-grow: 0;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
@@ -206,7 +206,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   flex-shrink: 0;
 }
 
@@ -245,7 +245,7 @@
 
 /* Alertas de mensagens não lidas */
 .unread-messages-alert {
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .unread-messages-btn {
@@ -312,7 +312,7 @@
 .denuncia-actions {
   display: flex;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   flex-shrink: 0;
 }
 
@@ -333,8 +333,8 @@
   .denuncia-card .btn-messages {
     justify-content: center;
     padding: 0.6rem;
-    min-width: 44px; /* Acessibilidade - mínimo touch target */
-    aspect-ratio: 1; /* Botões quadrados */
+    min-width: 44px;
+    aspect-ratio: 1;
   }
 
   .denuncia-card .btn-details .material-symbols-outlined,
@@ -393,7 +393,7 @@
 /* Footer */
 .denuncia-footer {
   border-top: 1px solid var(--cinza-claro);
-  padding-top: 1rem;
+  padding-top: 0.75rem;
   flex-shrink: 0;
 }
 
@@ -458,7 +458,7 @@
     align-items: center !important;
     justify-content: flex-start !important;
     gap: 0.5rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     min-height: auto;
     flex-wrap: nowrap;
   }
@@ -497,7 +497,7 @@
 
   /* Conteúdo principal */
   .denuncia-content {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -527,7 +527,7 @@
 
   .denuncia-metadata {
     gap: 0.4rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
   }
 
   .metadata-item {
@@ -540,7 +540,7 @@
   }
 
   .unread-messages-alert {
-    margin-top: 0.5rem;
+    margin-top: 0.4rem;
   }
 
   .unread-messages-btn {
@@ -552,7 +552,7 @@
   .denuncia-actions {
     flex-direction: row;
     gap: 0.5rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
   }
 
   .btn-details,
@@ -583,7 +583,7 @@
 
   /* Footer */
   .denuncia-footer {
-    padding-top: 0.75rem;
+    padding-top: 0.5rem;
     margin-top: 0;
   }
 
@@ -608,7 +608,7 @@
     align-items: center !important;
     justify-content: flex-start !important;
     gap: 0.4rem;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.4rem;
     min-height: auto;
     flex-wrap: nowrap;
   }
@@ -647,7 +647,7 @@
 
   .denuncia-content {
     gap: 0.4rem;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.4rem;
   }
 
   .denuncia-titulo {
@@ -668,7 +668,7 @@
 
   .denuncia-metadata {
     gap: 0.3rem;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.3rem;
   }
 
   .metadata-item {
@@ -680,7 +680,7 @@
   }
 
   .unread-messages-alert {
-    margin-top: 0.4rem;
+    margin-top: 0.3rem;
   }
 
   .unread-messages-btn {
@@ -696,7 +696,7 @@
   .denuncia-actions {
     flex-direction: row;
     gap: 0.3rem;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.4rem;
   }
 
   .btn-details,
@@ -725,7 +725,7 @@
   }
 
   .denuncia-footer {
-    padding-top: 0.6rem;
+    padding-top: 0.4rem;
   }
 
   .footer-icon {
