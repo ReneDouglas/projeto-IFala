@@ -47,6 +47,7 @@ services:
     env_file:
       - .env
     environment:
+      TZ: America/Sao_Paulo
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ifala
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
