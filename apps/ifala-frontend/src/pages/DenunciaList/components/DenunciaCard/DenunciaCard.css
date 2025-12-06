@@ -142,7 +142,8 @@
 }
 
 @keyframes pulse-badge {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     box-shadow: 0 2px 8px rgba(26, 78, 138, 0.3);
   }
