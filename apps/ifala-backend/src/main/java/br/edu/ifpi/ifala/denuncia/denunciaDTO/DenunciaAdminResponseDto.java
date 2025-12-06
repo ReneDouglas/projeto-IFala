@@ -19,5 +19,6 @@ public record DenunciaAdminResponseDto(
     UUID tokenAcompanhamento,
     Status status,
     Categorias categoria,
-    LocalDateTime criadoEm) {
+    LocalDateTime criadoEm,
+    Boolean temMensagemNaoLida) {
 }
