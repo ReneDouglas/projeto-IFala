@@ -166,15 +166,24 @@ public class ProvaService {
     }
   }
 
-  /**
-   * Obtém a extensão do arquivo original.
-   */
+
   private String obterExtensao(String nomeOriginal) {
     if (nomeOriginal == null || nomeOriginal.isEmpty()) {
       return "";
     }
-    int lastDot = nomeOriginal.lastIndexOf('.');
-    return lastDot > 0 ? nomeOriginal.substring(lastDot) : "";
+
+    // Sanitizar nome do arquivo: remover path separators e caracteres perigosos
+    String nomeSanitizado = nomeOriginal.replaceAll("[/\\\\]", "");
+
+    int lastDot = nomeSanitizado.lastIndexOf('.');
+    if (lastDot > 0 && lastDot < nomeSanitizado.length() - 1) {
+      String extensao = nomeSanitizado.substring(lastDot).toLowerCase();
+      if (extensao.matches("^\\.[a-z0-9]+$")) {
+        return extensao;
+      }
+    }
+
+    return "";
   }
 
   /**
