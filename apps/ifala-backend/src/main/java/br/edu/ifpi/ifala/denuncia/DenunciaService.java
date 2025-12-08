@@ -9,6 +9,7 @@ import br.edu.ifpi.ifala.denuncia.denunciaDTO.DadosDeIdentificacaoDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaAdminResponseDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
 import br.edu.ifpi.ifala.notificacao.NotificacaoExternaService;
+import br.edu.ifpi.ifala.prova.ProvaService;
 import br.edu.ifpi.ifala.security.recaptcha.RecaptchaService;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
@@ -31,6 +32,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -52,6 +54,7 @@ public class DenunciaService {
   private final AcompanhamentoRepository acompanhamentoRepository;
   private final RecaptchaService recaptchaService;
   private final NotificacaoExternaService notificacaoExternaService;
+  private final ProvaService provaService;
   private final PolicyFactory policy;
 
   // A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO
@@ -67,15 +70,20 @@ public class DenunciaService {
 
   public DenunciaService(DenunciaRepository denunciaRepository,
       AcompanhamentoRepository acompanhamentoRepository, RecaptchaService recaptchaService,
-      NotificacaoExternaService notificacaoExternaService) {
+      NotificacaoExternaService notificacaoExternaService, ProvaService provaService) {
     this.denunciaRepository = denunciaRepository;
     this.acompanhamentoRepository = acompanhamentoRepository;
     this.recaptchaService = recaptchaService;
     this.notificacaoExternaService = notificacaoExternaService;
+    this.provaService = provaService;
     this.policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
   }
 
   public DenunciaResponseDto criarDenuncia(CriarDenunciaDto dto) {
+    return criarDenuncia(dto, null);
+  }
+
+  public DenunciaResponseDto criarDenuncia(CriarDenunciaDto dto, List<MultipartFile> provas) {
 
     log.info("Iniciando validação do reCAPTCHA para nova denúncia.");
 
@@ -120,6 +128,21 @@ public class DenunciaService {
     log.info("Denúncia salva com sucesso");
     log.info("Denúncia criada com ID: {}", denunciaSalva.getId());
     log.info("Token de acompanhamento gerado: {}", denunciaSalva.getTokenAcompanhamento());
+
+    // Processar upload de provas se houver
+    if (provas != null && !provas.isEmpty()) {
+      try {
+        log.info("Processando upload de {} provas para denúncia ID {}", 
+            provas.size(), denunciaSalva.getId());
+        provaService.salvarProvas(denunciaSalva, provas);
+        log.info("Provas salvas com sucesso para denúncia ID {}", denunciaSalva.getId());
+      } catch (Exception e) {
+        log.error("Erro ao salvar provas da denúncia ID {}: {}", 
+            denunciaSalva.getId(), e.getMessage(), e);
+        // Não falhar a criação da denúncia se o upload de provas falhar
+        // mas logar o erro para investigação
+      }
+    }
 
     // Criar automaticamente o primeiro acompanhamento com o relato da denúncia
     Acompanhamento primeiroAcompanhamento = new Acompanhamento();
