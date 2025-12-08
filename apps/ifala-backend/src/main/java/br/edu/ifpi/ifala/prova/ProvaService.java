@@ -140,7 +140,14 @@ public class ProvaService {
       String extensao = obterExtensao(arquivo.getOriginalFilename());
       String nomeArquivo = String.format("prova-%d-%s%s", System.nanoTime(), timestamp, extensao);
 
-      Path caminhoCompleto = diretorioDenuncia.resolve(nomeArquivo);
+      Path caminhoCompleto = diretorioDenuncia.resolve(nomeArquivo).normalize();
+
+      // Validar que o caminho final está dentro do diretório esperado (prevenção contra path
+      // traversal)
+      if (!caminhoCompleto.startsWith(diretorioDenuncia.normalize())) {
+        log.error("Tentativa de path traversal detectada: {}", nomeArquivo);
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome de arquivo inválido");
+      }
 
       // Salvar arquivo no disco
       Files.copy(arquivo.getInputStream(), caminhoCompleto);
