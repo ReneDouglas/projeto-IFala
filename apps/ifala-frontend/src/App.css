@@ -247,6 +247,14 @@
 .description-title {
   font-size: 2.5rem; /* Tamanho grande */
   color: var(--azul-confianca); /* Cor azul institucional */
+  margin-bottom: 1rem; /* Espaçamento inferior reduzido para o subtítulo */
+}
+
+/* Subtítulo da descrição */
+.description-subtitle {
+  font-size: 1.3rem; /* Tamanho intermediário entre título e texto */
+  color: var(--primaria-clara); /* Cor primária clara para destaque */
+  font-weight: 600; /* Semi-negrito */
   margin-bottom: 2rem; /* Espaçamento inferior */
 }
 
@@ -530,6 +538,15 @@
   font-size: 0.9rem; /* Fonte ligeiramente menor */
 }
 
+/* Subtítulo do footer */
+.footer .footer-subtitle {
+  color: var(--primaria-clara); /* Cor primária clara para destaque */
+  font-size: 1rem; /* Ligeiramente maior que os outros textos */
+  font-weight: 600; /* Semi-negrito */
+  margin-bottom: 0.75rem; /* Maior espaçamento abaixo */
+  font-style: italic; /* Estilo itálico para diferenciação */
+}
+
 /* ================================
    RESPONSIVIDADE - MOBILE
    ================================ */
@@ -549,6 +566,10 @@
     font-size: 2rem;
   }
 
+  .description-subtitle {
+    font-size: 1.1rem; /* Tamanho menor em mobile */
+  }
+
   /* Logos institucionais em mobile */
   .institutional-logos {
     gap: 1rem; /* Espaçamento reduzido */
@@ -557,6 +578,15 @@
 
   .institutional-logo {
     height: 50px; /* Altura menor em mobile */
+  }
+
+  /* Footer responsivo */
+  .footer .footer-subtitle {
+    font-size: 0.95rem; /* Tamanho ligeiramente menor em mobile */
+  }
+
+  .footer p {
+    font-size: 0.85rem; /* Fonte menor para mobile */
   }
 
   .action-buttons {
