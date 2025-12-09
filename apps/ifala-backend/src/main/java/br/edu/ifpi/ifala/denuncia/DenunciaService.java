@@ -164,10 +164,14 @@ public class DenunciaService {
     return mapToDenunciaResponseDto(denunciaSalva);
   }
 
-  @Transactional(readOnly = true)
+  @Transactional
   public Optional<DenunciaResponseDto> consultarPorTokenAcompanhamento(UUID tokenAcompanhamento) {
     return denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
-        .map(this::mapToDenunciaResponseDto);
+        .map(denuncia -> {
+          // Marcar mensagens do ADMIN como visualizadas quando usuário acessa
+          acompanhamentoRepository.marcarComoVisualizadoPorDenunciaEAutor(denuncia.getId(), Perfis.ADMIN);
+          return mapToDenunciaResponseDto(denuncia);
+        });
   }
 
   /*
@@ -215,11 +219,15 @@ public class DenunciaService {
   }
 
   // buscar denúncia por ID
-  @Transactional(readOnly = true)
+  @Transactional
   public DenunciaAdminResponseDto buscarPorId(Long id) {
-    return denunciaRepository.findById(id)
-        .map(this::mapToDenunciaAdminResponseDto)
+    Denuncia denuncia = denunciaRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada com o ID: " + id));
+    
+    // Marcar mensagens do ANONIMO (usuário) como visualizadas quando admin acessa
+    acompanhamentoRepository.marcarComoVisualizadoPorDenunciaEAutor(id, Perfis.ANONIMO);
+    
+    return mapToDenunciaAdminResponseDto(denuncia);
   }
 
   public Optional<DenunciaAdminResponseDto> atualizarDenuncia(Long id, AtualizarDenunciaDto dto,
@@ -403,13 +411,21 @@ public class DenunciaService {
   }
 
   private DenunciaResponseDto mapToDenunciaResponseDto(Denuncia denuncia) {
+    // Verifica se há mensagens não lidas do ADMIN para o ANONIMO (usuário)
+    boolean temMensagemNaoLida = acompanhamentoRepository
+        .existsByDenunciaIdAndAutorAndVisualizadoFalse(denuncia.getId(), Perfis.ADMIN);
+    
     return new DenunciaResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
-        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm());
+        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(), temMensagemNaoLida);
   }
 
   private DenunciaAdminResponseDto mapToDenunciaAdminResponseDto(Denuncia denuncia) {
+    // Verifica se há mensagens não lidas do ANONIMO (usuário) para o ADMIN
+    boolean temMensagemNaoLida = acompanhamentoRepository
+        .existsByDenunciaIdAndAutorAndVisualizadoFalse(denuncia.getId(), Perfis.ANONIMO);
+    
     return new DenunciaAdminResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
-        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm());
+        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(), temMensagemNaoLida);
   }
 
   private AcompanhamentoDto mapToAcompanhamentoResponseDto(Acompanhamento acompanhamento) {

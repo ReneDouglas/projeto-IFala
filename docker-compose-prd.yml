@@ -58,6 +58,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       SPRING_PROFILES_ACTIVE: prod
       JWT_SECRET: ${JWT_SECRET}
+      TZ: America/Sao_Paulo
     networks:
       - ifala-network
     depends_on:
@@ -225,9 +226,9 @@ networks:
 # ----------------------------------------
 volumes:
   pgdata_prd:
-    external: true
+    external: true # Volume criado manualmente - protegido contra 'docker compose down -v'
   provas_data_prd:
-    external: true
+    external: true 
   grafana_data_prd:
     driver: local
   loki_data_prd:

@@ -7,7 +7,7 @@ export interface Denuncia {
   alteradoEm?: string;
   descricao?: string;
   titulo?: string;
-  hasUnreadMessages?: boolean;
+  temMensagemNaoLida?: boolean;
 }
 
 export interface SearchParams {

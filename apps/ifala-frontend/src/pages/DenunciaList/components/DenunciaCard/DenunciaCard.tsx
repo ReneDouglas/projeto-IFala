@@ -72,7 +72,9 @@ export const DenunciaCard = ({
           </div>
         </div>
 
-        <StatusBadge status={denuncia.status} />
+        <div className='header-right'>
+          <StatusBadge status={denuncia.status} />
+        </div>
       </div>
 
       <div className='denuncia-content'>
@@ -103,6 +105,12 @@ export const DenunciaCard = ({
               {denuncia.alteradoEm ? formatDate(denuncia.alteradoEm) : '---'}
             </span>
           </div>
+
+          {denuncia.temMensagemNaoLida && (
+            <div className='metadata-item nova-mensagem-wrapper'>
+              <span className='badge nova-mensagem'>Nova mensagem</span>
+            </div>
+          )}
         </div>
       </div>
 

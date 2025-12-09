@@ -39,11 +39,15 @@ public class Acompanhamento implements Serializable {
 
   private LocalDateTime dataEnvio;
 
+  private Boolean visualizado; // indica se a mensagem foi visualizada pelo destinatário
+
   /**
    * Construtor padrão da classe Acompanhamento. Inicializa a data de envio com a data e hora atual.
+   * Por padrão, a mensagem não foi visualizada.
    */
   public Acompanhamento() {
     this.dataEnvio = LocalDateTime.now();
+    this.visualizado = false;
   }
 
   public Long getId() {
@@ -84,6 +88,14 @@ public class Acompanhamento implements Serializable {
 
   public void setDataEnvio(LocalDateTime dataEnvio) {
     this.dataEnvio = dataEnvio;
+  }
+
+  public Boolean getVisualizado() {
+    return visualizado;
+  }
+
+  public void setVisualizado(Boolean visualizado) {
+    this.visualizado = visualizado;
   }
 
 
