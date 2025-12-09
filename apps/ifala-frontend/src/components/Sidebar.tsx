@@ -5,8 +5,6 @@
 import './Sidebar.css';
 import { useState } from 'react';
 
-
-
 // Propriedades do componente Sidebar
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -85,7 +83,6 @@ function Sidebar({
               <span className='material-symbols-outlined'>shield</span>
               Fazer Denúncia
             </button>
-
           </div>
 
           {isLoggedIn ? (
@@ -146,4 +143,3 @@ function Sidebar({
 }
 
 export default Sidebar;
-
