@@ -58,13 +58,22 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       SPRING_PROFILES_ACTIVE: prod
       JWT_SECRET: ${JWT_SECRET}
+      TZ: America/Sao_Paulo
     networks:
       - ifala-network
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      test:
+        [
+          'CMD',
+          'wget',
+          '--quiet',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8080/actuator/health',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -84,7 +93,15 @@ services:
     depends_on:
       - ifala-backend
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      test:
+        [
+          'CMD',
+          'wget',
+          '--quiet',
+          '--tries=1',
+          '--spider',
+          'http://localhost:80',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -184,7 +201,15 @@ services:
       - ifala-backend
       - grafana
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      test:
+        [
+          'CMD',
+          'wget',
+          '--quiet',
+          '--tries=1',
+          '--spider',
+          'http://localhost:80',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -201,7 +226,7 @@ networks:
 # ----------------------------------------
 volumes:
   pgdata_prd:
-    external: true  # Volume criado manualmente - protegido contra 'docker compose down -v'
+    external: true # Volume criado manualmente - protegido contra 'docker compose down -v'
   grafana_data_prd:
     driver: local
   loki_data_prd:

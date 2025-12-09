@@ -129,6 +129,9 @@ export function Home() {
               <h2 className='description-title'>
                 Sistema Oficial do IFPI - Campus Corrente
               </h2>
+              <p className='description-subtitle'>
+                Desenvolvido por alunos, para alunos
+              </p>
               <p className='description-text'>
                 O IFala é o sistema oficial do Instituto Federal do Piauí -
                 Campus Corrente para dar voz aos estudantes de forma anônima e
@@ -205,8 +208,8 @@ export function Home() {
       <footer className='footer'>
         <div className='container'>
           <p>
-            Sistema desenvolvido pelo Curso de Análise e Desenvolvimento de
-            Sistemas
+            Sistema desenvolvido por alunos do Curso de Análise e
+            Desenvolvimento de Sistemas
           </p>
           <p>
             <strong>Instituto Federal do Piauí - Campus Corrente</strong>

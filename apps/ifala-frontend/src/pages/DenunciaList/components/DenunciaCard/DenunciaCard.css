@@ -97,8 +97,16 @@
     max-width: none !important;
   }
 
-  .denuncias-grid .denuncia-card .denuncia-header > .status-badge {
+  .denuncias-grid .denuncia-card .header-right {
     order: 2 !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+
+  .denuncias-grid .denuncia-card .denuncia-header > .status-badge {
     align-self: center !important;
     margin: 0 !important;
     position: relative !important;
@@ -111,6 +119,38 @@
   gap: 0.75rem;
   flex: 1;
   min-width: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.badge.nova-mensagem {
+  background: linear-gradient(135deg, var(--azul-confianca) 0%, #123456 100%);
+  color: white;
+  padding: 0.35rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(26, 78, 138, 0.3);
+  animation: pulse-badge 2s infinite;
+}
+
+@keyframes pulse-badge {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(26, 78, 138, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(26, 78, 138, 0.5);
+  }
 }
 
 .denuncia-token {
@@ -208,6 +248,15 @@
   gap: 0.5rem;
   margin-bottom: 0.5rem;
   flex-shrink: 0;
+}
+
+.nova-mensagem-wrapper {
+  margin-top: 0.5rem;
+}
+
+.nova-mensagem-wrapper .badge.nova-mensagem {
+  display: inline-block;
+  width: fit-content;
 }
 
 .metadata-item {
