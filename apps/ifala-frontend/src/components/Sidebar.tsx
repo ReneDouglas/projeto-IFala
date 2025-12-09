@@ -35,7 +35,6 @@ function Sidebar({
     setSidebarOpen(false);
   };
 
-  const [openTokenModal, setOpenTokenModal] = useState(false);
 
   return (
     <>
