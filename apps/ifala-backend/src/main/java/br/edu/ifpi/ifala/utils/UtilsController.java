@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
  * representando os valores das enumerações armazenadas no banco de dados.
  *
  * @author luisthedevmagician
+ * @author Phaola (refatoração)
  */
 
 @RestController
