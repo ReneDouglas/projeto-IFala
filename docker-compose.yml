@@ -156,10 +156,8 @@ services:
 
 volumes:
   pgdata:
-    external: true
   grafana-data: {}
   loki-data: {}
   promtail-positions: {}
   provas-data:
-    external: true
   # pmm-data:
