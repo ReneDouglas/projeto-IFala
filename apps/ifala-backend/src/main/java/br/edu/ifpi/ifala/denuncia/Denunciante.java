@@ -50,7 +50,7 @@ public class Denunciante implements Serializable {
   @Column(name = "curso")
   private Curso curso;
 
-  @NotNull(message = "O ano não pode ser nulo.")
+  // @NotNull(message = "O ano não pode ser nulo.")
   @Enumerated(EnumType.STRING)
   @Column(name = "ano")
   private Ano ano;

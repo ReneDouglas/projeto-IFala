@@ -14,7 +14,7 @@ import jakarta.validation.constraints.Size;
  * denúncia.
  * 
  * @author Jhonatas G Ribeiro
- * @author Paixa (refatoração)
+ * @author Phaola (refatoração)
  */
 // DTO convertido em record para representar os dados de identificação da
 // denúncia
@@ -30,7 +30,7 @@ public record DadosDeIdentificacaoDto(
 
     @NotNull(message = "O curso não pode ser nulo.") Curso curso,
 
-    @NotNull(message = "O ano não pode ser nulo.") Ano ano,
+    Ano ano,
 
     @NotNull(message = "A turma não pode ser nula.") Turma turma) {
 }
