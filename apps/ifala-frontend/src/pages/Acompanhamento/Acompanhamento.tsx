@@ -23,6 +23,7 @@ import {
   enviarMensagemAdmin,
   alterarStatusDenuncia,
 } from '../../services/acompanhamento-api';
+import { listarProvasDenuncia, getProvaUrl } from '../../services/api';
 import type {
   AcompanhamentoDetalhes,
   MensagemAcompanhamento,
@@ -99,6 +100,9 @@ export function Acompanhamento() {
 
   const [detalhes, setDetalhes] = useState<AcompanhamentoDetalhes | null>(null);
   const [mensagens, setMensagens] = useState<MensagemAcompanhamento[]>([]);
+  const [provas, setProvas] = useState<
+    Array<{ id: number; nomeArquivo: string; tipoMime: string }>
+  >([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -197,7 +201,6 @@ export function Acompanhamento() {
       } else {
         throw new Error('Modo de acesso inválido');
       }
-
       setDetalhes(denunciaData);
     } catch (err) {
       console.error('Erro ao carregar detalhes:', err);
@@ -206,6 +209,17 @@ export function Acompanhamento() {
           'Erro ao carregar dados. Token ou ID podem ser inválidos.',
       );
       throw err;
+    }
+  };
+
+  // Função para carregar provas da denúncia
+  const carregarProvas = async (denunciaIdNumerico: number) => {
+    try {
+      const provasData = await listarProvasDenuncia(denunciaIdNumerico);
+      setProvas(provasData);
+    } catch (err) {
+      console.error('Erro ao carregar provas:', err);
+      // Não bloquear o carregamento se as provas falharem
     }
   };
 
@@ -237,6 +251,11 @@ export function Acompanhamento() {
 
         // Carregar detalhes da denúncia e mensagens em paralelo
         await Promise.all([carregarDetalhesDenuncia(), carregarMensagens()]);
+
+        // Carregar provas se tivermos o ID da denúncia
+        if (detalhes?.id) {
+          await carregarProvas(detalhes.id);
+        }
       } catch (err) {
         console.error('Erro ao carregar dados:', err);
         // O erro já foi definido nas funções individuais
@@ -246,7 +265,16 @@ export function Acompanhamento() {
     };
 
     carregarDados();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, denunciaId, isAdmin]);
+
+  // Carregar provas quando detalhes estiverem disponíveis
+  useEffect(() => {
+    if (detalhes?.id && provas.length === 0) {
+      carregarProvas(detalhes.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detalhes]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
@@ -582,6 +610,58 @@ export function Acompanhamento() {
                 </Typography>
               </Box>
             </Stack>
+
+            {/* Seção de Provas/Evidências */}
+            {provas.length > 0 && (
+              <Box sx={{ mt: 3 }}>
+                <Typography
+                  variant='subtitle2'
+                  sx={{ color: 'text.secondary', mb: 1 }}
+                >
+                  Provas/Evidências Anexadas
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns:
+                      'repeat(auto-fill, minmax(120px, 1fr))',
+                    gap: 1,
+                  }}
+                >
+                  {provas.map((prova) => (
+                    <Box
+                      key={prova.id}
+                      component='a'
+                      href={getProvaUrl(prova.id)}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      sx={{
+                        display: 'block',
+                        borderRadius: 1,
+                        overflow: 'hidden',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        '&:hover': {
+                          opacity: 0.8,
+                          borderColor: 'var(--verde-esperanca)',
+                        },
+                      }}
+                    >
+                      <Box
+                        component='img'
+                        src={getProvaUrl(prova.id)}
+                        alt={prova.nomeArquivo}
+                        sx={{
+                          width: '100%',
+                          height: 120,
+                          objectFit: 'cover',
+                        }}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
           </Paper>
 
           {/* Painel de Chat */}

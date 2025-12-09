@@ -58,6 +58,8 @@ services:
     ports:
       - '8080:8080'
       - '5005:5005'
+    volumes:
+      - provas-data:/app/uploads/provas
     depends_on:
       postgres:
         condition: service_healthy
@@ -158,4 +160,5 @@ volumes:
   grafana-data: {}
   loki-data: {}
   promtail-positions: {}
+  provas-data:
   # pmm-data:

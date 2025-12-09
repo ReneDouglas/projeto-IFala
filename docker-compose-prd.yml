@@ -227,6 +227,8 @@ networks:
 volumes:
   pgdata_prd:
     external: true # Volume criado manualmente - protegido contra 'docker compose down -v'
+  provas_data_prd:
+    external: true 
   grafana_data_prd:
     driver: local
   loki_data_prd:
