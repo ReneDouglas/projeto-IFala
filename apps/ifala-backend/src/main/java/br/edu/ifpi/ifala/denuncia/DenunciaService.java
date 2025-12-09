@@ -113,6 +113,7 @@ public class DenunciaService {
       denunciante.setEmail(idDto.email().trim()); // Email não deve ser sanitizado
       denunciante.setGrau(idDto.grau());
       denunciante.setCurso(idDto.curso());
+      denunciante.setAno(idDto.ano());
       denunciante.setTurma(idDto.turma());
 
       novaDenuncia.setDenunciante(denunciante);

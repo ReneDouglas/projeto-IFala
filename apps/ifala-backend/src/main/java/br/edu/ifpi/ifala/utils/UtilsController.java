@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
  * representando os valores das enumerações armazenadas no banco de dados.
  *
  * @author luisthedevmagician
+ * @author Phaola (refatoração)
  */
 
 @RestController
@@ -49,6 +50,11 @@ public class UtilsController {
     return ResponseEntity.ok(utilsService.getAllCursos());
   }
 
+  // Retorna todos os anos disponíveis no sistema.
+  @GetMapping("/anos")
+  public ResponseEntity<List<EnumDTO>> getAnos() {
+    return ResponseEntity.ok(utilsService.getAllAnos());
+  }
 
   // Retorna todas as turmas disponíveis no sistema.
   @GetMapping("/turmas")
