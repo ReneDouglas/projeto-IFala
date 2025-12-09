@@ -3,6 +3,9 @@
 // Componente reutilizável para o menu de navegação lateral
 // ================================
 import './Sidebar.css';
+import { useState } from 'react';
+
+
 
 // Propriedades do componente Sidebar
 interface SidebarProps {
@@ -14,7 +17,6 @@ interface SidebarProps {
   onDashboard: () => void;
   onChangePassword: () => void;
   onNewDenuncia: () => void;
-  onAcompanhamento: () => void;
 }
 
 // ================================
@@ -29,12 +31,13 @@ function Sidebar({
   onDashboard,
   onChangePassword,
   onNewDenuncia,
-  onAcompanhamento,
 }: SidebarProps) {
   // Fecha o menu lateral
   const closeSidebar = () => {
     setSidebarOpen(false);
   };
+
+  const [openTokenModal, setOpenTokenModal] = useState(false);
 
   return (
     <>
@@ -82,16 +85,7 @@ function Sidebar({
               <span className='material-symbols-outlined'>shield</span>
               Fazer Denúncia
             </button>
-            <button
-              className='menu-item'
-              onClick={() => {
-                onAcompanhamento();
-                closeSidebar();
-              }}
-            >
-              <span className='material-symbols-outlined'>search</span>
-              Acompanhar Denúncia
-            </button>
+
           </div>
 
           {isLoggedIn ? (
@@ -152,3 +146,4 @@ function Sidebar({
 }
 
 export default Sidebar;
+
