@@ -1,36 +1,46 @@
 export interface Denuncia {
   id: number;
-  token: string;
-  titulo: string;
-  descricao: string;
+  tokenAcompanhamento: string;
   categoria: string;
   status: string;
-  dataCriacao: string;
-  hasUnreadMessages: boolean;
-  ultimaAtualizacao: string;
+  criadoEm: string;
+  alteradoEm?: string;
+  descricao?: string;
+  titulo?: string;
+  temMensagemNaoLida?: boolean;
 }
 
 export interface SearchParams {
   search: string;
   categoria: string;
   status: string;
-  ordenacao: string;
+  sortProperty?: string;
+  sortDirection?: 'ASC' | 'DESC';
 }
 
-export interface DenunciasResponse {
+/*export interface DenunciasResponse {
   content: Denuncia[];
   totalPages: number;
   totalElements: number;
   size: number;
   first: boolean;
   last: boolean;
+}*/
+
+export interface DenunciasResponse {
+  content: Denuncia[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number; // página atual
 }
 
 export interface FieldErrors {
   search: string;
   categoria: string;
   status: string;
-  ordenacao: string;
+  sortProperty?: string;
+  sortDirection?: 'ASC' | 'DESC';
 }
 
 export interface StatusConfig {

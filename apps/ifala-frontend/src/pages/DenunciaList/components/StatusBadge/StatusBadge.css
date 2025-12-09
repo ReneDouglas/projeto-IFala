@@ -33,6 +33,9 @@
   background: #ff9800;
   color: #fefdfd;
   border: 1px solid #ff9800;
+  white-space: pre-line; /* <- faz o \n virar quebra real */
+  text-align: center;
+  line-height: 1.1;
 }
 
 .status-analise {
