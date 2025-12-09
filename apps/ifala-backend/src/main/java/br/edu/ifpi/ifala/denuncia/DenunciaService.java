@@ -36,8 +36,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Classe de serviço responsável por manipular operações relacionadas a
- * denúncias.
+ * Classe de serviço responsável por manipular operações relacionadas a denúncias.
  *
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
@@ -133,13 +132,13 @@ public class DenunciaService {
     // Processar upload de provas se houver
     if (provas != null && !provas.isEmpty()) {
       try {
-        log.info("Processando upload de {} provas para denúncia ID {}", 
-            provas.size(), denunciaSalva.getId());
+        log.info("Processando upload de {} provas para denúncia ID {}", provas.size(),
+            denunciaSalva.getId());
         provaService.salvarProvas(denunciaSalva, provas);
         log.info("Provas salvas com sucesso para denúncia ID {}", denunciaSalva.getId());
       } catch (Exception e) {
-        log.error("Erro ao salvar provas da denúncia ID {}: {}", 
-            denunciaSalva.getId(), e.getMessage(), e);
+        log.error("Erro ao salvar provas da denúncia ID {}: {}", denunciaSalva.getId(),
+            e.getMessage(), e);
         // Não falhar a criação da denúncia se o upload de provas falhar
         // mas logar o erro para investigação
       }
@@ -167,27 +166,24 @@ public class DenunciaService {
 
   @Transactional
   public Optional<DenunciaResponseDto> consultarPorTokenAcompanhamento(UUID tokenAcompanhamento) {
-    return denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
-        .map(denuncia -> {
-          // Marcar mensagens do ADMIN como visualizadas quando usuário acessa
-          acompanhamentoRepository.marcarComoVisualizadoPorDenunciaEAutor(denuncia.getId(), Perfis.ADMIN);
-          return mapToDenunciaResponseDto(denuncia);
-        });
+    return denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).map(denuncia -> {
+      // Marcar mensagens do ADMIN como visualizadas quando usuário acessa
+      acompanhamentoRepository.marcarComoVisualizadoPorDenunciaEAutor(denuncia.getId(),
+          Perfis.ADMIN);
+      return mapToDenunciaResponseDto(denuncia);
+    });
   }
 
   /*
-   * tipo Page é uma interface do Spring Data que encapsula uma página de dados
-   * Pageable é uma
-   * interface que define a paginação e ordenação Specification é uma interface do
-   * Spring Data JPA
-   * que permite construir consultas dinamicamente predicate é uma condição usada
-   * em consultas para
+   * tipo Page é uma interface do Spring Data que encapsula uma página de dados Pageable é uma
+   * interface que define a paginação e ordenação Specification é uma interface do Spring Data JPA
+   * que permite construir consultas dinamicamente predicate é uma condição usada em consultas para
    * filtrar resultados
    */
 
   @Transactional(readOnly = true)
-  public Page<DenunciaAdminResponseDto> listarTodas(String search, Status status, Categorias categoria,
-      Pageable pageable) {
+  public Page<DenunciaAdminResponseDto> listarTodas(String search, Status status,
+      Categorias categoria, Pageable pageable) {
     Specification<Denuncia> spec = (root, query, criteriaBuilder) -> {
       List<Predicate> predicates = new ArrayList<>();
 
@@ -224,10 +220,10 @@ public class DenunciaService {
   public DenunciaAdminResponseDto buscarPorId(Long id) {
     Denuncia denuncia = denunciaRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada com o ID: " + id));
-    
+
     // Marcar mensagens do ANONIMO (usuário) como visualizadas quando admin acessa
     acompanhamentoRepository.marcarComoVisualizadoPorDenunciaEAutor(id, Perfis.ANONIMO);
-    
+
     return mapToDenunciaAdminResponseDto(denuncia);
   }
 
@@ -274,8 +270,9 @@ public class DenunciaService {
   @Transactional(readOnly = true)
   public List<AcompanhamentoDto> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
     log.info("Listando acompanhamentos (público) para o token: {}", tokenAcompanhamento);
-    Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
-        () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
+    Denuncia denuncia =
+        denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
+            () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
 
     return denuncia.getAcompanhamentos().stream().map(this::mapToAcompanhamentoResponseDto)
         .collect(Collectors.toList());
@@ -415,18 +412,20 @@ public class DenunciaService {
     // Verifica se há mensagens não lidas do ADMIN para o ANONIMO (usuário)
     boolean temMensagemNaoLida = acompanhamentoRepository
         .existsByDenunciaIdAndAutorAndVisualizadoFalse(denuncia.getId(), Perfis.ADMIN);
-    
+
     return new DenunciaResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
-        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(), temMensagemNaoLida);
+        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(),
+        denuncia.getAlteradoEm(), temMensagemNaoLida);
   }
 
   private DenunciaAdminResponseDto mapToDenunciaAdminResponseDto(Denuncia denuncia) {
     // Verifica se há mensagens não lidas do ANONIMO (usuário) para o ADMIN
     boolean temMensagemNaoLida = acompanhamentoRepository
         .existsByDenunciaIdAndAutorAndVisualizadoFalse(denuncia.getId(), Perfis.ANONIMO);
-    
+
     return new DenunciaAdminResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
-        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(), temMensagemNaoLida);
+        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(),
+        denuncia.getAlteradoEm(), temMensagemNaoLida);
   }
 
   private AcompanhamentoDto mapToAcompanhamentoResponseDto(Acompanhamento acompanhamento) {
