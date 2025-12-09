@@ -26,6 +26,7 @@ import {
   getCategorias,
   getGraus,
   getCursos,
+  getAnos,
   getTurmas,
   criarDenuncia,
 } from '../../services/api';
@@ -50,12 +51,14 @@ export function Denuncia() {
   const [categorias, setCategorias] = useState<EnumOption[]>([]);
   const [graus, setGraus] = useState<EnumOption[]>([]);
   const [cursos, setCursos] = useState<EnumOption[]>([]);
+  const [anos, setAnos] = useState<EnumOption[]>([]);
   const [turmas, setTurmas] = useState<EnumOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
 
   // Estados para dados filtrados por grau
   const [cursosFiltrados, setCursosFiltrados] = useState<EnumOption[]>([]);
+  const [anosFiltrados, setAnosFiltrados] = useState<EnumOption[]>([]);
   const [turmasFiltradas, setTurmasFiltradas] = useState<EnumOption[]>([]);
 
   // Estado do formulário
@@ -64,6 +67,7 @@ export function Denuncia() {
     email: '',
     grau: '',
     curso: '',
+    ano: '',
     turma: '',
     categoria: '',
     relato: '',
@@ -75,6 +79,7 @@ export function Denuncia() {
     email: false,
     grau: false,
     curso: false,
+    ano: false,
     turma: false,
     categoria: false,
     relato: false,
@@ -89,17 +94,19 @@ export function Denuncia() {
     const carregarDados = async () => {
       try {
         setLoading(true);
-        const [categoriasData, grausData, cursosData, turmasData] =
+        const [categoriasData, grausData, cursosData, anosData, turmasData] =
           await Promise.all([
             getCategorias(),
             getGraus(),
             getCursos(),
+            getAnos(),
             getTurmas(),
           ]);
 
         setCategorias(categoriasData);
         setGraus(grausData);
         setCursos(cursosData);
+        setAnos(anosData);
         setTurmas(turmasData);
         setApiError(null);
       } catch (error) {
@@ -115,10 +122,11 @@ export function Denuncia() {
     carregarDados();
   }, []);
 
-  // Filtrar cursos e turmas para o grau selecionado
+  // Filtrar cursos, anos e turmas para o grau selecionado
   useEffect(() => {
     if (!formData.grau) {
       setCursosFiltrados([]);
+      setAnosFiltrados([]);
       setTurmasFiltradas([]);
       return;
     }
@@ -137,14 +145,7 @@ export function Denuncia() {
       'GESTAO_AMBIENTAL',
     ];
 
-    const turmasMedio = [
-      'ANO1_A',
-      'ANO1_B',
-      'ANO2_A',
-      'ANO2_B',
-      'ANO3_A',
-      'ANO3_B',
-    ];
+    const turmasMedio = ['UNICA', 'A', 'B'];
 
     const turmasSuperior = [
       'MODULO_I',
@@ -161,6 +162,7 @@ export function Denuncia() {
       setCursosFiltrados(
         cursos.filter((curso) => cursosMedio.includes(curso.value)),
       );
+      setAnosFiltrados(anos); // Todos os anos disponíveis para ensino médio
       setTurmasFiltradas(
         turmas.filter((turma) => turmasMedio.includes(turma.value)),
       );
@@ -168,11 +170,12 @@ export function Denuncia() {
       setCursosFiltrados(
         cursos.filter((curso) => cursosSuperior.includes(curso.value)),
       );
+      setAnosFiltrados([]); // Superior não usa anos
       setTurmasFiltradas(
         turmas.filter((turma) => turmasSuperior.includes(turma.value)),
       );
     }
-  }, [formData.grau, cursos, turmas]);
+  }, [formData.grau, cursos, anos, turmas]);
 
   const handleChange = (
     event:
@@ -182,7 +185,13 @@ export function Denuncia() {
     const { name, value } = event.target;
 
     if (name === 'grau') {
-      setFormData((prev) => ({ ...prev, grau: value, curso: '', turma: '' }));
+      setFormData((prev) => ({
+        ...prev,
+        grau: value,
+        curso: '',
+        ano: '',
+        turma: '',
+      }));
     } else if (name === 'relato') {
       // Remove múltiplos espaços consecutivos, permitindo apenas espaços simples
       const sanitizedValue = value.replace(/\s{2,}/g, ' ');
@@ -205,6 +214,10 @@ export function Denuncia() {
         tipoDenuncia === 'identificada' &&
         formData.grau.trim() !== '' &&
         formData.curso.trim() === '',
+      ano:
+        tipoDenuncia === 'identificada' &&
+        formData.grau === 'MEDIO' &&
+        formData.ano.trim() === '',
       turma:
         tipoDenuncia === 'identificada' &&
         formData.grau.trim() !== '' &&
@@ -266,6 +279,7 @@ export function Denuncia() {
                 email: formData.email,
                 grau: formData.grau,
                 curso: formData.curso,
+                ano: formData.ano || null,
                 turma: formData.turma,
               }
             : undefined,
@@ -557,6 +571,51 @@ export function Denuncia() {
                           </FormHelperText>
                         )}
                       </FormControl>
+
+                      {formData.grau === 'MEDIO' && (
+                        <FormControl fullWidth required error={errors.ano}>
+                          <InputLabel
+                            sx={{
+                              '&.Mui-focused': {
+                                color: 'var(--verde-esperanca)',
+                              },
+                            }}
+                          >
+                            Ano
+                          </InputLabel>
+                          <Select
+                            name='ano'
+                            value={formData.ano}
+                            label='Ano *'
+                            onChange={handleChange}
+                            disabled={!formData.grau}
+                            sx={{
+                              '&.Mui-focused .MuiOutlinedInput-notchedOutline':
+                                {
+                                  borderColor: 'var(--verde-esperanca)',
+                                },
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: 'var(--verde-esperanca)',
+                              },
+                            }}
+                          >
+                            {anosFiltrados.map((ano) => (
+                              <MenuItem
+                                key={ano.value}
+                                value={ano.value}
+                                sx={menuItemStyles}
+                              >
+                                {ano.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                          {errors.ano && (
+                            <FormHelperText>
+                              O ano é obrigatório para ensino médio.
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      )}
 
                       <FormControl fullWidth required error={errors.turma}>
                         <InputLabel

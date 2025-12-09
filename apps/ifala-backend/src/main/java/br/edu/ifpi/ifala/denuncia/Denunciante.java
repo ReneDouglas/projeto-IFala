@@ -2,6 +2,7 @@ package br.edu.ifpi.ifala.denuncia;
 
 import java.io.Serializable;
 
+import br.edu.ifpi.ifala.shared.enums.Ano;
 import br.edu.ifpi.ifala.shared.enums.Curso;
 import br.edu.ifpi.ifala.shared.enums.Grau;
 import br.edu.ifpi.ifala.shared.enums.Turma;
@@ -49,13 +50,17 @@ public class Denunciante implements Serializable {
   @Column(name = "curso")
   private Curso curso;
 
+  @NotNull(message = "O ano não pode ser nulo.")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "ano")
+  private Ano ano;
+
   @NotNull(message = "A turma não pode ser nula.")
   @Enumerated(EnumType.STRING)
   @Column(name = "turma")
   private Turma turma;
 
-  public Denunciante() {
-  }
+  public Denunciante() {}
 
   public Long getId() {
     return id;
@@ -97,6 +102,14 @@ public class Denunciante implements Serializable {
     this.curso = curso;
   }
 
+  public Ano getAno() {
+    return ano;
+  }
+
+  public void setAno(Ano ano) {
+    this.ano = ano;
+  }
+
   public Turma getTurma() {
     return turma;
   }
@@ -132,12 +145,9 @@ public class Denunciante implements Serializable {
 
   @Override
   public String toString() {
-    return "Denunciante{ [id=" + id + " ]," +
-        "Descrição= " + nomeCompleto + "]," +
-        "Email=" + email + "]," +
-        "Grau=" + grau + "]," +
-        "Curso=" + curso + "]," +
-        "Turma=" + turma + "]" + "}";
+    return "Denunciante{ [id=" + id + " ]," + "Descrição= " + nomeCompleto + "]," + "Email=" + email
+        + "]," + "Grau=" + grau + "]," + "Curso=" + curso + "]," + "Ano=" + ano + "]," + "Turma="
+        + turma + "]" + "}";
 
   }
 }

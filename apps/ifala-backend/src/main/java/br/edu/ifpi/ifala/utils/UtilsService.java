@@ -5,6 +5,7 @@ import br.edu.ifpi.ifala.shared.enums.Status;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Grau;
 import br.edu.ifpi.ifala.shared.enums.Curso;
+import br.edu.ifpi.ifala.shared.enums.Ano;
 import br.edu.ifpi.ifala.shared.enums.Turma;
 import java.util.Arrays;
 import java.util.List;
@@ -47,6 +48,12 @@ public class UtilsService {
   public List<EnumDTO> getAllCursos() {
     return Arrays.stream(Curso.values())
         .map(curso -> new EnumDTO(curso.name(), curso.getDisplayName()))
+        .collect(Collectors.toList());
+  }
+
+  // Converte todos os valores do enum Ano para EnumDTO
+  public List<EnumDTO> getAllAnos() {
+    return Arrays.stream(Ano.values()).map(ano -> new EnumDTO(ano.name(), ano.getDisplayName()))
         .collect(Collectors.toList());
   }
 

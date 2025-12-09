@@ -22,6 +22,11 @@ export async function getCursos(): Promise<EnumOption[]> {
   return response.data;
 }
 
+export async function getAnos(): Promise<EnumOption[]> {
+  const response = await axiosClient.get('/utils/anos');
+  return response.data;
+}
+
 export async function getTurmas(): Promise<EnumOption[]> {
   const response = await axiosClient.get('/utils/turmas');
   return response.data;

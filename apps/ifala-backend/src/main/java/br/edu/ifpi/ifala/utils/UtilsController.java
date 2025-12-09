@@ -49,6 +49,11 @@ public class UtilsController {
     return ResponseEntity.ok(utilsService.getAllCursos());
   }
 
+  // Retorna todos os anos disponíveis no sistema.
+  @GetMapping("/anos")
+  public ResponseEntity<List<EnumDTO>> getAnos() {
+    return ResponseEntity.ok(utilsService.getAllAnos());
+  }
 
   // Retorna todas as turmas disponíveis no sistema.
   @GetMapping("/turmas")
