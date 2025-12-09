@@ -35,7 +35,6 @@ function Sidebar({
     setSidebarOpen(false);
   };
 
-
   return (
     <>
       {/* Overlay escuro quando sidebar está aberto */}
