@@ -29,8 +29,10 @@ import {
   getAnos,
   getTurmas,
   criarDenuncia,
+  criarDenunciaComProvas,
 } from '../../services/api';
 import type { EnumOption, ApiError } from '../../types/denuncia';
+import { FileUpload } from '../../components/FileUpload';
 /*
 declare global {
   interface Window {
@@ -74,6 +76,7 @@ export function Denuncia() {
   });
   const [tipoDenuncia, setTipoDenuncia] = useState('anonima');
   //const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const [provas, setProvas] = useState<File[]>([]);
   const [errors, setErrors] = useState({
     nome: false,
     email: false,
@@ -283,12 +286,19 @@ export function Denuncia() {
                 turma: formData.turma,
               }
             : undefined,
-        descricaoDetalhada: formData.relato,
         categoriaDaDenuncia: formData.categoria,
+        descricaoDetalhada: formData.relato,
         recaptchaToken: recaptchaTokenV3,
       };
 
-      const response = await criarDenuncia(payload);
+      let response;
+
+      // Se houver provas, usa o endpoint com multipart/form-data
+      if (provas.length > 0) {
+        response = await criarDenunciaComProvas(payload, provas);
+      } else {
+        response = await criarDenuncia(payload);
+      }
 
       // redireciona para página de sucesso com token real
       navigate('/denuncia/sucesso', {
@@ -727,6 +737,13 @@ export function Denuncia() {
                   },
                 }}
                 sx={fieldStyles}
+              />
+
+              {/* Componente de upload de provas */}
+              <FileUpload
+                onFilesChange={setProvas}
+                maxSizeMB={20}
+                maxFiles={10}
               />
 
               <Alert

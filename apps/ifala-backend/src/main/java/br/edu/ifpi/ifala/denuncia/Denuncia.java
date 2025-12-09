@@ -2,6 +2,7 @@ package br.edu.ifpi.ifala.denuncia;
 
 import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
 import br.edu.ifpi.ifala.notificacao.Notificacao;
+import br.edu.ifpi.ifala.prova.Prova;
 import br.edu.ifpi.ifala.shared.enums.*;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.CascadeType;
@@ -73,6 +74,9 @@ public class Denuncia implements Serializable {
 
   @OneToMany(mappedBy = "denuncia")
   private Set<Notificacao> notificacoes = new HashSet<>();
+
+  @OneToMany(mappedBy = "denuncia", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<Prova> provas = new HashSet<>();
 
   private String alteradoPor;
   private LocalDateTime alteradoEm;

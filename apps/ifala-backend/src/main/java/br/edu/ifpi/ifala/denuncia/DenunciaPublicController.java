@@ -1,14 +1,20 @@
 package br.edu.ifpi.ifala.denuncia;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -45,9 +51,11 @@ public class DenunciaPublicController {
 
   private static final Logger log = LoggerFactory.getLogger(DenunciaPublicController.class);
   private final DenunciaService denunciaService;
+  private final ObjectMapper objectMapper;
 
-  public DenunciaPublicController(DenunciaService denunciaService) {
+  public DenunciaPublicController(DenunciaService denunciaService, ObjectMapper objectMapper) {
     this.denunciaService = denunciaService;
+    this.objectMapper = objectMapper;
   }
 
   @PostMapping
@@ -64,7 +72,7 @@ public class DenunciaPublicController {
 
     log.info("Recebida requisição para criar nova denúncia pública.");
     try {
-      DenunciaResponseDto denunciaSalvaDto = denunciaService.criarDenuncia(novaDenunciaDto);
+      DenunciaResponseDto denunciaSalvaDto = denunciaService.criarDenuncia(novaDenunciaDto, null);
       URI uri = uriBuilder.path("/api/v1/public/denuncias/{token}")
           .buildAndExpand(denunciaSalvaDto.tokenAcompanhamento()).toUri();
 
@@ -77,6 +85,41 @@ public class DenunciaPublicController {
       throw e; // lança a exceção para ser tratada globalmente
     }
 
+  }
+
+  @PostMapping(value = "/com-provas", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @Operation(summary = "Cria uma nova denúncia com provas/evidências",
+      description = "Registra uma nova denúncia no sistema com upload de arquivos de prova e retorna um token único para acompanhamento.")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "201", description = "Denúncia criada com sucesso",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = DenunciaResponseDto.class))),
+      @ApiResponse(responseCode = "400", description = "Dados da denúncia ou arquivos inválidos",
+          content = @Content)})
+  public ResponseEntity<DenunciaResponseDto> criarDenunciaComProvas(
+      @RequestParam("denuncia") String denunciaJson,
+      @RequestParam(value = "provas", required = false) List<MultipartFile> provas,
+      UriComponentsBuilder uriBuilder) {
+
+    log.info("Recebida requisição para criar denúncia com {} provas",
+        provas != null ? provas.size() : 0);
+
+    try {
+      CriarDenunciaDto novaDenunciaDto =
+          objectMapper.readValue(denunciaJson, CriarDenunciaDto.class);
+
+      DenunciaResponseDto denunciaSalvaDto = denunciaService.criarDenuncia(novaDenunciaDto, provas);
+      URI uri = uriBuilder.path("/api/v1/public/denuncias/{token}")
+          .buildAndExpand(denunciaSalvaDto.tokenAcompanhamento()).toUri();
+
+      log.info("Denúncia com provas criada com sucesso. Token: {}",
+          denunciaSalvaDto.tokenAcompanhamento());
+
+      return ResponseEntity.created(uri).body(denunciaSalvaDto);
+    } catch (Exception e) {
+      log.error("Erro ao criar denúncia com provas: {}", e.getMessage());
+      throw new RuntimeException("Erro ao processar denúncia com provas", e);
+    }
   }
 
   @GetMapping("/{tokenAcompanhamento}")
