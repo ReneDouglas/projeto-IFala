@@ -38,10 +38,6 @@ export function MainLayout() {
     navigate('/denuncia');
   };
 
-  const handleAcompanhamento = () => {
-    navigate('/acompanhamento');
-  };
-
   return (
     <div className='app'>
       <Header
@@ -57,7 +53,6 @@ export function MainLayout() {
         onDashboard={handleDashboard}
         onChangePassword={handleChangePassword}
         onNewDenuncia={handleNewDenuncia}
-        onAcompanhamento={handleAcompanhamento}
       />
       <main>
         {/* O <Outlet /> é o espaço onde o conteúdo de cada página será renderizado */}
