@@ -46,6 +46,7 @@ INSERT INTO enum_categorias (value, label) VALUES
   ('VIOLENCIA', 'Violência Física ou Verbal'),
   ('VANDALISMO', 'Vandalismo e Danos ao Patrimônio'),
   ('ACADEMICO', 'Questões Acadêmicas (Fraude, Plágio)'),
+  ('DISPOSITIVO_ELETRONICO', 'Uso ou Porte de Dispositivo Eletrônico'),
   ('OUTROS', 'Outros')
 ON CONFLICT (value) DO NOTHING;
 

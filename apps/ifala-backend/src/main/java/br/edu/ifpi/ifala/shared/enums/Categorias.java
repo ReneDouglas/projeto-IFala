@@ -13,7 +13,8 @@ package br.edu.ifpi.ifala.shared.enums;
 public enum Categorias {
   BULLYING("Bullying e Assédio"), DROGAS("Uso ou Porte de Substâncias Ilícitas"), VIOLENCIA(
     "Violência Física ou Verbal"), VANDALISMO("Vandalismo e Danos ao Patrimônio"), ACADEMICO(
-      "Questões Acadêmicas (Fraude, Plágio)"), OUTROS("Outros");
+      "Questões Acadêmicas (Fraude, Plágio)"), DISPOSITIVO_ELETRONICO(
+        "Uso ou Porte de Dispositivo Eletrônico"), OUTROS("Outros");
 
   private final String displayName;
 
