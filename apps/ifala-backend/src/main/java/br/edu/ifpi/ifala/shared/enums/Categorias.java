@@ -5,20 +5,24 @@ package br.edu.ifpi.ifala.shared.enums;
  * possui uma descrição associada para facilitar a identificação.
  *
  * @author Renê Morais
+ * 
+ * alterado por:
+ * 
+ * @author luisthedevmagician
  */
 public enum Categorias {
-  CELULAR("Porte de Celular"), DROGAS("Uso ou Porte de Drogas"), BULLYING(
-      "Bullying e Assédio"), VIOLENCIA("Violência Física ou Verbal"), VANDALISMO(
-          "Vandalismo e Danos ao Patrimônio"), ACADEMICO(
-              "Questões Acadêmicas (Fraude, Plágio, etc.)"), OUTROS("Outros");
+  BULLYING("Bullying e Assédio"), DROGAS("Uso ou Porte de Substâncias Ilícitas"), VIOLENCIA(
+    "Violência Física ou Verbal"), VANDALISMO("Vandalismo e Danos ao Patrimônio"), ACADEMICO(
+      "Questões Acadêmicas (Fraude, Plágio)"), DISPOSITIVO_ELETRONICO(
+        "Uso ou Porte de Dispositivo Eletrônico"), OUTROS("Outros");
 
-  private String descricao;
+  private final String displayName;
 
-  Categorias(String descricao) {
-    this.descricao = descricao;
+  Categorias(String displayName) {
+    this.displayName = displayName;
   }
 
-  public String getDescricao() {
-    return descricao;
+  public String getDisplayName() {
+    return displayName;
   }
 }

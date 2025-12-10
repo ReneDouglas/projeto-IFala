@@ -1,0 +1,47 @@
+# ========================================
+# ESTÁGIO 1: Build Otimizado com Maven
+# ========================================
+FROM maven:3.9.11-amazoncorretto-25-alpine AS builder
+
+WORKDIR /app
+
+# Copiar arquivos de configuração do Maven
+COPY pom.xml .
+COPY checkstyle.xml .
+
+# Baixar dependências (aproveitamento de cache do Docker)
+RUN mvn dependency:go-offline
+
+# Copiar código fonte
+COPY src ./src
+
+# Build da aplicação (skip de testes para acelerar)
+RUN mvn clean package -DskipTests
+
+# ========================================
+# ESTÁGIO 2: Runtime em Produção
+# ========================================
+FROM bellsoft/liberica-runtime-container:jre-25-cds-slim-musl
+
+WORKDIR /app
+
+# Definir profile de produção
+ENV SPRING_PROFILES_ACTIVE=prod
+
+# Expor porta da aplicação
+EXPOSE 8080
+
+# Copiar apenas o JAR da aplicação do estágio de build
+COPY --from=builder /app/target/ifala-0.0.1-SNAPSHOT.jar ifala-api.jar
+
+# Configurações otimizadas para produção:
+# -Xms1g: Memória inicial do heap (mesmo valor que Xmx para melhor performance)
+# -Xmx1g: Memória máxima do heap
+# -XX:+UseStringDeduplication: Otimização de strings duplicadas
+# Nota: Java 25 já usa o melhor GC disponível por padrão (não precisa especificar UseG1GC)
+ENTRYPOINT ["java", \
+    "-Xms1g", \
+    "-Xmx1g", \
+    "-XX:+UseStringDeduplication", \
+    "-jar", \
+    "ifala-api.jar"]

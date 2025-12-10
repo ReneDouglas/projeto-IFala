@@ -1,10 +1,436 @@
 package br.edu.ifpi.ifala.denuncia;
 
+import br.edu.ifpi.ifala.acompanhamento.Acompanhamento;
+import br.edu.ifpi.ifala.acompanhamento.AcompanhamentoRepository;
+import br.edu.ifpi.ifala.acompanhamento.acompanhamentoDTO.AcompanhamentoDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.AtualizarDenunciaDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.CriarDenunciaDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.DadosDeIdentificacaoDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaAdminResponseDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
+import br.edu.ifpi.ifala.notificacao.NotificacaoExternaService;
+import br.edu.ifpi.ifala.prova.ProvaService;
+import br.edu.ifpi.ifala.security.recaptcha.RecaptchaService;
+import br.edu.ifpi.ifala.shared.enums.Categorias;
+import br.edu.ifpi.ifala.shared.enums.Perfis;
+import br.edu.ifpi.ifala.shared.enums.Status;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Predicate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import org.owasp.html.PolicyFactory;
+import org.owasp.html.Sanitizers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
 /**
  * Classe de serviço responsável por manipular operações relacionadas a denúncias.
  *
  * @author Renê Morais
+ * @author Jhonatas G Ribeiro
+ * @author Phaola
  */
+
+@Service
+@Transactional
 public class DenunciaService {
+
+  private static final Logger log = LoggerFactory.getLogger(DenunciaService.class);
+
+  private final DenunciaRepository denunciaRepository;
+  private final AcompanhamentoRepository acompanhamentoRepository;
+  private final RecaptchaService recaptchaService;
+  private final NotificacaoExternaService notificacaoExternaService;
+  private final ProvaService provaService;
+  private final PolicyFactory policy;
+
+  // A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO
+  // private final RecaptchaService recaptchaService;
+
+  // public DenunciaService(DenunciaRepository denunciaRepository,
+  // AcompanhamentoRepository acompanhamentoRepository,
+  // RecaptchaService recaptchaService) {
+  // this.denunciaRepository = denunciaRepository;
+  // this.acompanhamentoRepository = acompanhamentoRepository;
+  // this.recaptchaService = recaptchaService;
+  // }
+
+  public DenunciaService(DenunciaRepository denunciaRepository,
+      AcompanhamentoRepository acompanhamentoRepository, RecaptchaService recaptchaService,
+      NotificacaoExternaService notificacaoExternaService, ProvaService provaService) {
+    this.denunciaRepository = denunciaRepository;
+    this.acompanhamentoRepository = acompanhamentoRepository;
+    this.recaptchaService = recaptchaService;
+    this.notificacaoExternaService = notificacaoExternaService;
+    this.provaService = provaService;
+    this.policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
+  }
+
+  public DenunciaResponseDto criarDenuncia(CriarDenunciaDto dto) {
+    return criarDenuncia(dto, null);
+  }
+
+  public DenunciaResponseDto criarDenuncia(CriarDenunciaDto dto, List<MultipartFile> provas) {
+
+    log.info("Iniciando validação do reCAPTCHA para nova denúncia.");
+
+    boolean isRecaptchaValid = recaptchaService.validarToken(dto.recaptchaToken(), "denuncia", 0.5);
+
+    if (!isRecaptchaValid) {
+      log.warn("Falha na validação do reCAPTCHA para nova denúncia.");
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Falha na validação do ReCaptcha.");
+    }
+
+    log.info("reCAPTCHA validado com sucesso para nova denúncia.");
+
+    Denuncia novaDenuncia = new Denuncia();
+    novaDenuncia.setDescricao(policy.sanitize(dto.descricao()));
+
+    novaDenuncia.setCategoria(dto.categoria());
+
+    if (Boolean.TRUE.equals(dto.desejaSeIdentificar()) && dto.dadosDeIdentificacao() != null) {
+
+      log.info("Processando criação de denúncia identificada.");
+      novaDenuncia.setDesejaSeIdentificar(true);
+
+      Denunciante denunciante = new Denunciante();
+      DadosDeIdentificacaoDto idDto = dto.dadosDeIdentificacao();
+
+      denunciante.setNomeCompleto(policy.sanitize(idDto.nomeCompleto()));
+      denunciante.setEmail(idDto.email().trim()); // Email não deve ser sanitizado
+      denunciante.setGrau(idDto.grau());
+      denunciante.setCurso(idDto.curso());
+      denunciante.setAno(idDto.ano());
+      denunciante.setTurma(idDto.turma());
+
+      novaDenuncia.setDenunciante(denunciante);
+
+    } else {
+      log.info("Processando criação de denúncia anônima.");
+      novaDenuncia.setDesejaSeIdentificar(false);
+      novaDenuncia.setDenunciante(null);
+    }
+
+    Denuncia denunciaSalva = denunciaRepository.save(novaDenuncia);
+
+    log.info("Denúncia salva com sucesso");
+    log.info("Denúncia criada com ID: {}", denunciaSalva.getId());
+    log.info("Token de acompanhamento gerado: {}", denunciaSalva.getTokenAcompanhamento());
+
+    // Processar upload de provas se houver
+    if (provas != null && !provas.isEmpty()) {
+      try {
+        log.info("Processando upload de {} provas para denúncia ID {}", provas.size(),
+            denunciaSalva.getId());
+        provaService.salvarProvas(denunciaSalva, provas);
+        log.info("Provas salvas com sucesso para denúncia ID {}", denunciaSalva.getId());
+      } catch (Exception e) {
+        log.error("Erro ao salvar provas da denúncia ID {}: {}", denunciaSalva.getId(),
+            e.getMessage(), e);
+        // Não falhar a criação da denúncia se o upload de provas falhar
+        // mas logar o erro para investigação
+      }
+    }
+
+    // Criar automaticamente o primeiro acompanhamento com o relato da denúncia
+    Acompanhamento primeiroAcompanhamento = new Acompanhamento();
+    primeiroAcompanhamento.setMensagem(denunciaSalva.getDescricao());
+    primeiroAcompanhamento.setDenuncia(denunciaSalva);
+    primeiroAcompanhamento.setAutor(Perfis.ANONIMO);
+    acompanhamentoRepository.save(primeiroAcompanhamento);
+    log.info("Primeiro acompanhamento criado automaticamente com o relato da denúncia.");
+
+    // Notificar administradores/usuários externos sobre a nova denúncia
+    try {
+      notificacaoExternaService.notificarNovaDenuncia(denunciaSalva);
+      log.info("Notificação externa enviada sobre nova denúncia ID {}", denunciaSalva.getId());
+    } catch (Exception e) {
+      log.error("Erro ao notificar administradores sobre nova denúncia ID {}: {}",
+          denunciaSalva.getId(), e.getMessage(), e);
+    }
+
+    return mapToDenunciaResponseDto(denunciaSalva);
+  }
+
+  @Transactional
+  public Optional<DenunciaResponseDto> consultarPorTokenAcompanhamento(UUID tokenAcompanhamento) {
+    return denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).map(denuncia -> {
+      // Marcar mensagens do ADMIN como visualizadas quando usuário acessa
+      acompanhamentoRepository.marcarComoVisualizadoPorDenunciaEAutor(denuncia.getId(),
+          Perfis.ADMIN);
+      return mapToDenunciaResponseDto(denuncia);
+    });
+  }
+
+  /*
+   * tipo Page é uma interface do Spring Data que encapsula uma página de dados Pageable é uma
+   * interface que define a paginação e ordenação Specification é uma interface do Spring Data JPA
+   * que permite construir consultas dinamicamente predicate é uma condição usada em consultas para
+   * filtrar resultados
+   */
+
+  @Transactional(readOnly = true)
+  public Page<DenunciaAdminResponseDto> listarTodas(String search, Status status,
+      Categorias categoria, Pageable pageable) {
+    Specification<Denuncia> spec = (root, query, criteriaBuilder) -> {
+      List<Predicate> predicates = new ArrayList<>();
+
+      // filtro por Status
+      if (status != null) {
+        predicates.add(criteriaBuilder.equal(root.get("status"), status));
+      }
+
+      // filtro por Categoria
+      if (categoria != null) {
+        predicates.add(criteriaBuilder.equal(root.get("categoria"), categoria));
+      }
+
+      // filtro por Busca Textual (Search)
+      if (search != null && !search.trim().isEmpty()) {
+        try {
+          UUID token = UUID.fromString(search.trim());
+          predicates.add(criteriaBuilder.equal(root.get("tokenAcompanhamento"), token));
+
+        } catch (IllegalArgumentException e) {
+          log.error("Erro ao processar o filtro de busca textual: {}", e.getMessage(), e);
+          predicates.add(criteriaBuilder.disjunction()); // Nenhum resultado
+        }
+      }
+
+      return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+    };
+
+    return denunciaRepository.findAll(spec, pageable).map(this::mapToDenunciaAdminResponseDto);
+  }
+
+  // buscar denúncia por ID
+  @Transactional
+  public DenunciaAdminResponseDto buscarPorId(Long id) {
+    Denuncia denuncia = denunciaRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada com o ID: " + id));
+
+    // Marcar mensagens do ANONIMO (usuário) como visualizadas quando admin acessa
+    acompanhamentoRepository.marcarComoVisualizadoPorDenunciaEAutor(id, Perfis.ANONIMO);
+
+    return mapToDenunciaAdminResponseDto(denuncia);
+  }
+
+  public Optional<DenunciaAdminResponseDto> atualizarDenuncia(Long id, AtualizarDenunciaDto dto,
+      String adminName) {
+    log.info("Iniciando atualização da denúncia id {} por admin {}.", id, adminName);
+    return denunciaRepository.findById(id).map(denuncia -> {
+      if (denuncia.getStatus() == Status.RESOLVIDO || denuncia.getStatus() == Status.REJEITADO) {
+        log.warn("Tentativa de atualização de denúncia id {} em estado final.", id);
+        throw new IllegalStateException(
+            "Denúncia já está em estado final e não pode ser alterada.");
+      }
+
+      denuncia.setStatus(dto.status());
+      denuncia.setAlteradoEm(LocalDateTime.now());
+      denuncia.setAlteradoPor(adminName);
+
+      // sanitizar motivoRejeicao
+      if (dto.motivoRejeicao() != null) {
+        String motivoRejeicaoSanitizado = policy.sanitize(dto.motivoRejeicao());
+        denuncia.setMotivoRejeicao(motivoRejeicaoSanitizado);
+      } else {
+        denuncia.setMotivoRejeicao(null);
+      }
+
+      Denuncia denunciaAtualizada = denunciaRepository.save(denuncia);
+      log.info("Denúncia id {} atualizada com sucesso para o status {}.", id, dto.status());
+      return mapToDenunciaAdminResponseDto(denunciaAtualizada);
+    });
+  }
+
+  public boolean deletarDenuncia(Long id) {
+    Optional<Denuncia> denuncia = denunciaRepository.findById(id);
+    if (denuncia.isPresent()) {
+      log.info("Iniciando deleção da denúncia id {}.", id);
+      denunciaRepository.delete(denuncia.get());
+      log.info("Denúncia id {} deletada com sucesso.", id);
+      return true;
+    }
+    log.warn("Tentativa de deleção de denúncia id {} que não existe.", id);
+    return false;
+  }
+
+  @Transactional(readOnly = true)
+  public List<AcompanhamentoDto> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
+    log.info("Listando acompanhamentos (público) para o token: {}", tokenAcompanhamento);
+    Denuncia denuncia =
+        denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
+            () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
+
+    return denuncia.getAcompanhamentos().stream().map(this::mapToAcompanhamentoResponseDto)
+        .collect(Collectors.toList());
+  }
+
+  @Transactional(readOnly = true)
+  public List<AcompanhamentoDto> listarAcompanhamentosPorId(Long id) {
+    log.info("Listando acompanhamentos (admin) para a denúncia ID: {}", id);
+    Denuncia denuncia = denunciaRepository.findById(id).orElseThrow(
+        () -> new EntityNotFoundException("Denúncia não encontrada com o ID informado."));
+
+    return denuncia.getAcompanhamentos().stream().map(this::mapToAcompanhamentoResponseDto)
+        .collect(Collectors.toList());
+  }
+
+  public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento,
+      AcompanhamentoDto dto) {
+    log.info("Adicionando acompanhamento (público) para o token: {}", tokenAcompanhamento);
+
+    Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
+        .filter(d -> d.getStatus() != Status.RESOLVIDO && d.getStatus() != Status.REJEITADO)
+        .orElseThrow(() -> new EntityNotFoundException(
+            "Denúncia não encontrada, finalizada ou token inválido."));
+
+    // verificar se a última mensagem foi do admin (anti-flood)
+    Optional<Acompanhamento> ultimoOpt = acompanhamentoRepository
+        .findTopByDenuncia_TokenAcompanhamentoOrderByDataEnvioDesc(tokenAcompanhamento);
+
+    if (ultimoOpt.isPresent()) {
+      Acompanhamento ultimo = ultimoOpt.get();
+      if (ultimo.getAutor() == Perfis.ANONIMO) {
+        log.warn("Bloqueio de flood no token: {}", tokenAcompanhamento);
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+            "Você precisa aguardar a resposta do administrador antes de enviar outra mensagem.");
+      }
+    }
+
+    Acompanhamento novoAcompanhamento = new Acompanhamento();
+    novoAcompanhamento.setMensagem(policy.sanitize(dto.mensagem()));
+    novoAcompanhamento.setDenuncia(denuncia);
+
+    // Define o perfil do autor como ANONIMO (denunciantes são sempre anônimos no
+    // acompanhamento
+    // público)
+    novoAcompanhamento.setAutor(Perfis.ANONIMO);
+
+    Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
+    log.info("Acompanhamento adicionado com sucesso a denúncia de token: {}", tokenAcompanhamento);
+    // Disparar notificação externa para informar que uma nova mensagem do
+    // denunciante
+    // foi recebida para a denúncia. Envolve apenas mensagens enviadas pelo
+    // denunciante
+    // (perfil ANONIMO) — trata-se do fluxo público.
+    try {
+      notificacaoExternaService.notificarNovaMensagem(salvo);
+      log.info("Notificação externa enviada para nova mensagem (denúncia ID {}).",
+          salvo.getDenuncia().getId());
+    } catch (Exception e) {
+      log.error("Erro ao enviar notificação externa para nova mensagem (denúncia ID {}): {}",
+          salvo.getDenuncia().getId(), e.getMessage(), e);
+    }
+
+    return mapToAcompanhamentoResponseDto(salvo);
+
+  }
+
+  public AcompanhamentoDto adicionarAcompanhamentoAdmin(Long id, AcompanhamentoDto dto,
+      String nomeAdmin) {
+    log.info("Adicionando acompanhamento (admin) para a denúncia ID: {}", id);
+    Denuncia denuncia = denunciaRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada."));
+
+    Acompanhamento novoAcompanhamento = new Acompanhamento();
+    novoAcompanhamento.setMensagem(policy.sanitize(dto.mensagem()));
+    novoAcompanhamento.setDenuncia(denuncia);
+    novoAcompanhamento.setAutor(Perfis.ADMIN);
+
+    Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
+    log.info("Acompanhamento adicionado com sucesso à denúncia ID: {}", id);
+    return mapToAcompanhamentoResponseDto(salvo);
+  }
+
+  public DenunciaAdminResponseDto alterarStatus(Long id, Status novoStatus, String adminName) {
+    log.info("Iniciando alteração de status da denúncia ID {} para {} por admin {}.", id,
+        novoStatus, adminName);
+
+    Denuncia denuncia = denunciaRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada."));
+
+    if (denuncia.getStatus() == Status.RESOLVIDO || denuncia.getStatus() == Status.REJEITADO) {
+      log.warn("Tentativa de alteração de status de denúncia ID {} em estado final.", id);
+      throw new IllegalStateException("Denúncia já está em estado final e não pode ser alterada.");
+    }
+
+    Status statusAnterior = denuncia.getStatus();
+    denuncia.setStatus(novoStatus);
+    denuncia.setAlteradoEm(LocalDateTime.now());
+    denuncia.setAlteradoPor(adminName);
+
+    Denuncia denunciaAtualizada = denunciaRepository.save(denuncia);
+
+    // Criar mensagem automática de mudança de status
+    String mensagemStatus = gerarMensagemMudancaStatus(statusAnterior, novoStatus);
+    Acompanhamento acompanhamentoStatus = new Acompanhamento();
+    acompanhamentoStatus.setMensagem(mensagemStatus);
+    acompanhamentoStatus.setDenuncia(denunciaAtualizada);
+    acompanhamentoStatus.setAutor(Perfis.ADMIN);
+    acompanhamentoRepository.save(acompanhamentoStatus);
+
+    log.info(
+        "Status da denúncia ID {} alterado de {} para {} com mensagem automática de acompanhamento.",
+        id, statusAnterior, novoStatus);
+
+    return mapToDenunciaAdminResponseDto(denunciaAtualizada);
+  }
+
+  private String gerarMensagemMudancaStatus(Status statusAnterior, Status novoStatus) {
+    String statusAnteriorFormatado = formatarStatusParaMensagem(statusAnterior);
+    String novoStatusFormatado = formatarStatusParaMensagem(novoStatus);
+
+    return String.format(
+        "O status da sua denúncia foi alterado de '%s' para '%s'. " + "Acompanhe as atualizações.",
+        statusAnteriorFormatado, novoStatusFormatado);
+  }
+
+  private String formatarStatusParaMensagem(Status status) {
+    return switch (status) {
+      case RECEBIDO -> "Recebido";
+      case EM_ANALISE -> "Em Análise";
+      case AGUARDANDO -> "Aguardando Informações";
+      case RESOLVIDO -> "Resolvido";
+      case REJEITADO -> "Rejeitado";
+    };
+  }
+
+  private DenunciaResponseDto mapToDenunciaResponseDto(Denuncia denuncia) {
+    // Verifica se há mensagens não lidas do ADMIN para o ANONIMO (usuário)
+    boolean temMensagemNaoLida = acompanhamentoRepository
+        .existsByDenunciaIdAndAutorAndVisualizadoFalse(denuncia.getId(), Perfis.ADMIN);
+
+    return new DenunciaResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
+        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(),
+        denuncia.getAlteradoEm(), temMensagemNaoLida);
+  }
+
+  private DenunciaAdminResponseDto mapToDenunciaAdminResponseDto(Denuncia denuncia) {
+    // Verifica se há mensagens não lidas do ANONIMO (usuário) para o ADMIN
+    boolean temMensagemNaoLida = acompanhamentoRepository
+        .existsByDenunciaIdAndAutorAndVisualizadoFalse(denuncia.getId(), Perfis.ANONIMO);
+
+    return new DenunciaAdminResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
+        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(),
+        denuncia.getAlteradoEm(), temMensagemNaoLida);
+  }
+
+  private AcompanhamentoDto mapToAcompanhamentoResponseDto(Acompanhamento acompanhamento) {
+    return new AcompanhamentoDto(acompanhamento.getId(), acompanhamento.getMensagem(),
+        acompanhamento.getAutor().getDisplayName(), acompanhamento.getDataEnvio());
+  }
 
 }

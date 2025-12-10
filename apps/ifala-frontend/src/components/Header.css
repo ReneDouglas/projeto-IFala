@@ -1,0 +1,160 @@
+/* ================================
+   COMPONENTE HEADER - ESTILOS
+   Estilos específicos para o cabeçalho reutilizável
+   ================================ */
+
+/* Container principal do header */
+.header {
+  background: rgba(255, 255, 255, 0.95); /* Fundo branco semi-transparente */
+  backdrop-filter: blur(10px); /* Efeito de desfoque no fundo */
+  box-shadow: var(--shadow); /* Sombra sutil */
+  position: sticky; /* Fixa no topo ao rolar */
+  top: 0; /* Posição no topo */
+  z-index: 100; /* Sobrepõe outros elementos */
+}
+
+/* Container interno do header */
+.header-container {
+  display: flex; /* Layout flexbox */
+  align-items: center; /* Alinha verticalmente ao centro */
+  justify-content: space-between; /* Distribui espaço entre elementos */
+  padding: 0.75rem 0.5rem 0.75rem 0.25rem; /* Menos padding à esquerda */
+  max-width: 1200px; /* Largura máxima */
+  margin: 0 auto; /* Centraliza horizontalmente */
+}
+
+/* ================================
+   ÁREA DA MARCA (LOGO + TÍTULO)
+   ================================ */
+.header-brand {
+  display: flex; /* Layout flexbox */
+  align-items: center; /* Alinha verticalmente */
+  gap: 0.75rem; /* Espaço entre logo e texto */
+  cursor: pointer; /* Cursor de ponteiro */
+  padding: 0.5rem; /* Espaçamento interno */
+  border-radius: 8px; /* Bordas arredondadas */
+  transition: background-color 0.3s ease; /* Transição suave do fundo */
+  outline: none; /* Remove outline padrão */
+}
+
+/* Estado hover da marca */
+.header-brand:hover {
+  background: rgba(26, 78, 138, 0.1); /* Fundo azul claro no hover */
+}
+
+/* Estado focus da marca (acessibilidade) */
+.header-brand:focus {
+  background: rgba(26, 78, 138, 0.1); /* Fundo azul claro no focus */
+  box-shadow: 0 0 0 2px var(--azul-confianca); /* Borda de foco */
+}
+
+/* Logo do header */
+.header-logo {
+  height: 40px; /* Altura fixa */
+  width: auto; /* Largura proporcional */
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.1)); /* Sombra sutil */
+}
+
+/* Container do título */
+.header-title {
+  display: flex; /* Layout flexbox */
+  flex-direction: column; /* Organiza verticalmente */
+  gap: 0.125rem; /* Espaço mínimo entre título e subtítulo */
+}
+
+/* Título principal */
+.app-title {
+  font-size: 1.25rem; /* Tamanho da fonte */
+  font-weight: 700; /* Peso bold */
+  color: var(--azul-confianca); /* Cor azul institucional */
+  margin: 0; /* Remove margem */
+  line-height: 1.2; /* Altura da linha */
+}
+
+/* Subtítulo */
+.app-subtitle {
+  font-size: 0.75rem; /* Tamanho menor */
+  font-weight: 500; /* Peso médio */
+  color: var(--cinza-texto); /* Cor cinza */
+  margin: 0; /* Remove margem */
+  line-height: 1.2; /* Altura da linha */
+}
+
+/* ================================
+   MENU HAMBURGER
+   ================================ */
+.hamburger-menu {
+  background: none; /* Remove fundo padrão */
+  border: none; /* Remove borda */
+  cursor: pointer; /* Cursor de ponteiro */
+  padding: 0.5rem; /* Espaçamento interno */
+  border-radius: 8px; /* Bordas arredondadas */
+  transition: all 0.3s ease; /* Transição completa */
+  display: flex; /* Layout flexbox */
+  align-items: center; /* Centraliza o ícone */
+  justify-content: center; /* Centraliza o ícone */
+  color: var(--azul-confianca); /* Cor azul */
+  box-shadow: none; /* Remove shadow padrão */
+}
+
+/* Estado hover do menu hamburger */
+.hamburger-menu:hover {
+  background: rgba(26, 78, 138, 0.1); /* Fundo azul claro no hover */
+  color: var(--azul-escuro); /* Cor mais escura */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Shadow apenas no hover */
+  transform: translateY(-1px); /* Leve elevação no hover */
+}
+
+/* Estado focus do menu hamburger (acessibilidade) */
+.hamburger-menu:focus {
+  outline: 2px solid var(--azul-confianca); /* Borda de foco */
+  outline-offset: 2px; /* Espaçamento da borda */
+}
+
+/* Override para remover shadows globais dos botões */
+.hamburger-menu {
+  box-shadow: none !important; /* Force remove shadow */
+}
+
+.hamburger-menu:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; /* Shadow apenas no hover */
+}
+
+/* Ícone do menu hamburger */
+.hamburger-menu .material-symbols-outlined {
+  font-size: 1.5rem; /* Tamanho do ícone */
+}
+
+/* ================================
+   ÁREA DE AÇÕES (BOTÕES ADICIONAIS)
+   ================================ */
+.header-actions {
+  display: flex; /* Layout flexbox */
+  align-items: center; /* Alinha verticalmente */
+  gap: 0.5rem; /* Espaço entre botões */
+}
+
+/* ================================
+   RESPONSIVIDADE
+   ================================ */
+@media (max-width: 768px) {
+  /* Header container em telas menores */
+  .header-container {
+    padding: 0.5rem 1rem; /* Reduz padding */
+  }
+
+  /* Logo menor em mobile */
+  .header-logo {
+    height: 32px; /* Altura reduzida */
+  }
+
+  /* Título menor em mobile */
+  .app-title {
+    font-size: 1rem; /* Tamanho reduzido */
+  }
+
+  /* Subtítulo menor em mobile */
+  .app-subtitle {
+    font-size: 0.7rem; /* Tamanho reduzido */
+  }
+}

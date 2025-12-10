@@ -2,11 +2,17 @@ package br.edu.ifpi.ifala.notificacao;
 
 import br.edu.ifpi.ifala.denuncia.Denuncia;
 import br.edu.ifpi.ifala.notificacao.enums.TiposNotificacao;
+import jakarta.persistence.Convert;
+import org.hibernate.annotations.JdbcTypeCode;
+import java.sql.Types;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -15,22 +21,33 @@ import java.time.LocalDateTime;
  * de leitura.
  *
  * @author Renê Morais
+ * @author Phaola
  */
 @Entity
-public class Notificacao {
+@Table(name = "notificacoes")
+public class Notificacao implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   private String conteudo;
+  @Convert(converter = TiposNotificacaoConverter.class)
+  @Column(name = "tipo", columnDefinition = "tipos_notificacao_enum")
+  @JdbcTypeCode(Types.OTHER)
   private TiposNotificacao tipo;
 
   @ManyToOne
   private Denuncia denuncia;
 
   private Boolean lida;
+
+  @Column(name = "lida_por")
   private String lidaPor;
+
+  @Column(name = "data_envio")
   private LocalDateTime dataEnvio;
 
   /**
@@ -92,6 +109,34 @@ public class Notificacao {
 
   public void setDataEnvio(LocalDateTime dataEnvio) {
     this.dataEnvio = dataEnvio;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Notificacao)) {
+      return false;
+    }
+    Notificacao other = (Notificacao) o;
+    return id != null && id.equals(other.getId());
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
+
+  @Override
+  public String toString() {
+    // O campo 'denuncia' foi trocado por 'denunciaId' para evitar
+    // um loop infinito de logs (StackOverflowError).
+    Long denunciaId = (denuncia != null) ? denuncia.getId() : null;
+
+    return "Notificacao{" + "id=[" + id + "]" + ", conteudo=[" + conteudo + "]" + ", tipo=[" + tipo
+        + "]" + ", denunciaId=[" + denunciaId + "]" + ", lida=[" + lida + "]" + ", lidaPor=["
+        + lidaPor + "]" + ", dataEnvio=[" + dataEnvio + "]" + "}";
   }
 
 }

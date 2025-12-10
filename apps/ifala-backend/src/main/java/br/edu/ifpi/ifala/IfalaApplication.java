@@ -3,6 +3,7 @@ package br.edu.ifpi.ifala;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+
 /**
  * Classe principal da aplicação Ifala. Responsável por iniciar o contexto Spring Boot.
  *
@@ -20,4 +21,8 @@ public class IfalaApplication {
     SpringApplication.run(IfalaApplication.class, args);
   }
 
+  @jakarta.annotation.PostConstruct
+  public void init() {
+    java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("America/Sao_Paulo"));
+  }
 }
