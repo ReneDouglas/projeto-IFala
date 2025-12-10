@@ -27,6 +27,7 @@ export const Filters = ({
     { value: 'BULLYING', label: 'Bullying' },
     { value: 'DROGAS', label: 'Drogas' },
     { value: 'ACADEMICO', label: 'Academico' },
+    { value: 'DISPOSITIVO_ELETRONICO', label: 'Dispositivo Eletrônico' },
     { value: 'OUTROS', label: 'Outros' },
   ];
 

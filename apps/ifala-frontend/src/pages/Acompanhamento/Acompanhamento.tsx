@@ -60,12 +60,13 @@ const formatarStatus = (status: string): string => {
 
 const formatarCategoria = (categoria: string): string => {
   const categoriaMap: Record<string, string> = {
-    BULLYING_ASSEDIO: 'Bullying e Assédio',
-    DISCRIMINACAO: 'Discriminação',
-    VIOLENCIA_FISICA: 'Violência Física',
-    ABUSO_AUTORIDADE: 'Abuso de Autoridade',
-    VANDALISMO: 'Vandalismo',
-    OUTRO: 'Outro',
+    BULLYING: 'Bullying e Assédio',
+    DROGAS: 'Uso ou Porte de Substâncias Ilícitas',
+    VIOLENCIA: 'Violência Física ou Verbal',
+    VANDALISMO: 'Vandalismo e Danos ao Patrimônio',
+    ACADEMICO: 'Questões Acadêmicas (Fraude, Plágio)',
+    DISPOSITIVO_ELETRONICO: 'Uso ou Porte de Dispositivo Eletrônico',
+    OUTROS: 'Outros',
   };
   return categoriaMap[categoria.toUpperCase()] || categoria;
 };

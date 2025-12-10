@@ -276,20 +276,40 @@
   color: #ef4444;
 }
 
-.metadata-item.categoria .icon.security {
-  color: #f59e0b;
-}
-
 .metadata-item.categoria .icon.diversity_3 {
   color: #10b981;
 }
 
+.metadata-item.categoria .icon.smartphone {
+  color: #00008b;
+}
+
+.metadata-item.categoria .icon.sports_mma {
+  color: #dc2626;
+}
+
+.metadata-item.categoria .icon.bomb {
+  color: #ea580c;
+}
+
+.metadata-item.categoria .icon.sentiment_very_dissatisfied {
+  color: #8b5cf6;
+}
+
+.metadata-item.categoria .icon.cannabis {
+  color: #16a34a;
+}
+
+.metadata-item.categoria .icon.school {
+  color: #0891b2;
+}
+
 .metadata-item.categoria .icon.help {
-  color: #6b7280;
+  color: #4a90e2;
 }
 
 .metadata-item.data .icon {
-  color: #6b7280;
+  color: #4a90e2;
 }
 
 /* Alertas de mensagens não lidas */
