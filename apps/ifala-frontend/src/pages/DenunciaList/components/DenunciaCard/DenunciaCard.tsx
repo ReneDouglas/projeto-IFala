@@ -88,7 +88,6 @@ export const DenunciaCard = ({
             <span className='metadata-text'>{denuncia.categoria}</span>
           </div>
 
-          {/* Aqui está o campo correto enviado pelo backend */}
           <div className='metadata-item data'>
             <span className='material-symbols-outlined icon'>
               calendar_today
