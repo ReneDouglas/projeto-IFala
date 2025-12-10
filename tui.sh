@@ -157,6 +157,15 @@ check_prerequisites() {
         print_success "Volume 'pgdata_prd' encontrado"
     fi
     
+    # Volume de Provas (CRITICO - protegido contra 'docker compose down -v')
+    if ! docker volume inspect provas_data_prd &> /dev/null; then
+        print_warning "Volume 'provas_data_prd' nao existe. Criando..."
+        docker volume create provas_data_prd
+        print_success "Volume 'provas_data_prd' criado!"
+    else
+        print_success "Volume 'provas_data_prd' encontrado"
+    fi
+    
     echo ""
     print_success "Todos os prerequisitos verificados!"
     echo ""
@@ -199,6 +208,11 @@ start_services() {
         print_success "Volume 'pgdata_prd' criado!"
     fi
     
+    if ! docker volume inspect provas_data_prd &> /dev/null; then
+        print_warning "Volume 'provas_data_prd' nao existe. Criando..."
+        docker volume create provas_data_prd
+        print_success "Volume 'provas_data_prd' criado!"
+    fi
     
     echo ""
     print_info "Subindo containers..."
@@ -226,6 +240,12 @@ restart_services() {
             print_warning "Volume 'pgdata_prd' nao existe. Criando..."
             docker volume create pgdata_prd
             print_success "Volume 'pgdata_prd' criado!"
+        fi
+        
+        if ! docker volume inspect provas_data_prd &> /dev/null; then
+            print_warning "Volume 'provas_data_prd' nao existe. Criando..."
+            docker volume create provas_data_prd
+            print_success "Volume 'provas_data_prd' criado!"
         fi
         
         echo ""
@@ -351,6 +371,12 @@ rebuild_services() {
             print_warning "Volume 'pgdata_prd' nao existe. Criando..."
             docker volume create pgdata_prd
             print_success "Volume 'pgdata_prd' criado!"
+        fi
+        
+        if ! docker volume inspect provas_data_prd &> /dev/null; then
+            print_warning "Volume 'provas_data_prd' nao existe. Criando..."
+            docker volume create provas_data_prd
+            print_success "Volume 'provas_data_prd' criado!"
         fi
         
         echo ""
@@ -514,6 +540,12 @@ update_system() {
         print_warning "Volume 'pgdata_prd' nao existe. Criando..."
         docker volume create pgdata_prd
         print_success "Volume 'pgdata_prd' criado!"
+    fi
+    
+    if ! docker volume inspect provas_data_prd &> /dev/null; then
+        print_warning "Volume 'provas_data_prd' nao existe. Criando..."
+        docker volume create provas_data_prd
+        print_success "Volume 'provas_data_prd' criado!"
     fi
     
     echo ""

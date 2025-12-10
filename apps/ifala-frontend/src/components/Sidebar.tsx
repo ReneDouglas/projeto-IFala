@@ -3,7 +3,6 @@
 // Componente reutilizável para o menu de navegação lateral
 // ================================
 import './Sidebar.css';
-import { useState } from 'react';
 
 // Propriedades do componente Sidebar
 interface SidebarProps {
