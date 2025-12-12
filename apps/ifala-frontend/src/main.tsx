@@ -23,7 +23,9 @@ if (siteKey) {
   script.async = true;
   document.head.appendChild(script);
 } else {
-  console.error('VITE_RECAPTCHA_SITE_KEY não está definida no ambiente.');
+  console.warn(
+    '⚠️ VITE_RECAPTCHA_SITE_KEY não definida - reCAPTCHA desabilitado (modo dev)',
+  );
 }
 
 createRoot(document.getElementById('root')!).render(
