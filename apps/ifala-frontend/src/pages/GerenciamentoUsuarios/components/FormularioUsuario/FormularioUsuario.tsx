@@ -126,7 +126,7 @@ export function FormularioUsuario({
       setError(
         err instanceof Error
           ? err.message
-          : 'Erro ao salvar usuário. Tente novamente.'
+          : 'Erro ao salvar usuário. Tente novamente.',
       );
     } finally {
       setLoading(false);
@@ -153,7 +153,7 @@ export function FormularioUsuario({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -182,7 +182,11 @@ export function FormularioUsuario({
   };
 
   return (
-    <Box component='form' onSubmit={handleSubmit} className='formulario-usuario'>
+    <Box
+      component='form'
+      onSubmit={handleSubmit}
+      className='formulario-usuario'
+    >
       {error && (
         <Alert severity='error' sx={{ mb: 3 }} onClose={() => setError(null)}>
           {error}
@@ -197,7 +201,13 @@ export function FormularioUsuario({
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {/* Nome Completo e Nome de Usuário */}
-        <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 3,
+            flexDirection: { xs: 'column', md: 'row' },
+          }}
+        >
           <Box sx={{ flex: 1 }}>
             <TextField
               fullWidth
@@ -219,7 +229,9 @@ export function FormularioUsuario({
               value={formData.username}
               onChange={handleChange}
               error={!!errors.username}
-              helperText={errors.username || 'Usado para fazer login no sistema'}
+              helperText={
+                errors.username || 'Usado para fazer login no sistema'
+              }
               disabled={loading}
               sx={fieldStyles}
             />
@@ -243,7 +255,13 @@ export function FormularioUsuario({
         </Box>
 
         {/* Perfil */}
-        <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 3,
+            flexDirection: { xs: 'column', md: 'row' },
+          }}
+        >
           <Box sx={{ flex: 1 }}>
             <FormControl fullWidth sx={fieldStyles}>
               <InputLabel
@@ -277,67 +295,81 @@ export function FormularioUsuario({
           </Box>
           <Box sx={{ flex: 1 }}>
             <TextField
-            fullWidth
-            type={showPassword ? 'text' : 'password'}
-            label={usuarioEditando ? 'Nova Senha (deixe em branco para manter)' : 'Senha Temporária *'}
-            name='senha'
-            value={formData.senha}
-            onChange={handleChange}
-            error={!!errors.senha}
-            helperText={
-              errors.senha ||
-              (usuarioEditando
-                ? 'Preencha apenas se desejar alterar a senha'
-                : 'Usuário deverá alterar no primeiro acesso')
-            }
-            disabled={loading}
-            sx={fieldStyles}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position='end'>
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge='end'
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
-        </Box>
-
-        {/* Confirmar Senha */}
-        {(formData.senha || !usuarioEditando) && (
-          <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
-            <Box sx={{ flex: 1 }}>
-              <TextField
               fullWidth
-              type={showConfirmPassword ? 'text' : 'password'}
-              label='Confirmar Senha *'
-              name='confirmarSenha'
-              value={formData.confirmarSenha}
+              type={showPassword ? 'text' : 'password'}
+              label={
+                usuarioEditando
+                  ? 'Nova Senha (deixe em branco para manter)'
+                  : 'Senha Temporária *'
+              }
+              name='senha'
+              value={formData.senha}
               onChange={handleChange}
-              error={!!errors.confirmarSenha}
-              helperText={errors.confirmarSenha}
+              error={!!errors.senha}
+              helperText={
+                errors.senha ||
+                (usuarioEditando
+                  ? 'Preencha apenas se desejar alterar a senha'
+                  : 'Usuário deverá alterar no primeiro acesso')
+              }
               disabled={loading}
               sx={fieldStyles}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position='end'>
                     <IconButton
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
+                      onClick={() => setShowPassword(!showPassword)}
                       edge='end'
                     >
-                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
             />
+          </Box>
+        </Box>
+
+        {/* Confirmar Senha */}
+        {(formData.senha || !usuarioEditando) && (
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 3,
+              flexDirection: { xs: 'column', md: 'row' },
+            }}
+          >
+            <Box sx={{ flex: 1 }}>
+              <TextField
+                fullWidth
+                type={showConfirmPassword ? 'text' : 'password'}
+                label='Confirmar Senha *'
+                name='confirmarSenha'
+                value={formData.confirmarSenha}
+                onChange={handleChange}
+                error={!!errors.confirmarSenha}
+                helperText={errors.confirmarSenha}
+                disabled={loading}
+                sx={fieldStyles}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position='end'>
+                      <IconButton
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        edge='end'
+                      >
+                        {showConfirmPassword ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
             </Box>
             <Box sx={{ flex: 1 }}></Box>
           </Box>
@@ -390,8 +422,8 @@ export function FormularioUsuario({
           {loading
             ? 'Salvando...'
             : usuarioEditando
-            ? 'Atualizar Usuário'
-            : 'Cadastrar Usuário'}
+              ? 'Atualizar Usuário'
+              : 'Cadastrar Usuário'}
         </Button>
       </Box>
     </Box>

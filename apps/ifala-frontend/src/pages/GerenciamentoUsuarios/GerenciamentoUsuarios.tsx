@@ -51,7 +51,9 @@ export function GerenciamentoUsuarios() {
         <Container>
           <div className='hero-content-usuarios'>
             <div className='hero-icon-usuarios'>
-              <span className='material-symbols-outlined'>admin_panel_settings</span>
+              <span className='material-symbols-outlined'>
+                admin_panel_settings
+              </span>
             </div>
             <h1 className='hero-title-usuarios'>Gerenciamento de Usuários</h1>
             <p className='hero-subtitle-usuarios'>
@@ -100,7 +102,11 @@ export function GerenciamentoUsuarios() {
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <PersonAddIcon />
-                <Typography variant='h6' component='h2' sx={{ fontWeight: 600 }}>
+                <Typography
+                  variant='h6'
+                  component='h2'
+                  sx={{ fontWeight: 600 }}
+                >
                   {usuarioEditando
                     ? 'Editar Usuário Existente'
                     : 'Cadastrar Novo Usuário'}
@@ -150,7 +156,11 @@ export function GerenciamentoUsuarios() {
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <PeopleIcon />
-                <Typography variant='h6' component='h2' sx={{ fontWeight: 600 }}>
+                <Typography
+                  variant='h6'
+                  component='h2'
+                  sx={{ fontWeight: 600 }}
+                >
                   Usuários Cadastrados
                 </Typography>
               </Box>

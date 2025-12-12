@@ -103,7 +103,9 @@ function Sidebar({
                   closeSidebar();
                 }}
               >
-                <span className='material-symbols-outlined'>admin_panel_settings</span>
+                <span className='material-symbols-outlined'>
+                  admin_panel_settings
+                </span>
                 Gerenciar Usuários
               </button>
               <button

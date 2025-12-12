@@ -125,7 +125,7 @@ export function TabelaUsuarios({
       setError(
         err instanceof Error
           ? err.message
-          : 'Erro ao carregar usuários. Tente novamente.'
+          : 'Erro ao carregar usuários. Tente novamente.',
       );
     } finally {
       setLoading(false);
@@ -137,7 +137,7 @@ export function TabelaUsuarios({
   };
 
   const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -220,7 +220,14 @@ export function TabelaUsuarios({
       {/* Filtros Avançados */}
       {showFilters && (
         <Box className='filtros-avancados'>
-          <FormControl size='small' sx={{ ...fieldStyles, minWidth: { xs: '100%', sm: 200 }, flex: { xs: 1, sm: 'initial' } }}>
+          <FormControl
+            size='small'
+            sx={{
+              ...fieldStyles,
+              minWidth: { xs: '100%', sm: 200 },
+              flex: { xs: 1, sm: 'initial' },
+            }}
+          >
             <InputLabel>Perfil</InputLabel>
             <Select
               value={filters.perfil}
@@ -233,7 +240,14 @@ export function TabelaUsuarios({
             </Select>
           </FormControl>
 
-          <FormControl size='small' sx={{ ...fieldStyles, minWidth: { xs: '100%', sm: 200 }, flex: { xs: 1, sm: 'initial' } }}>
+          <FormControl
+            size='small'
+            sx={{
+              ...fieldStyles,
+              minWidth: { xs: '100%', sm: 200 },
+              flex: { xs: 1, sm: 'initial' },
+            }}
+          >
             <InputLabel>Senha Temporária</InputLabel>
             <Select
               value={filters.senhaTemporaria}
@@ -289,7 +303,11 @@ export function TabelaUsuarios({
       )}
 
       {/* Tabela */}
-      <TableContainer component={Paper} className='table-container' sx={{ overflowX: 'auto' }}>
+      <TableContainer
+        component={Paper}
+        className='table-container'
+        sx={{ overflowX: 'auto' }}
+      >
         {loading ? (
           <Box className='loading-state'>
             <CircularProgress />
