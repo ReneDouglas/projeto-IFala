@@ -9,6 +9,7 @@ import { MainLayout } from './components/MainLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import { Acompanhamento } from './pages/Acompanhamento/Acompanhamento';
+import { GerenciamentoUsuarios } from './pages/GerenciamentoUsuarios/GerenciamentoUsuarios';
 
 export function App() {
   return (
@@ -35,6 +36,11 @@ export function App() {
               <Route
                 path='/admin/denuncias/:denunciaId/acompanhamento'
                 element={<Acompanhamento />}
+              />
+              {/* Gerenciamento de usuários */}
+              <Route
+                path='/gerenciamento-usuarios'
+                element={<GerenciamentoUsuarios />}
               />
             </Route>
           </Route>
