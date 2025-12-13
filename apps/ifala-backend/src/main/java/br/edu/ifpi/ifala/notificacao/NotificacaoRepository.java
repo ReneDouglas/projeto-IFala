@@ -16,15 +16,21 @@ import org.springframework.data.repository.query.Param;
 public interface NotificacaoRepository extends JpaRepository<Notificacao, Long> {
 
   /**
-   * Busca as 10 notificações não lidas mais antigas, ordenadas por data de envio. Limita o
-   * resultado para evitar problemas de performance e visualização.
+   * Busca TODAS as notificações não lidas, ordenadas por data de envio (mais recentes primeiro).
    * 
-   * @param pageable Paginação com limite de 10 registros
-   * @return Lista com no máximo 10 notificações não lidas ordenadas da mais antiga para a mais
-   *         recente
+   * @return Lista completa de notificações não lidas ordenadas da mais recente para a mais antiga
    */
-  @Query("SELECT n FROM Notificacao n WHERE n.lida = false ORDER BY n.dataEnvio ASC")
-  List<Notificacao> findLidaFalseOrderByDataEnvioAsc(Pageable pageable);
+  @Query("SELECT n FROM Notificacao n WHERE n.lida = false ORDER BY n.dataEnvio DESC")
+  List<Notificacao> findAllByLidaFalseOrderByDataEnvioDesc();
+
+  /**
+   * Busca notificações não lidas com paginação.
+   * 
+   * @param pageable Paginação com limite configurável
+   * @return Lista paginada de notificações não lidas ordenadas da mais recente para a mais antiga
+   */
+  @Query("SELECT n FROM Notificacao n WHERE n.lida = false ORDER BY n.dataEnvio DESC")
+  List<Notificacao> findLidaFalseOrderByDataEnvioDesc(Pageable pageable);
 
   @Modifying
   @Query("update Notificacao n set n.lida = true, n.lidaPor = :user where n.denuncia.id = :denunciaId and n.lida = false")

@@ -63,4 +63,29 @@ export async function marcarComoLida(id: number): Promise<Notificacao> {
   return data;
 }
 
-export default { listarNotificacoes, marcarComoLida };
+/**
+ * Marca todas as notificações relacionadas a uma denúncia como lidas.
+ * @param denunciaId O ID da denúncia
+ */
+export async function marcarComoLidaPorDenuncia(
+  denunciaId: number,
+): Promise<void> {
+  const url = `/api/v1/notificacoes/denuncia/${denunciaId}/ler`;
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: authHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Erro ao marcar notificações da denúncia ${denunciaId} como lidas: ${response.status} ${response.statusText}`,
+    );
+  }
+}
+
+export default {
+  listarNotificacoes,
+  marcarComoLida,
+  marcarComoLidaPorDenuncia,
+};

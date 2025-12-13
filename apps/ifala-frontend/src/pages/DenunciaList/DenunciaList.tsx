@@ -5,6 +5,7 @@ import type { SearchParams } from './types/denunciaTypes';
 import { Filters } from './components/Filters/Filters';
 import { DenunciaCard } from './components/DenunciaCard/DenunciaCard';
 import { Pagination } from './components/Pagination/Pagination';
+import { marcarComoLidaPorDenuncia } from '../../services/notificacao-api';
 import './DenunciaList.css';
 
 export function DenunciasList() {
@@ -41,7 +42,14 @@ export function DenunciasList() {
   };
 
   // navega para acompanhamento do admin pelo id
-  const handleViewDetails = (denunciaId: number) => {
+  const handleViewDetails = async (denunciaId: number) => {
+    try {
+      // Marca todas as notificações relacionadas a esta denúncia como lidas
+      await marcarComoLidaPorDenuncia(denunciaId);
+    } catch (error) {
+      console.error('Erro ao marcar notificações como lidas:', error);
+      // Continua a navegação mesmo se houver erro
+    }
     navigate(`/admin/denuncias/${denunciaId}/acompanhamento`);
   };
 

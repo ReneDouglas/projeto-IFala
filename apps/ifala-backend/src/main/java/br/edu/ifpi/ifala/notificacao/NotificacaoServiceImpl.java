@@ -2,7 +2,6 @@ package br.edu.ifpi.ifala.notificacao;
 
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,8 +16,9 @@ public class NotificacaoServiceImpl implements NotificacaoService {
 
   @Override
   public List<Notificacao> listarNaoLidas() {
-    // Limita o retorno para 5 itens (mais antigas primeiro) para otimizar UI e performance
-    return repository.findLidaFalseOrderByDataEnvioAsc(PageRequest.of(0, 5));
+    // Retorna TODAS as notificações não lidas (sem limite)
+    // Frontend faz merge inteligente para melhor UX
+    return repository.findAllByLidaFalseOrderByDataEnvioDesc();
   }
 
   @Override
