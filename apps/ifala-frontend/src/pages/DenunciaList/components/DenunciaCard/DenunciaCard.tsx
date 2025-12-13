@@ -36,14 +36,28 @@ export const DenunciaCard = ({
 
   const getCategoriaIcon = (categoria: string) => {
     const icons: Record<string, string> = {
-      VIOLENCIA: 'security',
-      VANDALISMO: 'build',
+      VIOLENCIA: 'sports_mma',
+      VANDALISMO: 'bomb',
       BULLYING: 'sentiment_very_dissatisfied',
-      DROGAS: 'no_drinks',
-      ACADEMICO: 'menu_book',
+      DROGAS: 'cannabis',
+      ACADEMICO: 'school',
+      DISPOSITIVO_ELETRONICO: 'smartphone',
       OUTROS: 'help',
     };
     return icons[categoria] || 'help';
+  };
+
+  const formatarCategoria = (categoria: string): string => {
+    const categoriaMap: Record<string, string> = {
+      BULLYING: 'Bullying e Assédio',
+      DROGAS: 'Uso ou Porte de Substâncias Ilícitas',
+      VIOLENCIA: 'Violência Física ou Verbal',
+      VANDALISMO: 'Vandalismo e Danos ao Patrimônio',
+      ACADEMICO: 'Questões Acadêmicas (Fraude, Plágio)',
+      DISPOSITIVO_ELETRONICO: 'Uso ou Porte de Dispositivo Eletrônico',
+      OUTROS: 'Outros',
+    };
+    return categoriaMap[categoria.toUpperCase()] || categoria;
   };
 
   const getPriorityColor = (status: string) => {
@@ -85,10 +99,11 @@ export const DenunciaCard = ({
             >
               {getCategoriaIcon(denuncia.categoria)}
             </span>
-            <span className='metadata-text'>{denuncia.categoria}</span>
+            <span className='metadata-text'>
+              {formatarCategoria(denuncia.categoria)}
+            </span>
           </div>
 
-          {/* Aqui está o campo correto enviado pelo backend */}
           <div className='metadata-item data'>
             <span className='material-symbols-outlined icon'>
               calendar_today

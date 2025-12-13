@@ -1,0 +1,75 @@
+/* ================================
+   FORMULÁRIO DE USUÁRIO - ESTILOS
+   ================================ */
+
+.formulario-usuario {
+  width: 100%;
+}
+
+/* Animações para campos com erro */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+.formulario-usuario .MuiTextField-root.Mui-error {
+  animation: shake 0.5s;
+}
+
+/* Indicador de senha forte */
+.password-strength-indicator {
+  margin-top: 8px;
+  height: 4px;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.password-strength-weak {
+  background-color: var(--vermelho-alerta);
+  width: 33%;
+}
+
+.password-strength-medium {
+  background-color: var(--amarelo-atencao);
+  width: 66%;
+}
+
+.password-strength-strong {
+  background-color: var(--verde-sucesso);
+  width: 100%;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  /* Botões em stack no mobile */
+  .formulario-usuario .MuiBox-root > .MuiBox-root:last-child {
+    flex-direction: column;
+  }
+
+  .formulario-usuario .MuiButton-root {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Ajusta padding dos campos no mobile */
+  .formulario-usuario .MuiTextField-root,
+  .formulario-usuario .MuiFormControl-root {
+    font-size: 14px;
+  }
+}
