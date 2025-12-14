@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   listarNotificacoes,
   marcarComoLida,
@@ -6,10 +7,12 @@ import {
 import type { Notificacao } from '../../types/notificacao';
 
 const NotificacaoBell: React.FC = () => {
+  const navigate = useNavigate();
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const mounted = useRef(true);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     mounted.current = true;
@@ -22,23 +25,51 @@ const NotificacaoBell: React.FC = () => {
     };
   }, []);
 
+  // Fecha o dropdown ao clicar fora
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    }
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open]);
+
   async function fetchNotificacoes() {
     setLoading(true);
     try {
-      // buscar apenas não lidas (backend já retorna filtrado e limitado a 10)
+      // Backend retorna até 50 notificações não lidas ordenadas por data (mais recentes primeiro)
       const data = await listarNotificacoes();
 
       if (!mounted.current) return;
 
-      // Merge para manter notificações já carregadas (inclui as que foram marcadas como lidas)
-      // Backend retorna apenas as 10 não lidas mais antigas, então fazemos merge para UX
+      // Merge inteligente: mantém notificações lidas localmente + adiciona novas não lidas
       setNotificacoes((prev) => {
         const map = new Map<number, Notificacao>();
-        prev.forEach((p) => map.set(p.id, p));
+
+        // 1. Mantém notificações locais que foram marcadas como lidas (melhor UX)
+        prev.filter((p) => p.lida).forEach((p) => map.set(p.id, p));
+
+        // 2. Adiciona/atualiza com notificações não lidas do backend (sempre as mais recentes)
         data.forEach((d) => map.set(d.id, d));
 
-        // Ordenar da mais recente para a mais antiga para exibição no dropdown
+        // 3. Ordena: não lidas primeiro (por data DESC), depois lidas (por data DESC)
         return Array.from(map.values()).sort((a, b) => {
+          // Não lidas sempre no topo
+          if (!a.lida && b.lida) return -1;
+          if (a.lida && !b.lida) return 1;
+
+          // Dentro do mesmo grupo, ordena por data (mais recente primeiro)
           const ta = a.dataEnvio ? new Date(a.dataEnvio).getTime() : 0;
           const tb = b.dataEnvio ? new Date(b.dataEnvio).getTime() : 0;
           return tb - ta;
@@ -71,14 +102,28 @@ const NotificacaoBell: React.FC = () => {
           prev.map((p) => (p.id === n.id ? { ...p, lida: true } : p)),
         );
       }
-      window.location.href = '/painel-denuncias';
+
+      // Fecha o dropdown de notificações
+      setOpen(false);
+
+      // Se a notificação tem denunciaId, navega para o acompanhamento dessa denúncia
+      if (n.denunciaId) {
+        navigate(`/admin/denuncias/${n.denunciaId}/acompanhamento`);
+        return;
+      }
+
+      // Fallback: vai para o painel de denúncias
+      navigate('/painel-denuncias');
     } catch (err) {
       console.error('Erro ao marcar notificação como lida', err);
     }
   }
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
+    <div
+      ref={containerRef}
+      style={{ position: 'relative', display: 'inline-block' }}
+    >
       <button
         aria-label='Notificações'
         onClick={() => setOpen((s) => !s)}
@@ -190,13 +235,6 @@ const NotificacaoBell: React.FC = () => {
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 14, fontWeight: 600 }}>
                         {buildTitle(n)}
-                      </div>
-                      <div
-                        style={{ marginTop: 6, color: '#666', fontSize: 13 }}
-                      >
-                        {n.conteudo && n.conteudo.length > 120
-                          ? n.conteudo.slice(0, 120) + '...'
-                          : n.conteudo}
                       </div>
                     </div>
                     {!n.lida && (
