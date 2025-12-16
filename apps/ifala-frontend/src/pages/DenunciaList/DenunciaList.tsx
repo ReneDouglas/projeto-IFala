@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDenuncias } from './hooks/useDenuncias';
 import type { SearchParams } from './types/denunciaTypes';
 import { Filters } from './components/Filters/Filters';
@@ -10,13 +10,21 @@ import './DenunciaList.css';
 
 export function DenunciasList() {
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(0);
+  const [urlSearchParams, setUrlSearchParams] = useSearchParams();
+
+  // Ler parâmetros da URL ou usar valores padrão
+  // URL usa base-1 (página 1, 2, 3...) mas internamente usamos base-0 (0, 1, 2...)
+  const [currentPage, setCurrentPage] = useState(() => {
+    const pageFromUrl = parseInt(urlSearchParams.get('page') || '1', 10);
+    return Math.max(0, pageFromUrl - 1); // Converte de base-1 para base-0
+  });
   const [searchParams, setSearchParams] = useState<SearchParams>({
-    search: '',
-    categoria: '',
-    status: '',
-    sortProperty: 'id',
-    sortDirection: 'DESC',
+    search: urlSearchParams.get('search') || '',
+    categoria: urlSearchParams.get('categoria') || '',
+    status: urlSearchParams.get('status') || '',
+    sortProperty: urlSearchParams.get('sortProperty') || 'id',
+    sortDirection:
+      (urlSearchParams.get('sortDirection') as 'ASC' | 'DESC') || 'DESC',
   });
 
   const { denuncias, loading, error, totalPages, refetch } = useDenuncias(
@@ -40,6 +48,24 @@ export function DenunciasList() {
     });
     setCurrentPage(0);
   };
+
+  // Sincronizar estado com URL sempre que mudar
+  useEffect(() => {
+    const params: Record<string, string> = {
+      page: (currentPage + 1).toString(), // Converte de base-0 para base-1 na URL
+    };
+
+    // Adicionar apenas filtros não vazios
+    if (searchParams.search) params.search = searchParams.search;
+    if (searchParams.categoria) params.categoria = searchParams.categoria;
+    if (searchParams.status) params.status = searchParams.status;
+    if (searchParams.sortProperty && searchParams.sortProperty !== 'id')
+      params.sortProperty = searchParams.sortProperty;
+    if (searchParams.sortDirection && searchParams.sortDirection !== 'DESC')
+      params.sortDirection = searchParams.sortDirection;
+
+    setUrlSearchParams(params, { replace: true });
+  }, [currentPage, searchParams, setUrlSearchParams]);
 
   // navega para acompanhamento do admin pelo id
   const handleViewDetails = async (denunciaId: number) => {
