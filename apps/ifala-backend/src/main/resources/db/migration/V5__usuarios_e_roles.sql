@@ -69,6 +69,6 @@ WHERE email IN (
   'thiagomoraisjacobina@gmail.com',
   'cacor.2020121tads0005@aluno.ifpi.edu.br',
   'cacor.2019121tads0028@aluno.ifpi.edu.br', 
-  'rene.moraes@ifpi.edu.br' 
+  'rene.moraes@ifpi.edu.br'
 )
 ON CONFLICT (usuarios_id, perfil) DO NOTHING;
