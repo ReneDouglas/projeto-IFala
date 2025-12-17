@@ -1,0 +1,464 @@
+/* ================================
+   COMPONENTE NOTIFICAÇÕES - ESTILOS
+   Estilos para o sino de notificações e modal
+   ================================ */
+
+/* Container principal do sino */
+.notification-bell-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Botão do sino */
+.notification-bell-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.notification-bell-button:hover {
+  transform: scale(1.1);
+}
+
+.notification-bell-button:active {
+  transform: scale(0.95);
+}
+
+/* Badge de contador de notificações não lidas */
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 18px;
+  background: #d6336c;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  padding: 0 6px;
+  font-weight: 600;
+  box-sizing: border-box;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* ================================
+   MODAL DE NOTIFICAÇÕES
+   ================================ */
+.notification-modal {
+  position: absolute;
+  right: 0;
+  margin-top: 8px;
+  width: 360px;
+  max-height: 420px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.12);
+  border-radius: 8px;
+  z-index: 1200;
+  animation: slideDown 0.2s ease-out;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Cabeçalho do modal */
+.notification-header {
+  padding: 12px;
+  border-bottom: 1px solid #eef1f5;
+  font-weight: 600;
+  font-size: 14px;
+  background: #f9fafb;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notification-loading {
+  font-weight: 400;
+  margin-left: 8px;
+  color: #666;
+  font-size: 12px;
+}
+
+/* Estado vazio */
+.notification-empty {
+  padding: 14px;
+  color: #666;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Lista de notificações */
+.notification-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  max-height: 300px;
+}
+
+.notification-item {
+  border-bottom: 1px solid #f2f4f6;
+  transition: background-color 0.2s ease;
+}
+
+.notification-item:hover {
+  background-color: #f9fafb;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+/* Botão da notificação */
+.notification-item-button {
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: block;
+  transition: background-color 0.2s ease;
+}
+
+.notification-item-button:hover {
+  background-color: rgba(26, 78, 138, 0.05);
+}
+
+.notification-item-button:active {
+  background-color: rgba(26, 78, 138, 0.1);
+}
+
+/* Conteúdo da notificação */
+.notification-item-content {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.notification-item-text {
+  flex: 1;
+  min-width: 0; /* Permite truncar texto longo */
+}
+
+.notification-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a4e8a;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+/* Indicador de não lida */
+.notification-unread-indicator {
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.notification-unread-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d6336c;
+}
+
+/* Paginação */
+.notification-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 10px;
+  border-top: 1px solid #eef1f5;
+  background: #fff;
+}
+
+.pagination-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e6eef9;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background: #f0f6ff;
+  border-color: #1a4e8a;
+}
+
+.pagination-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-button .material-symbols-outlined {
+  font-size: 20px !important;
+  color: #1a4e8a;
+}
+
+.pagination-info {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a4e8a;
+  min-width: 60px;
+  text-align: center;
+}
+
+/* Rodapé do modal */
+.notification-footer {
+  padding: 10px;
+  text-align: center;
+  border-top: 1px solid #eef1f5;
+  background: #f9fafb;
+  border-radius: 0 0 8px 8px;
+}
+
+.notification-refresh-button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e6eef9;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a4e8a;
+  transition: all 0.2s ease;
+}
+
+.notification-refresh-button:hover {
+  background: #f0f6ff;
+  border-color: #1a4e8a;
+}
+
+.notification-refresh-button:active {
+  transform: scale(0.98);
+}
+
+/* ================================
+   RESPONSIVIDADE
+   ================================ */
+
+/* Tablets e smartphones (até 768px) */
+@media (max-width: 768px) {
+  .notification-modal {
+    width: 320px;
+    max-height: 450px;
+    height: auto;
+  }
+
+  .notification-list {
+    max-height: 280px;
+  }
+
+  .notification-header {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .notification-item-button {
+    padding: 10px 12px;
+  }
+
+  .notification-title {
+    font-size: 13px;
+  }
+
+  .notification-pagination {
+    padding: 8px;
+    gap: 0.75rem;
+  }
+
+  .pagination-button {
+    width: 30px;
+    height: 30px;
+  }
+
+  .pagination-button .material-symbols-outlined {
+    font-size: 18px !important;
+  }
+
+  .pagination-info {
+    font-size: 12px;
+    min-width: 50px;
+  }
+
+  .notification-refresh-button {
+    font-size: 13px;
+    padding: 7px 10px;
+  }
+}
+
+/* Smartphones pequenos (até 480px) */
+@media (max-width: 480px) {
+  /* Em telas muito pequenas, o modal ocupa quase toda a largura */
+  .notification-modal {
+    position: fixed;
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-width: calc(100vw - 16px);
+    max-height: 450px;
+    height: auto;
+    margin-top: 8px;
+  }
+
+  .notification-list {
+    max-height: 260px;
+  }
+
+  .notification-header {
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .notification-loading {
+    font-size: 11px;
+  }
+
+  .notification-empty {
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .notification-item-button {
+    padding: 10px;
+  }
+
+  .notification-title {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .notification-item-content {
+    gap: 8px;
+  }
+
+  .notification-unread-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .notification-pagination {
+    padding: 6px;
+    gap: 0.5rem;
+  }
+
+  .pagination-button {
+    width: 28px;
+    height: 28px;
+  }
+
+  .pagination-button .material-symbols-outlined {
+    font-size: 16px !important;
+  }
+
+  .pagination-info {
+    font-size: 11px;
+    min-width: 45px;
+  }
+
+  .notification-footer {
+    padding: 8px;
+  }
+
+  .notification-refresh-button {
+    font-size: 12px;
+    padding: 6px 10px;
+    width: 100%;
+    max-width: 200px;
+  }
+
+  /* Badge menor em telas pequenas */
+  .notification-badge {
+    min-width: 16px;
+    height: 16px;
+    font-size: 10px;
+    top: -2px;
+    right: -2px;
+  }
+}
+
+/* Smartphones extra pequenos (até 360px) */
+@media (max-width: 360px) {
+  .notification-modal {
+    max-height: 420px;
+    height: auto;
+  }
+
+  .notification-list {
+    max-height: 240px;
+  }
+
+  .notification-header {
+    font-size: 11px;
+    padding: 8px;
+  }
+
+  .notification-title {
+    font-size: 11px;
+  }
+
+  .pagination-button {
+    width: 26px;
+    height: 26px;
+  }
+
+  .pagination-button .material-symbols-outlined {
+    font-size: 14px !important;
+  }
+
+  .pagination-info {
+    font-size: 10px;
+    min-width: 40px;
+  }
+
+  .notification-pagination {
+    padding: 5px;
+    gap: 0.4rem;
+  }
+
+  .notification-refresh-button {
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+}
