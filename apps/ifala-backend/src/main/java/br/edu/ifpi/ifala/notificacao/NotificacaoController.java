@@ -1,9 +1,7 @@
 package br.edu.ifpi.ifala.notificacao;
 
 import br.edu.ifpi.ifala.notificacao.dto.NotificacaoDto;
-import java.util.HashMap;
-import java.util.Map;
-import org.springframework.data.domain.Page;
+import br.edu.ifpi.ifala.notificacao.dto.PaginatedNotificacaoDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -39,28 +37,19 @@ public class NotificacaoController {
    * @return Resposta paginada com notificações e metadados
    */
   @GetMapping
-  public Map<String, Object> listar(@PageableDefault(size = 5, sort = "dataEnvio",
+  public PaginatedNotificacaoDto listar(@PageableDefault(size = 5, sort = "dataEnvio",
       direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
-    Page<Notificacao> page = service.listarNaoLidas(pageable);
-
-    Map<String, Object> response = new HashMap<>();
-    response.put("items", page.getContent().stream().map(this::toDto).toList());
-    response.put("totalItems", page.getTotalElements());
-    response.put("totalPages", page.getTotalPages());
-    response.put("currentPage", page.getNumber());
-    response.put("pageSize", page.getSize());
-
-    return response;
+    return service.listarNaoLidas(pageable);
   }
 
   @PutMapping("/{id}/ler")
   public ResponseEntity<NotificacaoDto> marcarComoLida(@PathVariable Long id) {
-    return service
-        .marcarComoLida(id,
-            (SecurityContextHolder.getContext().getAuthentication() != null)
-                ? SecurityContextHolder.getContext().getAuthentication().getName()
-                : null)
-        .map(n -> ResponseEntity.ok(toDto(n))).orElseGet(() -> ResponseEntity.notFound().build());
+    String usuario = (SecurityContextHolder.getContext().getAuthentication() != null)
+        ? SecurityContextHolder.getContext().getAuthentication().getName()
+        : null;
+
+    return service.marcarComoLidaDto(id, usuario).map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @PutMapping("/denuncia/{denunciaId}/ler")
@@ -83,14 +72,5 @@ public class NotificacaoController {
       return ResponseEntity.noContent().build();
     }
     return ResponseEntity.notFound().build();
-  }
-
-  private NotificacaoDto toDto(Notificacao n) {
-    if (n == null)
-      return null;
-    NotificacaoDto dto = new NotificacaoDto(n.getId(), n.getConteudo(), n.getTipo(),
-        n.getDenuncia() != null ? n.getDenuncia().getId() : null, n.getLida(), n.getLidaPor(),
-        n.getDataEnvio());
-    return dto;
   }
 }
