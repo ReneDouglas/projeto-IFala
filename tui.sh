@@ -25,6 +25,22 @@ BUILD=false
 LOGS=false
 COMPOSE_FILE="docker-compose-prd.yml"
 
+# Carregar senha sudo do .env (se existir)
+if [ -f ".env" ]; then
+    export $(grep -v '^#' .env | grep SUDO_PASSWORD | xargs)
+fi
+
+# Funcao para executar comandos Docker com sudo
+run_docker() {
+    if [ -n "$SUDO_PASSWORD" ]; then
+        # Usar senha do .env
+        echo "$SUDO_PASSWORD" | sudo -S "$@" 2>/dev/null || sudo "$@"
+    else
+        # Pedir senha interativamente na primeira vez
+        sudo "$@"
+    fi
+}
+
 # Funcoes auxiliares
 print_header() {
     clear
@@ -149,18 +165,18 @@ check_prerequisites() {
     print_info "Verificando volumes externos..."
     
     # Volume do PostgreSQL (CRITICO - protegido contra 'docker compose down -v')
-    if ! docker volume inspect pgdata_prd &> /dev/null; then
+    if ! run_docker docker volume inspect pgdata_prd &> /dev/null; then
         print_warning "Volume 'pgdata_prd' nao existe. Criando..."
-        docker volume create pgdata_prd
+        run_docker docker volume create pgdata_prd
         print_success "Volume 'pgdata_prd' criado!"
     else
         print_success "Volume 'pgdata_prd' encontrado"
     fi
     
     # Volume de Provas (CRITICO - protegido contra 'docker compose down -v')
-    if ! docker volume inspect provas_data_prd &> /dev/null; then
+    if ! run_docker docker volume inspect provas_data_prd &> /dev/null; then
         print_warning "Volume 'provas_data_prd' nao existe. Criando..."
-        docker volume create provas_data_prd
+        run_docker docker volume create provas_data_prd
         print_success "Volume 'provas_data_prd' criado!"
     else
         print_success "Volume 'provas_data_prd' encontrado"
@@ -182,7 +198,7 @@ build_images() {
     
     if confirm "Deseja fazer rebuild das imagens?" "y"; then
         print_info "Construindo imagens Docker..."
-        docker compose -f "$COMPOSE_FILE" build --no-cache 2>&1 | while read line; do
+        run_docker docker compose -f "$COMPOSE_FILE" build --no-cache 2>&1 | while read line; do
             echo -e "${GRAY}  $line${NC}"
         done
         print_success "Build concluido!"
@@ -202,21 +218,21 @@ start_services() {
     # Garantir que volumes externos existem antes de subir containers
     print_info "Verificando volumes externos..."
     
-    if ! docker volume inspect pgdata_prd &> /dev/null; then
+    if ! run_docker docker volume inspect pgdata_prd &> /dev/null; then
         print_warning "Volume 'pgdata_prd' nao existe. Criando..."
-        docker volume create pgdata_prd
+        run_docker docker volume create pgdata_prd
         print_success "Volume 'pgdata_prd' criado!"
     fi
     
-    if ! docker volume inspect provas_data_prd &> /dev/null; then
+    if ! run_docker docker volume inspect provas_data_prd &> /dev/null; then
         print_warning "Volume 'provas_data_prd' nao existe. Criando..."
-        docker volume create provas_data_prd
+        run_docker docker volume create provas_data_prd
         print_success "Volume 'provas_data_prd' criado!"
     fi
     
     echo ""
     print_info "Subindo containers..."
-    docker compose -f "$COMPOSE_FILE" up -d
+    run_docker docker compose -f "$COMPOSE_FILE" up -d
     print_success "Servicos iniciados!"
     echo ""
 }
@@ -229,28 +245,28 @@ restart_services() {
     
     if confirm "Deseja reiniciar todos os servicos?"; then
         print_info "Parando servicos..."
-        docker compose -f "$COMPOSE_FILE" down
+        run_docker docker compose -f "$COMPOSE_FILE" down
         print_success "Servicos parados!"
         echo ""
         
         # Garantir que volumes externos existem antes de subir containers
         print_info "Verificando volumes externos..."
         
-        if ! docker volume inspect pgdata_prd &> /dev/null; then
+        if ! run_docker docker volume inspect pgdata_prd &> /dev/null; then
             print_warning "Volume 'pgdata_prd' nao existe. Criando..."
-            docker volume create pgdata_prd
+            run_docker docker volume create pgdata_prd
             print_success "Volume 'pgdata_prd' criado!"
         fi
         
-        if ! docker volume inspect provas_data_prd &> /dev/null; then
+        if ! run_docker docker volume inspect provas_data_prd &> /dev/null; then
             print_warning "Volume 'provas_data_prd' nao existe. Criando..."
-            docker volume create provas_data_prd
+            run_docker docker volume create provas_data_prd
             print_success "Volume 'provas_data_prd' criado!"
         fi
         
         echo ""
         print_info "Iniciando servicos novamente..."
-        docker compose -f "$COMPOSE_FILE" up -d
+        run_docker docker compose -f "$COMPOSE_FILE" up -d
         print_success "Servicos reiniciados!"
         echo ""
         
@@ -283,7 +299,7 @@ wait_healthy() {
         echo -ne "${GRAY}  Verificando... tentativa $attempt/$maxAttempts\r${NC}"
         
         # Verificar containers em execucao
-        running=$(docker compose -f "$COMPOSE_FILE" ps --filter "status=running" --format json 2>/dev/null | wc -l)
+        running=$(run_docker docker compose -f "$COMPOSE_FILE" ps --filter "status=running" --format json 2>/dev/null | wc -l)
         
         if [ "$running" -gt 0 ]; then
             echo -e "\n"
@@ -303,7 +319,7 @@ show_status() {
     print_separator
     echo ""
     
-    docker compose -f "$COMPOSE_FILE" ps
+    run_docker docker compose -f "$COMPOSE_FILE" ps
     echo ""
 }
 
@@ -330,7 +346,7 @@ show_logs() {
     echo ""
     sleep 2
     
-    docker compose -f "$COMPOSE_FILE" logs -f
+    run_docker docker compose -f "$COMPOSE_FILE" logs -f
 }
 
 rebuild_services() {
@@ -353,12 +369,12 @@ rebuild_services() {
     
     if confirm "Deseja realmente reconstruir os servicos?" "n"; then
         print_info "Parando servicos..."
-        docker compose -f "$COMPOSE_FILE" down
+        run_docker docker compose -f "$COMPOSE_FILE" down
         print_success "Servicos parados!"
         echo ""
         
         print_info "Reconstruindo imagens..."
-        docker compose -f "$COMPOSE_FILE" build --no-cache 2>&1 | while read line; do
+        run_docker docker compose -f "$COMPOSE_FILE" build --no-cache 2>&1 | while read line; do
             echo -e "${GRAY}  $line${NC}"
         done
         print_success "Imagens reconstruidas!"
@@ -367,21 +383,21 @@ rebuild_services() {
         # Garantir que volumes externos existem antes de subir containers
         print_info "Verificando volumes externos..."
         
-        if ! docker volume inspect pgdata_prd &> /dev/null; then
+        if ! run_docker docker volume inspect pgdata_prd &> /dev/null; then
             print_warning "Volume 'pgdata_prd' nao existe. Criando..."
-            docker volume create pgdata_prd
+            run_docker docker volume create pgdata_prd
             print_success "Volume 'pgdata_prd' criado!"
         fi
         
-        if ! docker volume inspect provas_data_prd &> /dev/null; then
+        if ! run_docker docker volume inspect provas_data_prd &> /dev/null; then
             print_warning "Volume 'provas_data_prd' nao existe. Criando..."
-            docker volume create provas_data_prd
+            run_docker docker volume create provas_data_prd
             print_success "Volume 'provas_data_prd' criado!"
         fi
         
         echo ""
         print_info "Iniciando servicos..."
-        docker compose -f "$COMPOSE_FILE" up -d
+        run_docker docker compose -f "$COMPOSE_FILE" up -d
         print_success "Servicos iniciados!"
         echo ""
         
@@ -404,7 +420,7 @@ backup_database() {
     echo ""
     
     # Verificar se o container do postgres esta rodando
-    if ! docker ps --filter name=ifala-db-prd --filter status=running --format "{{.Names}}" | grep -q "ifala-db-prd"; then
+    if ! run_docker docker ps --filter name=ifala-db-prd --filter status=running --format "{{.Names}}" | grep -q "ifala-db-prd"; then
         print_error "Container do PostgreSQL nao esta rodando!"
         echo ""
         press_enter
@@ -422,7 +438,7 @@ backup_database() {
     echo ""
     
     # Executar pg_dump dentro do container
-    if docker exec ifala-db-prd pg_dump -U postgres -d ifala > "$BACKUP_FILE" 2>&1; then
+    if run_docker docker exec ifala-db-prd pg_dump -U postgres -d ifala > "$BACKUP_FILE" 2>&1; then
         print_success "Backup criado com sucesso!"
         echo ""
         echo -e "${GREEN}  Arquivo:${NC} $BACKUP_FILE"
@@ -491,14 +507,14 @@ update_system() {
     echo ""
     
     # Verificar se o container do postgres esta rodando
-    if docker ps --filter name=ifala-db-prd --filter status=running --format "{{.Names}}" | grep -q "ifala-db-prd"; then
+    if run_docker docker ps --filter name=ifala-db-prd --filter status=running --format "{{.Names}}" | grep -q "ifala-db-prd"; then
         BACKUP_DIR="./backups"
         mkdir -p "$BACKUP_DIR"
         BACKUP_FILE="$BACKUP_DIR/backup_update_$(date +%Y%m%d_%H%M%S).sql"
         
         print_info "Criando backup do banco..."
         
-        if docker exec ifala-db-prd pg_dump -U postgres -d ifala > "$BACKUP_FILE" 2>&1; then
+        if run_docker docker exec ifala-db-prd pg_dump -U postgres -d ifala > "$BACKUP_FILE" 2>&1; then
             print_success "Backup criado: $BACKUP_FILE"
         else
             print_warning "Nao foi possivel criar backup, mas continuando..."
@@ -516,12 +532,12 @@ update_system() {
     echo ""
     
     print_info "Parando servicos..."
-    docker compose -f "$COMPOSE_FILE" down
+    run_docker docker compose -f "$COMPOSE_FILE" down
     print_success "Servicos parados!"
     echo ""
     
     print_info "Construindo novas imagens Docker..."
-    docker compose -f "$COMPOSE_FILE" build 2>&1 | while read line; do
+    run_docker docker compose -f "$COMPOSE_FILE" build 2>&1 | while read line; do
         echo -e "${GRAY}  $line${NC}"
     done
     print_success "Imagens reconstruidas!"
@@ -536,21 +552,21 @@ update_system() {
     # Garantir que volumes externos existem antes de subir containers
     print_info "Verificando volumes externos..."
     
-    if ! docker volume inspect pgdata_prd &> /dev/null; then
+    if ! run_docker docker volume inspect pgdata_prd &> /dev/null; then
         print_warning "Volume 'pgdata_prd' nao existe. Criando..."
-        docker volume create pgdata_prd
+        run_docker docker volume create pgdata_prd
         print_success "Volume 'pgdata_prd' criado!"
     fi
     
-    if ! docker volume inspect provas_data_prd &> /dev/null; then
+    if ! run_docker docker volume inspect provas_data_prd &> /dev/null; then
         print_warning "Volume 'provas_data_prd' nao existe. Criando..."
-        docker volume create provas_data_prd
+        run_docker docker volume create provas_data_prd
         print_success "Volume 'provas_data_prd' criado!"
     fi
     
     echo ""
     print_info "Iniciando containers..."
-    docker compose -f "$COMPOSE_FILE" up -d
+    run_docker docker compose -f "$COMPOSE_FILE" up -d
     print_success "Servicos iniciados!"
     echo ""
     
