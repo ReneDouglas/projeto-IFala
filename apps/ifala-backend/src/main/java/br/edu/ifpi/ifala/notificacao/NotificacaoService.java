@@ -1,16 +1,28 @@
 package br.edu.ifpi.ifala.notificacao;
 
-import java.util.List;
+import br.edu.ifpi.ifala.notificacao.dto.NotificacaoDto;
+import br.edu.ifpi.ifala.notificacao.dto.PaginatedNotificacaoDto;
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
 
 public interface NotificacaoService {
 
   /**
-   * Lista as notificações não lidas mais antigas (limitado a 10).
+   * Lista as notificações não lidas com paginação.
    * 
-   * @return Lista com no máximo 10 notificações não lidas
+   * @param pageable Parâmetros de paginação
+   * @return DTO paginado com notificações não lidas e metadados
    */
-  List<Notificacao> listarNaoLidas();
+  PaginatedNotificacaoDto listarNaoLidas(Pageable pageable);
+
+  /**
+   * Marca uma notificação como lida e retorna o DTO.
+   * 
+   * @param id ID da notificação
+   * @param usuario Usuário que marcou como lida
+   * @return DTO da notificação ou empty se não encontrada
+   */
+  Optional<NotificacaoDto> marcarComoLidaDto(Long id, String usuario);
 
   Optional<Notificacao> marcarComoLida(Long id, String usuario);
 

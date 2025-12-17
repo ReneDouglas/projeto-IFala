@@ -1,6 +1,6 @@
 package br.edu.ifpi.ifala.notificacao;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -20,17 +20,16 @@ public interface NotificacaoRepository extends JpaRepository<Notificacao, Long> 
    * 
    * @return Lista completa de notificações não lidas ordenadas da mais recente para a mais antiga
    */
-  @Query("SELECT n FROM Notificacao n WHERE n.lida = false ORDER BY n.dataEnvio DESC")
-  List<Notificacao> findAllByLidaFalseOrderByDataEnvioDesc();
 
   /**
    * Busca notificações não lidas com paginação.
    * 
    * @param pageable Paginação com limite configurável
-   * @return Lista paginada de notificações não lidas ordenadas da mais recente para a mais antiga
+   * 
+   * @return Página de notificações não lidas ordenadas da mais recente para a mais antiga
    */
   @Query("SELECT n FROM Notificacao n WHERE n.lida = false ORDER BY n.dataEnvio DESC")
-  List<Notificacao> findLidaFalseOrderByDataEnvioDesc(Pageable pageable);
+  Page<Notificacao> findLidaFalseOrderByDataEnvioDesc(Pageable pageable);
 
   @Modifying
   @Query("update Notificacao n set n.lida = true, n.lidaPor = :user where n.denuncia.id = :denunciaId and n.lida = false")

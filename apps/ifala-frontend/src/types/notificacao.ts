@@ -7,3 +7,11 @@ export interface Notificacao {
   lidaPor?: string | null;
   dataEnvio?: string | null;
 }
+
+export interface NotificacaoPaginada {
+  items: Notificacao[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
