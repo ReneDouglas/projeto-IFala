@@ -6,7 +6,12 @@ import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.UsuarioDetalheResponseDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.AtualizarUsuarioRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import br.edu.ifpi.ifala.autenticacao.dto.UsuarioDetalheResponseDTO;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
 import br.edu.ifpi.ifala.security.JwtUtil;
 import br.edu.ifpi.ifala.security.TokenBlacklistService;
@@ -406,5 +411,90 @@ public class AuthServiceImpl implements AuthService {
     }
 
     return user.getEmail();
+  }
+
+  // MÉTODOS PARA GERENCIAMENTO DE USUÁRIOS
+  @Override
+  public Page<UsuarioDetalheResponseDTO> listarUsuario(Pageable pageable) {
+    logger.info("Listando usuários com paginação: página {}, tamanho {}", pageable.getPageNumber(),
+        pageable.getPageSize());
+    Page<Usuario> usuariosPage = userRepository.findAll(pageable);
+    return usuariosPage.map(this::convertToUsuarioDetalheDTO);
+  }
+
+  @Override
+  public UsuarioDetalheResponseDTO buscarUsuarioPorId(Long id) {
+    logger.info("Buscando usuário com id: {}", id);
+    Usuario usuario = userRepository.findById(id)
+        .orElseThrow(() -> new UserNotFoundException("Usuário com id " + id + " não encontrado."));
+    return convertToUsuarioDetalheDTO(usuario);
+  }
+
+  @Override
+  @Transactional
+  public UsuarioDetalheResponseDTO atualizarUsuario(Long id,
+      AtualizarUsuarioRequestDTO atualizarUsuarioRequestDTO) {
+    logger.info("Atualizando usuário com id: {}", id);
+
+    Usuario usuario = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(
+        "Usuário com id " + id + " não encontrado para atualização."));
+
+    // Valida se o novo e-mail já está em uso por OUTRO usuário
+    if (atualizarUsuarioRequestDTO.email() != null
+        && !atualizarUsuarioRequestDTO.email().equals(usuario.getEmail())) {
+      userRepository.findByEmail(atualizarUsuarioRequestDTO.email()).ifPresent(existingUser -> {
+        if (!existingUser.getId().equals(id)) {
+          throw new EmailAlreadyExistsException(
+              "O e-mail " + atualizarUsuarioRequestDTO.email() + " já está em uso.");
+        }
+      });
+      usuario.setEmail(atualizarUsuarioRequestDTO.email());
+    }
+
+    // Valida se o novo username já está em uso por OUTRO usuário
+    if (atualizarUsuarioRequestDTO.username() != null
+        && !atualizarUsuarioRequestDTO.username().equals(usuario.getUsername())) {
+      userRepository.findByUsername(atualizarUsuarioRequestDTO.username())
+          .ifPresent(existingUser -> {
+            if (!existingUser.getId().equals(id)) {
+              throw new UsernameAlreadyExistsException(
+                  "O username " + atualizarUsuarioRequestDTO.username() + " já está em uso.");
+            }
+          });
+      usuario.setUsername(atualizarUsuarioRequestDTO.username());
+    }
+
+    // Atualiza os outros campos
+    usuario.setNome(atualizarUsuarioRequestDTO.nome());
+    usuario.setMustChangePassword(atualizarUsuarioRequestDTO.mustChangePassword());
+
+    if (atualizarUsuarioRequestDTO.roles() != null
+        && !atualizarUsuarioRequestDTO.roles().isEmpty()) {
+      List<Perfis> perfisConvertidos =
+          atualizarUsuarioRequestDTO.roles().stream().map(roleString -> {
+            try {
+              return Perfis.valueOf(roleString.toUpperCase());
+            } catch (IllegalArgumentException e) {
+              throw new InvalidRoleException("O perfil '" + roleString + "' é inválido.");
+            }
+          }).toList();
+      usuario.setRoles(perfisConvertidos);
+    }
+
+    Usuario usuarioAtualizado = userRepository.save(usuario);
+    logger.info("Usuário com id: {} atualizado com sucesso.", id);
+
+    return convertToUsuarioDetalheDTO(usuarioAtualizado);
+  }
+
+  /**
+   * Converte uma entidade Usuario para seu DTO de detalhe.
+   *
+   * @param usuario A entidade a ser convertida.
+   * @return O DTO com os detalhes do usuário.
+   */
+  private UsuarioDetalheResponseDTO convertToUsuarioDetalheDTO(Usuario usuario) {
+    return new UsuarioDetalheResponseDTO(usuario.getId(), usuario.getNome(), usuario.getUsername(),
+        usuario.getEmail(), usuario.getRoles(), usuario.isMustChangePassword());
   }
 }
