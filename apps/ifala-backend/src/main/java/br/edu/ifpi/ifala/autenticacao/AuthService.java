@@ -34,7 +34,8 @@ public interface AuthService {
    * @param pageable Objeto contendo as informações de paginação (página, tamanho, ordenação).
    * @return Uma página (`Page`).
    */
-  Page<UsuarioDetalheResponseDTO> listarUsuario(Pageable pageable);
+  Page<UsuarioDetalheResponseDTO> listarUsuario(Pageable pageable, String search, String role,
+      Boolean mustChangePassword);
 
   /**
    * Busca um usuário específico pelo seu ID para a área de gerenciamento.

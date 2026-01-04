@@ -19,8 +19,28 @@ import {
   Cancel,
   PersonAdd,
 } from '@mui/icons-material';
-import type { Usuario, UsuarioFormData } from '../../types/usuario';
+//import type {  UsuarioFormData } from '../../types/usuario';
 import './FormularioUsuario.css';
+import {
+  registrarUsuario,
+  atualizarUsuario,
+} from '../../../../services/admin-usuarios-api';
+import type {
+  Usuario,
+  AtualizarUsuarioRequest,
+  RegistroUsuarioRequest,
+} from '../../../../types/usuario';
+
+// Tipos locais para o formulário
+interface UsuarioFormData {
+  nome: string;
+  username: string;
+  email: string;
+  senha?: string; // Senha é opcional na edição
+  confirmarSenha?: string;
+  roles: string[];
+  mustChangePassword: boolean;
+}
 
 interface FormularioUsuarioProps {
   usuarioEditando: Usuario | null;
@@ -39,7 +59,8 @@ export function FormularioUsuario({
     email: '',
     senha: '',
     confirmarSenha: '',
-    perfil: 'USER',
+    roles: ['ANONIMO'],
+    mustChangePassword: true,
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -49,17 +70,23 @@ export function FormularioUsuario({
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Preenche o formulário quando está editando
+  // Preenche o formulário quando está editando ou limpa para um novo usuário
   useEffect(() => {
     if (usuarioEditando) {
       setFormData({
         nome: usuarioEditando.nome,
         username: usuarioEditando.username,
         email: usuarioEditando.email,
-        senha: '',
+        senha: '', // Senha não é preenchida por segurança
         confirmarSenha: '',
-        perfil: (usuarioEditando.perfil as 'ADMIN' | 'USER') || 'USER',
+        roles: usuarioEditando.roles,
+        mustChangePassword: usuarioEditando.mustChangePassword,
       });
+      setSuccess(false);
+      setError(null);
+      setErrors({});
+    } else {
+      resetForm();
     }
   }, [usuarioEditando]);
 
@@ -101,21 +128,45 @@ export function FormularioUsuario({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(false);
 
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
+    setError(null);
+    setSuccess(false);
 
     try {
       // Simula chamada API
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      //await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // TODO: Implementar chamada real à API
-      // const response = await registrarUsuario(formData);
+      //const response = await registrarUsuario(formData);
+      let response: Usuario;
+
+      if (usuarioEditando) {
+        // Chama a API de atualização
+        const dadosAtualizados: AtualizarUsuarioRequest = {
+          nome: formData.nome,
+          email: formData.email,
+          username: formData.username,
+          roles: formData.roles,
+          mustChangePassword: formData.mustChangePassword,
+        };
+        response = await atualizarUsuario(usuarioEditando.id, dadosAtualizados);
+      } else {
+        // Chama a API de registro
+        const dadosRegistro: RegistroUsuarioRequest = {
+          nome: formData.nome,
+          email: formData.email,
+          username: formData.username,
+          senha: formData.senha!,
+          roles: formData.roles,
+        };
+        response = await registrarUsuario(dadosRegistro);
+      }
+      console.log('Usuário salvo com sucesso:', response);
 
       setSuccess(true);
       setTimeout(() => {
@@ -140,7 +191,8 @@ export function FormularioUsuario({
       email: '',
       senha: '',
       confirmarSenha: '',
-      perfil: 'USER',
+      roles: ['ANONIMO'],
+      mustChangePassword: true,
     });
     setErrors({});
     setError(null);
@@ -273,7 +325,7 @@ export function FormularioUsuario({
               </InputLabel>
               <Select
                 name='perfil'
-                value={formData.perfil}
+                value={formData.roles[0] === 'ADMIN' ? 'ADMIN' : 'ANONIMO'}
                 label='Perfil de Acesso *'
                 onChange={(e) =>
                   setFormData((prev) => ({

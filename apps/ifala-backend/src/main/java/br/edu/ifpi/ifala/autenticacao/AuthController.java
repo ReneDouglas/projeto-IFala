@@ -59,9 +59,12 @@ public class AuthController {
   }
 
   @GetMapping("/admin/usuarios")
-  public ResponseEntity<Page<UsuarioDetalheResponseDTO>> listarUsuarios(Pageable pageable) {
+  public ResponseEntity<Page<UsuarioDetalheResponseDTO>> listarUsuarios(Pageable pageable,
+      @RequestParam(required = false) String search, @RequestParam(required = false) String role,
+      @RequestParam(required = false) Boolean mustChangePassword) {
+
     logger.info("Requisição administrativa para listar usuários paginados.");
-    return ResponseEntity.ok(authService.listarUsuario(pageable));
+    return ResponseEntity.ok(authService.listarUsuario(pageable, search, role, mustChangePassword));
   }
 
   @GetMapping("/admin/usuarios/{id}")

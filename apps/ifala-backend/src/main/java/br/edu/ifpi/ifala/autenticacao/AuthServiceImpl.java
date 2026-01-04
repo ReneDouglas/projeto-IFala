@@ -11,12 +11,14 @@ import br.edu.ifpi.ifala.autenticacao.dto.AtualizarUsuarioRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioDetalheResponseDTO;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
 import br.edu.ifpi.ifala.security.JwtUtil;
 import br.edu.ifpi.ifala.security.TokenBlacklistService;
 import br.edu.ifpi.ifala.notificacao.NotificacaoExternaService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.persistence.criteria.Predicate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -415,10 +418,39 @@ public class AuthServiceImpl implements AuthService {
 
   // MÉTODOS PARA GERENCIAMENTO DE USUÁRIOS
   @Override
-  public Page<UsuarioDetalheResponseDTO> listarUsuario(Pageable pageable) {
-    logger.info("Listando usuários com paginação: página {}, tamanho {}", pageable.getPageNumber(),
-        pageable.getPageSize());
-    Page<Usuario> usuariosPage = userRepository.findAll(pageable);
+  public Page<UsuarioDetalheResponseDTO> listarUsuario(Pageable pageable, String search,
+      String role, Boolean mustChangePassword) {
+    logger.info("Filtrando usuários");
+
+
+    Specification<Usuario> spec = (root, query, cb) -> {
+      List<Predicate> predicates = new ArrayList<>();
+
+      // filtra Search (Nome, Email ou Username)
+      if (search != null && !search.trim().isEmpty()) {
+        String term = "%" + search.trim().toLowerCase() + "%";
+        predicates.add(cb.or(cb.like(cb.lower(root.get("nome")), term),
+            cb.like(cb.lower(root.get("email")), term),
+            cb.like(cb.lower(root.get("username")), term)));
+      }
+
+      // Filtro de Role
+      if (role != null && !role.isEmpty()) {
+        predicates.add(cb.equal(root.get("role"), role));
+      }
+
+      // Filtro de Senha Temporária
+      if (mustChangePassword != null) {
+        predicates.add(cb.equal(root.get("mustChangePassword"), mustChangePassword));
+      }
+
+      return cb.and(predicates.toArray(new Predicate[0]));
+    };
+
+    // 2. Chamar o findAll passando a spec E o pageable
+    // IMPORTANTE: Seu UserRepository deve estender JpaSpecificationExecutor
+    Page<Usuario> usuariosPage = userRepository.findAll(spec, pageable);
+
     return usuariosPage.map(this::convertToUsuarioDetalheDTO);
   }
 
