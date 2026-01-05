@@ -36,7 +36,7 @@ interface UsuarioFormData {
   nome: string;
   username: string;
   email: string;
-  senha?: string; // Senha é opcional na edição
+  senha?: string;
   confirmarSenha?: string;
   roles: string[];
   mustChangePassword: boolean;
@@ -77,7 +77,7 @@ export function FormularioUsuario({
         nome: usuarioEditando.nome,
         username: usuarioEditando.username,
         email: usuarioEditando.email,
-        senha: '', // Senha não é preenchida por segurança
+        senha: '',
         confirmarSenha: '',
         roles: usuarioEditando.roles,
         mustChangePassword: usuarioEditando.mustChangePassword,
@@ -138,15 +138,9 @@ export function FormularioUsuario({
     setSuccess(false);
 
     try {
-      // Simula chamada API
-      //await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // TODO: Implementar chamada real à API
-      //const response = await registrarUsuario(formData);
       let response: Usuario;
 
       if (usuarioEditando) {
-        // Chama a API de atualização
         const dadosAtualizados: AtualizarUsuarioRequest = {
           nome: formData.nome,
           email: formData.email,
@@ -156,7 +150,6 @@ export function FormularioUsuario({
         };
         response = await atualizarUsuario(usuarioEditando.id, dadosAtualizados);
       } else {
-        // Chama a API de registro
         const dadosRegistro: RegistroUsuarioRequest = {
           nome: formData.nome,
           email: formData.email,

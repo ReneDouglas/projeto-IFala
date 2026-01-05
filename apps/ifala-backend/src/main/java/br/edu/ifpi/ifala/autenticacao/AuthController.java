@@ -69,14 +69,14 @@ public class AuthController {
 
   @GetMapping("/admin/usuarios/{id}")
   public ResponseEntity<UsuarioDetalheResponseDTO> buscarPorId(@PathVariable Long id) {
-    logger.info("Requisição administrativa para buscar usuário ID: {}", id);
+    logger.info("Requisição administrativa para buscar usuário");
     return ResponseEntity.ok(authService.buscarUsuarioPorId(id));
   }
 
   @PutMapping("/admin/usuarios/{id}")
   public ResponseEntity<UsuarioDetalheResponseDTO> atualizarUsuario(@PathVariable Long id,
       @Valid @RequestBody AtualizarUsuarioRequestDTO atualizarUsuarioRequestDTO) {
-    logger.info("Requisição administrativa para atualizar usuário ID: {}", id);
+    logger.info("Requisição administrativa para atualizar usuário");
     UsuarioDetalheResponseDTO atualizado =
         authService.atualizarUsuario(id, atualizarUsuarioRequestDTO);
     return ResponseEntity.ok(atualizado);

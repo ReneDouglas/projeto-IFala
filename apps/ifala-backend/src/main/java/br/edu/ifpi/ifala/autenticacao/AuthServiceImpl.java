@@ -416,7 +416,6 @@ public class AuthServiceImpl implements AuthService {
     return user.getEmail();
   }
 
-  // MÉTODOS PARA GERENCIAMENTO DE USUÁRIOS
   @Override
   public Page<UsuarioDetalheResponseDTO> listarUsuario(Pageable pageable, String search,
       String role, Boolean mustChangePassword) {
@@ -434,12 +433,10 @@ public class AuthServiceImpl implements AuthService {
             cb.like(cb.lower(root.get("username")), term)));
       }
 
-      // Filtro de Role
       if (role != null && !role.isEmpty()) {
         predicates.add(cb.equal(root.get("role"), role));
       }
 
-      // Filtro de Senha Temporária
       if (mustChangePassword != null) {
         predicates.add(cb.equal(root.get("mustChangePassword"), mustChangePassword));
       }
@@ -447,8 +444,6 @@ public class AuthServiceImpl implements AuthService {
       return cb.and(predicates.toArray(new Predicate[0]));
     };
 
-    // 2. Chamar o findAll passando a spec E o pageable
-    // IMPORTANTE: Seu UserRepository deve estender JpaSpecificationExecutor
     Page<Usuario> usuariosPage = userRepository.findAll(spec, pageable);
 
     return usuariosPage.map(this::convertToUsuarioDetalheDTO);
@@ -466,12 +461,12 @@ public class AuthServiceImpl implements AuthService {
   @Transactional
   public UsuarioDetalheResponseDTO atualizarUsuario(Long id,
       AtualizarUsuarioRequestDTO atualizarUsuarioRequestDTO) {
-    logger.info("Atualizando usuário com id: {}", id);
+    logger.info("Atualizando usuário com id");
 
     Usuario usuario = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(
         "Usuário com id " + id + " não encontrado para atualização."));
 
-    // Valida se o novo e-mail já está em uso por OUTRO usuário
+    // Valida se o novo e-mail
     if (atualizarUsuarioRequestDTO.email() != null
         && !atualizarUsuarioRequestDTO.email().equals(usuario.getEmail())) {
       userRepository.findByEmail(atualizarUsuarioRequestDTO.email()).ifPresent(existingUser -> {
@@ -483,7 +478,7 @@ public class AuthServiceImpl implements AuthService {
       usuario.setEmail(atualizarUsuarioRequestDTO.email());
     }
 
-    // Valida se o novo username já está em uso por OUTRO usuário
+    // Valida se o novo username
     if (atualizarUsuarioRequestDTO.username() != null
         && !atualizarUsuarioRequestDTO.username().equals(usuario.getUsername())) {
       userRepository.findByUsername(atualizarUsuarioRequestDTO.username())
@@ -514,7 +509,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     Usuario usuarioAtualizado = userRepository.save(usuario);
-    logger.info("Usuário com id: {} atualizado com sucesso.", id);
+    logger.info("Usuário com id atualizado com sucesso.");
 
     return convertToUsuarioDetalheDTO(usuarioAtualizado);
   }
