@@ -12,7 +12,6 @@ import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import br.edu.ifpi.ifala.autenticacao.dto.UsuarioDetalheResponseDTO;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
 import br.edu.ifpi.ifala.security.JwtUtil;
 import br.edu.ifpi.ifala.security.TokenBlacklistService;

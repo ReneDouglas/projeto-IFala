@@ -318,12 +318,12 @@ export function FormularioUsuario({
               </InputLabel>
               <Select
                 name='perfil'
-                value={formData.roles[0] === 'ADMIN' ? 'ADMIN' : 'ANONIMO'}
+                value={formData.roles[0] === 'ADMIN' ? 'ADMIN' : 'USER'}
                 label='Perfil de Acesso *'
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    perfil: e.target.value as 'ADMIN' | 'USER',
+                    roles: [e.target.value as 'ADMIN' | 'USER'],
                   }))
                 }
                 disabled={loading}

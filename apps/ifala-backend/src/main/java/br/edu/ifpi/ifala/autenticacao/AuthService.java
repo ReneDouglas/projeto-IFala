@@ -49,7 +49,7 @@ public interface AuthService {
    * Atualiza os dados de um usuário existente.
    *
    * @param id O ID do usuário a ser atualizado.
-   * @param registroRequest DTO com os novos dados do usuário.
+   * @param atualizarUsuarioRequestDTO DTO com os novos dados do usuário.
    * @return O {@link UsuarioDetalheResponseDTO} com os dados atualizados.
    */
   UsuarioDetalheResponseDTO atualizarUsuario(Long id,
