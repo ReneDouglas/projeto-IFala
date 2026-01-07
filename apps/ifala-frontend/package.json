@@ -17,7 +17,7 @@
     "@fontsource/roboto": "^5.2.8",
     "@mui/icons-material": "^7.3.4",
     "@mui/material": "^7.3.4",
-    "@vitejs/plugin-rsc": "^0.5.7",
+    "@vitejs/plugin-rsc": "^0.5.8",
     "axios": "^1.7.7",
     "jwt-decode": "^4.0.0",
     "react": "^19.2.3",
