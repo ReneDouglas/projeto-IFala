@@ -10,7 +10,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * Configuração que habilita o processamento assíncrono (@EnableAsync) e define o Thread Pool a ser
  * usado pelos métodos @Async. * É altamente recomendável configurar o Executor para controlar o
  * número de threads e evitar o esgotamento de recursos.
- * 
+ *
  * @author Phaola
  */
 @Configuration
