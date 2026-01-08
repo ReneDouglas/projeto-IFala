@@ -51,8 +51,8 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
         (novaDenuncia.getCriadoEm() != null) ? novaDenuncia.getCriadoEm().format(formatter) : "N/D";
     String detalheSituacao =
         (novaDenuncia.getStatus() != null) ? novaDenuncia.getStatus().name() : "N/D";
-    final String body =
-        buildNovaDenunciaBody(novaDenuncia.getTokenAcompanhamento(), criadoEmStr, detalheSituacao);
+    final String body = buildNovaDenunciaBody(novaDenuncia.getId(),
+        novaDenuncia.getTokenAcompanhamento(), criadoEmStr, detalheSituacao);
 
     // 3. Buscar E-mails de TODOS os usuários do sistema
     List<String> emails = usuarioRepository.findAllEmailsExcludingBlanks();
@@ -102,7 +102,8 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
         getShortDenunciaId(denuncia.getId()));
 
     // 2. Corpo do E-mail (HTML Template)
-    final String body = buildNovaMensagemBody(denuncia.getTokenAcompanhamento(), mensagem);
+    final String body =
+        buildNovaMensagemBody(denuncia.getId(), denuncia.getTokenAcompanhamento(), mensagem);
 
     // 3. Buscar E-mails de TODOS os usuários do sistema
 
@@ -144,11 +145,13 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     }
   }
 
-  private String buildNovaDenunciaBody(java.util.UUID tokenAcompanhamento, String criadoEm,
-      String detalheSituacao) {
+  private String buildNovaDenunciaBody(Long denunciaId, java.util.UUID tokenAcompanhamento,
+      String criadoEm, String detalheSituacao) {
     String token = "*******" + getShortToken(tokenAcompanhamento);
 
-    String painelLink = getFrontendUrl("/painel-denuncias");
+    // Link direto para o acompanhamento da denúncia (admin)
+    String acompanhamentoLink =
+        getFrontendUrl("/admin/denuncias/" + denunciaId + "/acompanhamento");
 
     return """
         <!doctype html>
@@ -160,8 +163,6 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
               .card{max-width:600px;margin:20px auto;border:1px solid #e1e1e1;border-radius:8px;overflow:hidden}
               .header{background:#004d99;color:#fff;padding:16px}
               .content{padding:18px}
-              /* .footer{background:#f6f6f6;padding:12px;text-align:center;color:#666;font-size:13px} */ /* REMOVIDO */
-              /* Botão ajustado: background com a mesma cor do header (#004d99) para consistência, e negrito para alto contraste */
               .btn{display:inline-block;padding:10px 16px;background:#004d99;color:#fff !important ;text-decoration:none;border-radius:6px;font-weight:bold}
             </style>
           </head>
@@ -178,26 +179,28 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
                   <li><strong>Data/Hora:</strong> %s</li>
                   <li><strong>Situação:</strong> %s</li>
                 </ul>
-                <p>Para visualizar a denúncia completa e tomar as providências, acesse o painel do sistema.</p>
-                <p><a class="btn" href="%s" style="color:#ffffff !important;">Abrir Painel de Denúncias</a></p>
-                          <p style="margin-top:20px; text-align:center; color:#666; font-size:13px; border-top: 1px solid #e1e1e1; padding-top: 10px;">
-                <strong>Equipe IFala</strong> — <em>Notificações Automáticas</em><br/>
-                  Este é um e-mail automático. Por favor, **não responda a esta mensagem**.
+                <p>Para visualizar a denúncia completa e tomar as providências, clique no botão abaixo:</p>
+                <p><a class="btn" href="%s" style="color:#ffffff !important;">Acessar Acompanhamento</a></p>
+                <p style="margin-top:20px; text-align:center; color:#666; font-size:13px; border-top: 1px solid #e1e1e1; padding-top: 10px;">
+                  <strong>Equipe IFala</strong> — <em>Notificações Automáticas</em><br/>
+                  Este é um e-mail automático. Por favor, não responda a esta mensagem.
                 </p>
               </div>
             </div>
           </body>
         </html>
         """
-        .formatted(token, criadoEm, detalheSituacao, painelLink);
+        .formatted(token, criadoEm, detalheSituacao, acompanhamentoLink);
   }
 
-  private String buildNovaMensagemBody(java.util.UUID tokenAcompanhamento,
+  private String buildNovaMensagemBody(Long denunciaId, java.util.UUID tokenAcompanhamento,
       Acompanhamento mensagem) {
     String trecho = getShortMessageText(mensagem.getMensagem());
     String id = "*******" + getShortToken(tokenAcompanhamento);
 
-    String painelLink = getFrontendUrl("/painel-denuncias");
+    // Link direto para o acompanhamento da denúncia (admin)
+    String acompanhamentoLink =
+        getFrontendUrl("/admin/denuncias/" + denunciaId + "/acompanhamento");
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     String dataEnvio =
         (mensagem.getDataEnvio() != null) ? mensagem.getDataEnvio().format(formatter) : "N/D";
@@ -214,7 +217,6 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
           .content{padding:18px}
           .footer{background:#f6f6f6;padding:12px;text-align:center;color:#666;font-size:13px}
           .snippet{background:#fafafa;border-left:4px solid #007bff;padding:10px;margin:12px 0;border-radius:4px}
-          /* Botão ajustado: background com a mesma cor do header (#004d99) para consistência, e negrito para alto contraste */
           .btn{display:inline-block;padding:10px 16px;background:#004d99;color:#fff !important;text-decoration:none;border-radius:6px;font-weight:bold}
             </style>
         </head>
@@ -229,16 +231,16 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
                     <div class="snippet">
                         %s
                     </div>
-                    <p>Esta mensagem foi enviada pelo denunciante. Acesse o sistema para ler a mensagem completa e prosseguir com o acompanhamento.</p>
+                    <p>Esta mensagem foi enviada pelo denunciante. Clique no botão abaixo para ler a mensagem completa e prosseguir com o acompanhamento.</p>
                     <p><strong>Data/Hora da mensagem:</strong> %s</p>
-                    <p><a class="btn" href="%s " style="color:#ffffff !important;">Abrir Denúncia</a></p>
+                    <p><a class="btn" href="%s" style="color:#ffffff !important;">Acessar Acompanhamento</a></p>
                 </div>
                 <div class="footer">Equipe IFala — <em>Notificações Automáticas</em><br/>Este é um e-mail automático. Por favor, não responda a esta mensagem.</div>
             </div>
         </body>
         </html>
         """
-        .formatted(id, (trecho != null ? trecho : "(sem conteúdo)"), dataEnvio, painelLink);
+        .formatted(id, (trecho != null ? trecho : "(sem conteúdo)"), dataEnvio, acompanhamentoLink);
   }
 
 
