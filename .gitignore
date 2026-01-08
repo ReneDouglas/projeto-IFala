@@ -101,3 +101,5 @@ apps/*/target/
 apps/*/node_modules/
 apps/*/.env
 apps/*/.env.local
+
+backups/

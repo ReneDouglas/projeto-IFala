@@ -274,9 +274,14 @@ export function Denuncia() {
 
       // gera token v3 acao: 'denuncia'
       console.log('🔄 Executando reCAPTCHA com action: denuncia');
+      console.log('📋 Site Key utilizada:', siteKey);
+      
       const recaptchaTokenV3 = await grecaptcha.execute(siteKey, {
         action: 'denuncia',
       });
+
+      console.log('✅ Token reCAPTCHA gerado:', recaptchaTokenV3?.substring(0, 50) + '...');
+      console.log('📏 Tamanho do token:', recaptchaTokenV3?.length);
 
       if (!recaptchaTokenV3) {
         throw new Error(
