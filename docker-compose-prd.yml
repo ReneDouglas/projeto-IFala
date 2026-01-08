@@ -88,7 +88,7 @@ services:
       context: ./apps/ifala-frontend
       dockerfile: Dockerfile.prd
       args:
-        - VITE_RECAPTCHA_KEY=${VITE_RECAPTCHA_KEY}
+        - VITE_RECAPTCHA_KEY=${VITE_RECAPTCHA_SITE_KEY}
     container_name: ifala-frontend-prd
     restart: always
     networks:
