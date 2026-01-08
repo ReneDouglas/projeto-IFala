@@ -3,6 +3,9 @@
 # ========================================
 FROM node:22-slim AS builder
 
+# Declarar ARG para receber a variável do docker-compose
+ARG VITE_RECAPTCHA_SITE_KEY
+
 WORKDIR /app
 
 # Copiar arquivos de dependências
@@ -13,6 +16,9 @@ RUN npm ci
 
 # Copiar código fonte
 COPY . .
+
+# Definir a variável de ambiente para o Vite usar durante o build
+ENV VITE_RECAPTCHA_SITE_KEY=${VITE_RECAPTCHA_SITE_KEY}
 
 # Build da aplicação para produção
 # Isso gera os arquivos estáticos otimizados na pasta /app/dist
