@@ -250,6 +250,15 @@ export function Denuncia() {
 
     try {
       const grecaptcha = window.grecaptcha;
+      const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
+      if (!siteKey) {
+        console.error('❌ VITE_RECAPTCHA_SITE_KEY não está definida');
+        alert('Erro de configuração: reCAPTCHA não configurado.');
+        setSubmitting(false);
+        return;
+      }
+
       if (grecaptcha && typeof grecaptcha.ready === 'function') {
         await new Promise<void>((resolve) =>
           grecaptcha.ready!(() => resolve()),
@@ -257,16 +266,17 @@ export function Denuncia() {
       }
 
       if (!grecaptcha || typeof grecaptcha.execute !== 'function') {
+        console.error('❌ grecaptcha.execute não está disponível');
         alert('reCAPTCHA não disponível. Tente novamente mais tarde.');
         setSubmitting(false);
         return;
       }
 
       // gera token v3 acao: 'denuncia'
-      const recaptchaTokenV3 = await grecaptcha.execute(
-        import.meta.env.VITE_RECAPTCHA_SITE_KEY,
-        { action: 'denuncia' },
-      );
+      console.log('🔄 Executando reCAPTCHA com action: denuncia');
+      const recaptchaTokenV3 = await grecaptcha.execute(siteKey, {
+        action: 'denuncia',
+      });
 
       if (!recaptchaTokenV3) {
         throw new Error(
