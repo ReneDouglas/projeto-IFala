@@ -1,11 +1,14 @@
 import axiosClient from './axios-client';
-import type { DenunciasResponse } from '../pages/DenunciaList/types/denunciaTypes';
+import type {
+  DenunciasResponse,
+  SearchParams,
+} from '../pages/DenunciaList/types/denunciaTypes';
 
 export async function listarDenunciasAdmin(
   page: number,
-  searchParams: any,
+  searchParams: SearchParams,
 ): Promise<DenunciasResponse> {
-  const params: any = {
+  const params: Record<string, string | number> = {
     pageNumber: page,
     size: 10,
     search: searchParams.search || '',

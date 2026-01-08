@@ -21,6 +21,13 @@ if (siteKey) {
   const script = document.createElement('script');
   script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
   script.async = true;
+  script.defer = true;
+  script.onerror = () => {
+    console.error('❌ Erro ao carregar o script do reCAPTCHA');
+  };
+  script.onload = () => {
+    console.log('✅ Script do reCAPTCHA carregado com sucesso');
+  };
   document.head.appendChild(script);
 } else {
   console.warn(
