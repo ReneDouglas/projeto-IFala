@@ -55,6 +55,7 @@ public class DenunciaService {
   private final NotificacaoExternaService notificacaoExternaService;
   private final ProvaService provaService;
   private final PolicyFactory policy;
+  private final Double score = 0.1;
 
   // A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO
   // private final RecaptchaService recaptchaService;
@@ -86,7 +87,8 @@ public class DenunciaService {
 
     log.info("Iniciando validação do reCAPTCHA para nova denúncia.");
 
-    boolean isRecaptchaValid = recaptchaService.validarToken(dto.recaptchaToken(), "denuncia", 0.5);
+    boolean isRecaptchaValid =
+        recaptchaService.validarToken(dto.recaptchaToken(), "denuncia", score);
 
     if (!isRecaptchaValid) {
       log.warn("Falha na validação do reCAPTCHA para nova denúncia.");

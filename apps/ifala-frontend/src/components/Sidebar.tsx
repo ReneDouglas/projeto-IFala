@@ -99,6 +99,18 @@ function Sidebar({
               <button
                 className='menu-item'
                 onClick={() => {
+                  window.location.href = '/gerenciamento-usuarios';
+                  closeSidebar();
+                }}
+              >
+                <span className='material-symbols-outlined'>
+                  admin_panel_settings
+                </span>
+                Gerenciar Usuários
+              </button>
+              <button
+                className='menu-item'
+                onClick={() => {
                   onChangePassword();
                   closeSidebar();
                 }}

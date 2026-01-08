@@ -1,4 +1,4 @@
-import type { Notificacao } from '../types/notificacao';
+import type { Notificacao, NotificacaoPaginada } from '../types/notificacao';
 
 /**
  * Constrói os cabeçalhos de autenticação com o token Bearer.
@@ -15,11 +15,15 @@ function authHeaders() {
 }
 
 /**
- * Lista as notificações não lidas do servidor.
- * Retorna no máximo 5 notificações não lidas mais antigas.
+ * Lista as notificações não lidas do servidor com paginação.
+ * @param page Número da página (começa em 0)
+ * @param size Quantidade de itens por página
  */
-export async function listarNotificacoes(): Promise<Notificacao[]> {
-  const url = '/api/v1/notificacoes';
+export async function listarNotificacoes(
+  page = 0,
+  size = 5,
+): Promise<NotificacaoPaginada> {
+  const url = `/api/v1/notificacoes?page=${page}&size=${size}`;
 
   const response = await fetch(url, {
     method: 'GET',
@@ -35,7 +39,7 @@ export async function listarNotificacoes(): Promise<Notificacao[]> {
   }
 
   //Fetch API: A resposta precisa ser parseada manualmente como JSON
-  const data: Notificacao[] = await response.json();
+  const data: NotificacaoPaginada = await response.json();
   return data;
 }
 
@@ -63,4 +67,29 @@ export async function marcarComoLida(id: number): Promise<Notificacao> {
   return data;
 }
 
-export default { listarNotificacoes, marcarComoLida };
+/**
+ * Marca todas as notificações relacionadas a uma denúncia como lidas.
+ * @param denunciaId O ID da denúncia
+ */
+export async function marcarComoLidaPorDenuncia(
+  denunciaId: number,
+): Promise<void> {
+  const url = `/api/v1/notificacoes/denuncia/${denunciaId}/ler`;
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: authHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Erro ao marcar notificações da denúncia ${denunciaId} como lidas: ${response.status} ${response.statusText}`,
+    );
+  }
+}
+
+export default {
+  listarNotificacoes,
+  marcarComoLida,
+  marcarComoLidaPorDenuncia,
+};

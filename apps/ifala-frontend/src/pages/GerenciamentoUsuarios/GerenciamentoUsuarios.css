@@ -1,0 +1,146 @@
+/* ================================
+   GERENCIAMENTO DE USUÁRIOS - ESTILOS
+   ================================ */
+
+.gerenciamento-usuarios-page {
+  min-height: 100vh;
+  background-color: var(--cinza-extra-claro);
+}
+
+/* Hero Section */
+.hero-section-usuarios {
+  position: relative;
+  padding: 80px 0 60px;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.hero-background-usuarios {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+.hero-gradient-usuarios {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    var(--verde-esperanca) 0%,
+    var(--azul-confianca) 100%
+  );
+  opacity: 0.95;
+}
+
+.hero-pattern-usuarios {
+  /* Padrão de textura removido - apenas gradiente */
+  display: none;
+}
+
+.hero-content-usuarios {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: var(--branco);
+}
+
+.hero-icon-usuarios {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  margin-bottom: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.hero-icon-usuarios .material-symbols-outlined {
+  font-size: 48px;
+  color: var(--branco);
+}
+
+.hero-title-usuarios {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  margin-bottom: 15px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.hero-subtitle-usuarios {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  opacity: 0.95;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Container Principal */
+.gerenciamento-usuarios-container {
+  margin-top: 20px;
+}
+
+/* Accordions */
+.usuario-accordion {
+  transition: all 0.3s ease;
+}
+
+.usuario-accordion:hover {
+  transform: translateY(-2px);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .hero-section-usuarios {
+    padding: 60px 0 40px;
+  }
+
+  .hero-icon-usuarios {
+    width: 60px;
+    height: 60px;
+  }
+
+  .hero-icon-usuarios .material-symbols-outlined {
+    font-size: 36px;
+  }
+
+  .hero-title-usuarios {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle-usuarios {
+    font-size: 1rem;
+    padding: 0 16px;
+  }
+
+  .gerenciamento-usuarios-container {
+    margin-top: 0;
+  }
+
+  /* Remove hover effect em mobile */
+  .usuario-accordion:hover {
+    transform: none;
+  }
+}
+
+/* Responsividade para telas muito pequenas */
+@media (max-width: 480px) {
+  .hero-section-usuarios {
+    padding: 40px 0 30px;
+  }
+
+  .hero-title-usuarios {
+    font-size: 1.5rem;
+  }
+
+  .hero-subtitle-usuarios {
+    font-size: 0.9rem;
+  }
+}

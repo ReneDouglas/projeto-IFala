@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IFala Frontend - Documentação Técnica</title>
+    <style>
+        :root {
+            --primary-green: #2B7A2B;
+            --light-green: #4CAF50;
+            --dark-green: #1B5E1F;
+            --accent-blue: #1976D2;
+            --gray-light: #F5F7FA;
+            --gray-medium: #E1E5E9;
+            --gray-dark: #6C757D;
+            --text-dark: #2C3E50;
+            --text-light: #6C757D;
+            --white: #FFFFFF;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.15);
+            --border-radius: 8px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--gray-light);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
+            color: var(--white);
+            padding: 60px 0;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Navigation */
+        .nav {
+            background: var(--white);
+            padding: 20px 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin-bottom: 30px;
+        }
+        
+        .nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .nav a {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+        }
+        
+        .nav a:hover {
+            background-color: var(--primary-green);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .card h2 {
+            color: var(--primary-green);
+            margin-bottom: 20px;
+            font-size: 2rem;
+            border-bottom: 3px solid var(--light-green);
+            padding-bottom: 10px;
+        }
+        
+        .card h3 {
+            color: var(--dark-green);
+            margin: 25px 0 15px 0;
+            font-size: 1.3rem;
+        }
+        
+        .card h4 {
+            color: var(--accent-blue);
+            margin: 20px 0 10px 0;
+            font-size: 1.1rem;
+        }
+        
+        /* Code blocks */
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid var(--gray-medium);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .inline-code {
+            background-color: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: var(--accent-blue);
+        }
+        
+        /* Lists */
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        
+        th {
+            background-color: var(--primary-green);
+            color: var(--white);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--gray-medium);
+        }
+        
+        tr:hover {
+            background-color: var(--gray-light);
+        }
+        
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 2px;
+        }
+        
+        .badge-primary { background-color: var(--primary-green); color: var(--white); }
+        .badge-secondary { background-color: var(--gray-medium); color: var(--text-dark); }
+        .badge-success { background-color: var(--light-green); color: var(--white); }
+        .badge-info { background-color: var(--accent-blue); color: var(--white); }
+        
+        /* Alerts */
+        .alert {
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+        
+        .alert-info {
+            background-color: #E3F2FD;
+            border-color: var(--accent-blue);
+            color: #0D47A1;
+        }
+        
+        .alert-success {
+            background-color: #E8F5E8;
+            border-color: var(--light-green);
+            color: var(--dark-green);
+        }
+        
+        .alert-warning {
+            background-color: #FFF3E0;
+            border-color: #FF9800;
+            color: #E65100;
+        }
+        
+        /* Architecture diagram */
+        .architecture {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .layer {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        
+        .layer-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary-green);
+        }
+        
+        .components {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .component {
+            background: var(--light-green);
+            color: var(--white);
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+        }
+        
+        /* File structure */
+        .file-tree {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        
+        .file-tree .folder {
+            color: var(--accent-blue);
+            font-weight: bold;
+        }
+        
+        .file-tree .file {
+            color: var(--text-dark);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav ul {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .components {
+                justify-content: flex-start;
+            }
+        }
+        
+        /* Scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        section[id] {
+            scroll-margin-top: 100px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1>🎯 IFala Frontend</h1>
+            <p class="subtitle">Documentação Técnica Completa - Sistema de Denúncias Anônimas</p>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <ul>
+                <li><a href="#overview">Visão Geral</a></li>
+                <li><a href="#architecture">Arquitetura</a></li>
+                <li><a href="#setup">Configuração</a></li>
+                <li><a href="#components">Componentes</a></li>
+                <li><a href="#pages">Páginas</a></li>
+                <li><a href="#routing">Roteamento</a></li>
+                <li><a href="#state">Estado</a></li>
+                <li><a href="#styling">Estilização</a></li>
+                <li><a href="#development">Desenvolvimento</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Visão Geral -->
+        <section id="overview" class="card">
+            <h2>📋 Visão Geral do Sistema</h2>
+            
+            <h3>🎯 Objetivo</h3>
+            <p>O frontend do <strong>IFala</strong> é uma aplicação React moderna desenvolvida para facilitar denúncias anônimas em instituições federais de ensino. A interface prioriza a <strong>segurança</strong>, <strong>anonimato</strong> e <strong>usabilidade</strong>, oferecendo uma experiência intuitiva tanto para denunciantes quanto para administradores.</p>
+            
+            <h3>🔑 Características Principais</h3>
+            <ul>
+                <li><strong>Anonimato Garantido:</strong> Nenhum dado pessoal é coletado sem consentimento explícito</li>
+                <li><strong>Interface Responsiva:</strong> Funciona perfeitamente em dispositivos móveis e desktop</li>
+                <li><strong>Segurança por Design:</strong> Validações robustas e sanitização de dados</li>
+                <li><strong>Acessibilidade:</strong> Seguindo padrões WCAG para inclusão digital</li>
+                <li><strong>Performance Otimizada:</strong> Carregamento rápido e experiência fluída</li>
+            </ul>
+            
+            <h3>🛡️ Tecnologias Core</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tecnologia</th>
+                            <th>Versão</th>
+                            <th>Função</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>React</strong></td>
+                            <td>19.1.1</td>
+                            <td>Biblioteca principal para interface de usuário</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TypeScript</strong></td>
+                            <td>5.8.3</td>
+                            <td>Tipagem estática e maior segurança no código</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Vite</strong></td>
+                            <td>7.1.12</td>
+                            <td>Bundler e servidor de desenvolvimento</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Material-UI (MUI)</strong></td>
+                            <td>7.3.4</td>
+                            <td>Componentes de interface e sistema de design</td>
+                        </tr>
+                        <tr>
+                            <td><strong>React Router</strong></td>
+                            <td>7.9.4</td>
+                            <td>Gerenciamento de rotas e navegação</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Arquitetura -->
+        <section id="architecture" class="card">
+            <h2>🏗️ Arquitetura do Frontend</h2>
+            
+            <h3>📐 Estrutura Geral</h3>
+            <p>O frontend segue uma arquitetura <strong>baseada em componentes</strong> com separação clara de responsabilidades:</p>
+            
+            <div class="architecture">
+                <div class="layer">
+                    <div class="layer-title">🎨 Camada de Apresentação</div>
+                    <div class="components">
+                        <span class="component">React Components</span>
+                        <span class="component">Material-UI</span>
+                        <span class="component">CSS Modules</span>
+                    </div>
+                </div>
+                
+                <div class="layer">
+                    <div class="layer-title">🔄 Camada de Estado</div>
+                    <div class="components">
+                        <span class="component">React Context</span>
+                        <span class="component">Custom Hooks</span>
+                        <span class="component">Local Storage</span>
+                    </div>
+                </div>
+                
+                <div class="layer">
+                    <div class="layer-title">🌐 Camada de Navegação</div>
+                    <div class="components">
+                        <span class="component">React Router DOM</span>
+                        <span class="component">Layouts</span>
+                        <span class="component">Route Guards</span>
+                    </div>
+                </div>
+                
+                <div class="layer">
+                    <div class="layer-title">🔗 Camada de Integração</div>
+                    <div class="components">
+                        <span class="component">API Services</span>
+                        <span class="component">Authentication</span>
+                        <span class="component">Error Handling</span>
+                    </div>
+                </div>
+            </div>
+            
+            <h3>📁 Estrutura de Diretórios</h3>
+            <div class="file-tree">
+📦 <span class="folder">src/</span>
+ ┣ 📂 <span class="folder">assets/</span>         # Recursos estáticos (imagens, fontes, ícones)
+ ┃ ┗ 📜 <span class="file">IFala-logo.png</span>
+ ┣ 📂 <span class="folder">components/</span>     # Componentes reutilizáveis
+ ┃ ┣ 📜 <span class="file">Header.tsx</span>
+ ┃ ┣ 📜 <span class="file">MainLayout.tsx</span>
+ ┃ ┗ 📜 <span class="file">Sidebar.tsx</span>
+ ┣ 📂 <span class="folder">contexts/</span>       # Contextos do React para gerenciamento de estado
+ ┃ ┣ 📜 <span class="file">AuthContext.tsx</span>
+ ┃ ┗ 📜 <span class="file">AuthContextTypes.ts</span>
+ ┣ 📂 <span class="folder">hooks/</span>          # Custom hooks reutilizáveis
+ ┃ ┣ 📜 <span class="file">useAuth.ts</span>
+ ┃ ┗ 📜 <span class="file">useAcompanhamento.ts</span>
+ ┣ 📂 <span class="folder">pages/</span>          # Páginas da aplicação
+ ┃ ┣ 📂 <span class="folder">Acompanhamento/</span>
+ ┃ ┣ 📂 <span class="folder">Denuncia/</span>
+ ┃ ┣ 📂 <span class="folder">DenunciaList/</span>
+ ┃ ┣ 📂 <span class="folder">Home/</span>
+ ┃ ┗ 📂 <span class="folder">Login/</span>
+ ┣ 📂 <span class="folder">styles/</span>         # Estilos globais e temas
+ ┃ ┗ 📜 <span class="file">theme.css</span>
+ ┣ 📂 <span class="folder">types/</span>          # Definições de tipos TypeScript
+ ┃ ┗ 📜 <span class="file">acompanhamento.ts</span>
+ ┣ 📜 <span class="file">App.tsx</span>           # Componente raiz da aplicação
+ ┗ 📜 <span class="file">main.tsx</span>          # Ponto de entrada da aplicação
+            </div>
+        </section>
+
+        <!-- Configuração e Setup -->
+        <section id="setup" class="card">
+            <h2>⚙️ Configuração e Setup</h2>
+            
+            <h3>📋 Pré-requisitos</h3>
+            <ul>
+                <li><strong>Node.js</strong> 22.x ou superior</li>
+                <li><strong>NPM</strong> 10.x ou superior</li>
+                <li><strong>Docker</strong> (para ambiente completo)</li>
+            </ul>
+            
+            <h3>🚀 Instalação Local</h3>
+            <div class="code-block">
+# Clone o repositório
+git clone https://github.com/ReneDouglas/projeto-IFala.git
+
+# Navegue para o frontend
+cd projeto-IFala/apps/ifala-frontend
+
+# Instale as dependências
+npm ci
+
+# Execute em modo desenvolvimento
+npm run dev
+            </div>
+            
+            <h3>🐳 Setup com Docker</h3>
+            <div class="code-block">
+# Na raiz do projeto
+docker-compose up --build -d
+
+# Acesse: http://localhost:5173
+            </div>
+            
+            <h3>🔧 Scripts Disponíveis</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Script</th>
+                            <th>Comando</th>
+                            <th>Descrição</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="inline-code">dev</span></td>
+                            <td><span class="inline-code">vite --host</span></td>
+                            <td>Inicia servidor de desenvolvimento</td>
+                        </tr>
+                        <tr>
+                            <td><span class="inline-code">build</span></td>
+                            <td><span class="inline-code">tsc -b && vite build</span></td>
+                            <td>Compila projeto para produção</td>
+                        </tr>
+                        <tr>
+                            <td><span class="inline-code">lint</span></td>
+                            <td><span class="inline-code">eslint .</span></td>
+                            <td>Executa análise de código</td>
+                        </tr>
+                        <tr>
+                            <td><span class="inline-code">format</span></td>
+                            <td><span class="inline-code">prettier --write .</span></td>
+                            <td>Formata código automaticamente</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>🌐 Configuração do Vite</h3>
+            <div class="code-block">
+// vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    host: true,  // Permite acesso externo
+    port: 5173
+  }
+});
+            </div>
+        </section>
+
+        <!-- Componentes -->
+        <section id="components" class="card">
+            <h2>🧩 Sistema de Componentes</h2>
+            
+            <h3>🎯 Filosofia de Design</h3>
+            <p>Os componentes seguem os princípios de <strong>Single Responsibility</strong> e <strong>Reusabilidade</strong>, sendo organizados em:</p>
+            
+            <h4>🏗️ Layout Components</h4>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Componente</th>
+                            <th>Responsabilidade</th>
+                            <th>Props Principais</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>MainLayout</strong></td>
+                            <td>Layout base com header e sidebar</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Header</strong></td>
+                            <td>Cabeçalho com navegação e menu</td>
+                            <td><span class="inline-code">variant</span>, <span class="inline-code">setSidebarOpen</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sidebar</strong></td>
+                            <td>Menu lateral com opções de usuário</td>
+                            <td><span class="inline-code">sidebarOpen</span>, <span class="inline-code">isLoggedIn</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h4>📝 Feature Components (DenunciaList)</h4>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Componente</th>
+                            <th>Responsabilidade</th>
+                            <th>Localização</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>DenunciaCard</strong></td>
+                            <td>Card individual de denúncia</td>
+                            <td><span class="inline-code">pages/DenunciaList/components/</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Filters</strong></td>
+                            <td>Sistema de filtros avançados</td>
+                            <td><span class="inline-code">pages/DenunciaList/components/</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Pagination</strong></td>
+                            <td>Navegação entre páginas</td>
+                            <td><span class="inline-code">pages/DenunciaList/components/</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>StatusBadge</strong></td>
+                            <td>Badge de status da denúncia</td>
+                            <td><span class="inline-code">pages/DenunciaList/components/</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>🎨 Design System</h3>
+            <div class="alert alert-info">
+                <strong>Material-UI Integration:</strong> Utilizamos Material-UI como base do design system, customizado com as cores e identidade visual do IFPI.
+            </div>
+            
+            <h4>🎯 Cores do Sistema</h4>
+            <div class="code-block">
+:root {
+  --verde-esperanca: #2B7A2B;        /* Cor principal IFPI */
+  --verde-esperanca-20: #E8F5E8;     /* Variante clara */
+  --cinza-escuro: #2C3E50;           /* Textos principais */
+  --cinza-medio: #6C757D;            /* Textos secundários */
+  --branco: #FFFFFF;                 /* Backgrounds */
+}
+            </div>
+            
+            <h4>📱 Responsividade</h4>
+            <ul>
+                <li><strong>Mobile First:</strong> Design otimizado para dispositivos móveis</li>
+                <li><strong>Breakpoints:</strong> 320px (mobile), 768px (tablet), 1024px (desktop)</li>
+                <li><strong>CSS Grid/Flexbox:</strong> Layouts flexíveis e adaptáveis</li>
+                <li><strong>Container Queries:</strong> Componentes que se adaptam ao contexto</li>
+            </ul>
+        </section>
+
+        <!-- Páginas -->
+        <section id="pages" class="card">
+            <h2>📄 Estrutura de Páginas</h2>
+            
+            <h3>🏠 Página Inicial (Home)</h3>
+            <p><strong>Rota:</strong> <span class="inline-code">/</span></p>
+            <ul>
+                <li>Landing page com apresentação do sistema</li>
+                <li>Botões para "Fazer Denúncia" e "Acompanhar Denúncia"</li>
+                <li>Seção de garantias de segurança</li>
+                <li>Informações institucionais do IFPI</li>
+            </ul>
+            
+            <h3>📋 Nova Denúncia</h3>
+            <p><strong>Rota:</strong> <span class="inline-code">/denuncia</span></p>
+            <ul>
+                <li>Formulário completo para submissão de denúncias</li>
+                <li>Opção entre denúncia anônima ou identificada</li>
+                <li>Validação robusta com reCAPTCHA</li>
+                <li>Categorização por tipo de ocorrência</li>
+                <li>Campo de descrição com sanitização de texto</li>
+            </ul>
+            
+            <div class="code-block">
+// Estrutura do formulário de denúncia
+interface FormData {
+  nome: string;          // Apenas se identificada
+  email: string;         // Apenas se identificada  
+  grau: string;          // Médio ou Superior
+  curso: string;         // Baseado no grau selecionado
+  turma: string;         // Baseada no grau selecionado
+  categoria: string;     // Categoria da denúncia
+  relato: string;        // Descrição (min: 50, max: 500 chars)
+}
+            </div>
+            
+            <h3>✅ Sucesso da Denúncia</h3>
+            <p><strong>Rota:</strong> <span class="inline-code">/denuncia/sucesso</span></p>
+            <ul>
+                <li>Confirmação do envio da denúncia</li>
+                <li>Exibição do token de acompanhamento</li>
+                <li>Instruções para acompanhar o status</li>
+                <li>Opções de compartilhamento seguro do token</li>
+            </ul>
+            
+            <h3>🔍 Acompanhamento</h3>
+            <p><strong>Rota:</strong> <span class="inline-code">/acompanhamento</span></p>
+            <ul>
+                <li>Consulta de denúncia por token</li>
+                <li>Visualização do histórico de atualizações</li>
+                <li>Sistema de mensagens com administradores</li>
+                <li>Status em tempo real da denúncia</li>
+            </ul>
+            
+            <h3>🛡️ Dashboard Administrativo</h3>
+            <p><strong>Rota:</strong> <span class="inline-code">/dashboard-denuncias</span> (Protegida)</p>
+            <ul>
+                <li>Listagem paginada de todas as denúncias</li>
+                <li>Sistema de filtros avançados (status, categoria, data)</li>
+                <li>Cards responsivos com informações resumidas</li>
+                <li>Ações para visualizar detalhes e mensagens</li>
+                <li>Indicadores visuais de prioridade e status</li>
+            </ul>
+            
+            <h4>🎛️ Funcionalidades do Dashboard</h4>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Funcionalidade</th>
+                            <th>Descrição</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Filtros Inteligentes</td>
+                            <td>Busca por texto, categoria e status</td>
+                            <td><span class="badge badge-success">✅ Implementado</span></td>
+                        </tr>
+                        <tr>
+                            <td>Paginação Otimizada</td>
+                            <td>Navegação eficiente entre páginas</td>
+                            <td><span class="badge badge-success">✅ Implementado</span></td>
+                        </tr>
+                        <tr>
+                            <td>Cards Responsivos</td>
+                            <td>Layout adaptável para diferentes telas</td>
+                            <td><span class="badge badge-success">✅ Implementado</span></td>
+                        </tr>
+                        <tr>
+                            <td>Estados de Loading</td>
+                            <td>Feedback visual durante carregamento</td>
+                            <td><span class="badge badge-success">✅ Implementado</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>🔐 Login e Autenticação</h3>
+            <p><strong>Rota:</strong> <span class="inline-code">/login</span></p>
+            <ul>
+                <li>Autenticação de administradores</li>
+                <li>Integração com sistema de segurança</li>
+                <li>Redirecionamento automático após login</li>
+                <li>Opção de recuperação de senha</li>
+            </ul>
+        </section>
+
+        <!-- Roteamento -->
+        <section id="routing" class="card">
+            <h2>🛣️ Sistema de Roteamento</h2>
+            
+            <h3>📍 Configuração de Rotas</h3>
+            <div class="code-block">
+// App.tsx - Configuração principal de rotas
+export function App() {
+  return (
+    &lt;AuthProvider&gt;
+      &lt;BrowserRouter&gt;
+        &lt;Routes&gt;
+          {/* Rotas públicas - sem layout */}
+          &lt;Route path="/login" element={&lt;Login /&gt;} /&gt;
+          &lt;Route path="/reset-password" element={&lt;ResetPassword /&gt;} /&gt;
+          
+          {/* Rotas com layout principal */}
+          &lt;Route element={&lt;MainLayout /&gt;}&gt;
+            &lt;Route path="/" element={&lt;Home /&gt;} /&gt;
+            &lt;Route path="/denuncia" element={&lt;Denuncia /&gt;} /&gt;
+            &lt;Route path="/denuncia/sucesso" element={&lt;DenunciaSucesso /&gt;} /&gt;
+            &lt;Route path="/acompanhamento" element={&lt;Acompanhamento /&gt;} /&gt;
+            
+            {/* Rota protegida - apenas administradores */}
+            &lt;Route path="/dashboard-denuncias" element={&lt;DenunciasList /&gt;} /&gt;
+          &lt;/Route&gt;
+        &lt;/Routes&gt;
+      &lt;/BrowserRouter&gt;
+    &lt;/AuthProvider&gt;
+  );
+}
+            </div>
+            
+            <h3>🔒 Proteção de Rotas</h3>
+            <div class="alert alert-warning">
+                <strong>Segurança:</strong> As rotas administrativas são protegidas através do contexto de autenticação. Usuários não autenticados são redirecionados para a página de login.
+            </div>
+            
+            <h3>🎯 Navegação Programática</h3>
+            <div class="code-block">
+// Exemplo de navegação no MainLayout
+const navigate = useNavigate();
+
+const handleDashboard = () =&gt; {
+  navigate('/dashboard-denuncias');
+};
+
+const handleNewDenuncia = () =&gt; {
+  navigate('/denuncia');
+};
+            </div>
+            
+            <h3>📱 Layout Responsivo</h3>
+            <p>O sistema utiliza um layout adaptativo baseado na rota atual:</p>
+            <ul>
+                <li><strong>Header Variant:</strong> Diferentes estilos para home vs páginas internas</li>
+                <li><strong>Sidebar Context:</strong> Menu contextual baseado no status de autenticação</li>
+                <li><strong>Breadcrumb System:</strong> Navegação clara da localização atual</li>
+            </ul>
+        </section>
+
+        <!-- Gerenciamento de Estado -->
+        <section id="state" class="card">
+            <h2>🔄 Gerenciamento de Estado</h2>
+            
+            <h3>📦 Arquitetura de Estado</h3>
+            <p>O sistema utiliza uma abordagem híbrida para gerenciamento de estado:</p>
+            
+            <h4>🌐 React Context API</h4>
+            <div class="code-block">
+// AuthContext - Estado global de autenticação
+interface AuthContextType {
+  user: User | null;
+  isLoggedIn: boolean;
+  login: (userData: User) =&gt; void;
+  logout: () =&gt; void;
+  checkAuthStatus: () =&gt; void;
+}
+
+// AuthProvider - Provedor do contexto
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState&lt;User | null&gt;(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  // Persistência no localStorage
+  const checkAuthStatus = () =&gt; {
+    const storedUser = localStorage.getItem('usuarioLogado');
+    if (storedUser) {
+      const userData = JSON.parse(storedUser);
+      if (userData?.loggedIn) {
+        setUser(userData);
+        setIsLoggedIn(true);
+      }
+    }
+  };
+  
+  // ... resto da implementação
+}
+            </div>
+            
+            <h4>🎣 Custom Hooks</h4>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hook</th>
+                            <th>Responsabilidade</th>
+                            <th>Retorno</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>useAuth</strong></td>
+                            <td>Gerencia estado de autenticação</td>
+                            <td><span class="inline-code">user</span>, <span class="inline-code">isLoggedIn</span>, <span class="inline-code">login</span>, <span class="inline-code">logout</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>useDenuncias</strong></td>
+                            <td>Estado da lista de denúncias</td>
+                            <td><span class="inline-code">denuncias</span>, <span class="inline-code">loading</span>, <span class="inline-code">error</span>, <span class="inline-code">refetch</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>useAcompanhamento</strong></td>
+                            <td>Estado de acompanhamento de denúncia</td>
+                            <td><span class="inline-code">denuncia</span>, <span class="inline-code">messages</span>, <span class="inline-code">loading</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>💾 Persistência de Dados</h3>
+            <div class="alert alert-info">
+                <strong>LocalStorage Strategy:</strong> Dados de autenticação são persistidos localmente para manter a sessão do usuário entre recarregamentos da página.
+            </div>
+            
+            <div class="code-block">
+// Estratégia de persistência
+const login = (userData: User) =&gt; {
+  setUser(userData);
+  setIsLoggedIn(true);
+  localStorage.setItem('usuarioLogado', JSON.stringify(userData));
+};
+
+const logout = () =&gt; {
+  setUser(null);
+  setIsLoggedIn(false);
+  localStorage.removeItem('usuarioLogado');
+};
+            </div>
+            
+            <h3>🔄 Estados de Loading e Error</h3>
+            <p>Cada operação assíncrona possui estados bem definidos:</p>
+            <ul>
+                <li><strong>Loading States:</strong> Spinners e skeletons durante carregamento</li>
+                <li><strong>Error States:</strong> Mensagens informativas com opções de retry</li>
+                <li><strong>Empty States:</strong> Interfaces amigáveis quando não há dados</li>
+                <li><strong>Success States:</strong> Feedback positivo após ações bem-sucedidas</li>
+            </ul>
+        </section>
+
+        <!-- Estilização -->
+        <section id="styling" class="card">
+            <h2>🎨 Sistema de Estilização</h2>
+            
+            <h3>🎯 Abordagem Híbrida</h3>
+            <p>O projeto combina diferentes estratégias de estilização para máxima flexibilidade:</p>
+            
+            <h4>🎨 Material-UI (MUI) + Customização</h4>
+            <div class="code-block">
+// Customização de tema MUI
+const fieldStyles = {
+  '& .MuiOutlinedInput-root': {
+    '&:hover fieldset': {
+      borderColor: 'var(--verde-esperanca)',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: 'var(--verde-esperanca)',
+    },
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: 'var(--verde-esperanca)',
+  },
+};
+            </div>
+            
+            <h4>🌈 CSS Custom Properties</h4>
+            <div class="code-block">
+/* theme.css - Sistema de design tokens */
+:root {
+  /* Cores Principais */
+  --verde-esperanca: #2B7A2B;
+  --verde-esperanca-20: #E8F5E8;
+  --verde-esperanca-10: #F4FBF4;
+  
+  /* Neutros */
+  --cinza-escuro: #2C3E50;
+  --cinza-medio: #6C757D;
+  --cinza-claro: #E9ECEF;
+  --branco: #FFFFFF;
+  
+  /* Tipografia */
+  --font-family-primary: 'Inter', 'Roboto', sans-serif;
+  --font-size-base: 1rem;
+  --line-height-base: 1.6;
+  
+  /* Espaçamento */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 3rem;
+  
+  /* Bordas e Sombras */
+  --border-radius: 8px;
+  --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+            </div>
+            
+            <h3>📱 Responsividade Avançada</h3>
+            
+            <h4>🎯 Breakpoints Estratégicos</h4>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Breakpoint</th>
+                            <th>Largura</th>
+                            <th>Dispositivo Alvo</th>
+                            <th>Layout</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>XS</td>
+                            <td>320px - 575px</td>
+                            <td>Smartphones</td>
+                            <td>Single column, stack elements</td>
+                        </tr>
+                        <tr>
+                            <td>SM</td>
+                            <td>576px - 767px</td>
+                            <td>Smartphones large</td>
+                            <td>Single column, larger components</td>
+                        </tr>
+                        <tr>
+                            <td>MD</td>
+                            <td>768px - 1023px</td>
+                            <td>Tablets</td>
+                            <td>Two columns, sidebar</td>
+                        </tr>
+                        <tr>
+                            <td>LG</td>
+                            <td>1024px+</td>
+                            <td>Desktop</td>
+                            <td>Multi-column, full sidebar</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h4>🔧 Técnicas Responsivas Avançadas</h4>
+            <div class="code-block">
+/* Exemplo: DenunciaCard responsiva */
+.denuncia-card {
+  /* Fluid sizing com clamp() */
+  padding: clamp(1rem, 2.5vw, 2rem);
+  font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+  
+  /* Grid responsivo */
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+}
+
+/* Container Queries para componentes adaptativos */
+@container (min-width: 400px) {
+  .card-actions {
+    flex-direction: row;
+    gap: var(--spacing-sm);
+  }
+}
+
+/* Breakpoint específico para tablet */
+@media (min-width: 768px) {
+  .denuncia-card {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+            </div>
+            
+            <h3>🎪 Animações e Microinterações</h3>
+            <div class="code-block">
+/* Transições suaves */
+.denuncia-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.denuncia-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading animations */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+            </div>
+        </section>
+
+        <!-- Desenvolvimento -->
+        <section id="development" class="card">
+            <h2>🛠️ Guia de Desenvolvimento</h2>
+            
+            <h3>📋 Fluxo de Trabalho</h3>
+            
+            <h4>🌿 Git Flow Simplificado</h4>
+            <div class="code-block">
+# 1. Criar nova branch para feature
+git checkout development
+git pull origin development
+git checkout -b feature/task-123-nova-funcionalidade
+
+# 2. Desenvolvimento com commits semânticos
+git add .
+git commit -m "feat: adiciona componente de filtros avançados"
+
+# 3. Push e Pull Request
+git push origin feature/task-123-nova-funcionalidade
+# Criar PR no GitHub para merge em development
+            </div>
+            
+            <h4>📏 Padrões de Código</h4>
+            <div class="alert alert-info">
+                <strong>Code Quality:</strong> O projeto utiliza ESLint, Prettier e TypeScript para garantir consistência e qualidade do código.
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ferramenta</th>
+                            <th>Função</th>
+                            <th>Comando</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>ESLint</strong></td>
+                            <td>Análise estática de código</td>
+                            <td><span class="inline-code">npm run lint</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Prettier</strong></td>
+                            <td>Formatação automática</td>
+                            <td><span class="inline-code">npm run format</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>TypeScript</strong></td>
+                            <td>Verificação de tipos</td>
+                            <td><span class="inline-code">tsc --noEmit</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>🏗️ Criando Novos Componentes</h3>
+            
+            <h4>📝 Template Base</h4>
+            <div class="code-block">
+// src/components/NovoComponente/NovoComponente.tsx
+import React from 'react';
+import './NovoComponente.css';
+
+interface NovoComponenteProps {
+  title: string;
+  variant?: 'primary' | 'secondary';
+  children?: React.ReactNode;
+}
+
+export const NovoComponente: React.FC&lt;NovoComponenteProps&gt; = ({
+  title,
+  variant = 'primary',
+  children
+}) =&gt; {
+  return (
+    &lt;div className={`novo-componente novo-componente--${variant}`}&gt;
+      &lt;h3 className="novo-componente__title"&gt;{title}&lt;/h3&gt;
+      &lt;div className="novo-componente__content"&gt;
+        {children}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+};
+            </div>
+            
+            <h4>🎨 CSS Modular</h4>
+            <div class="code-block">
+/* src/components/NovoComponente/NovoComponente.css */
+.novo-componente {
+  background: var(--branco);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  box-shadow: var(--box-shadow);
+}
+
+.novo-componente--primary {
+  border-left: 4px solid var(--verde-esperanca);
+}
+
+.novo-componente--secondary {
+  border-left: 4px solid var(--cinza-medio);
+}
+
+.novo-componente__title {
+  color: var(--cinza-escuro);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .novo-componente {
+    padding: var(--spacing-sm);
+  }
+}
+            </div>
+            
+            <h3>🔧 Debugging e Ferramentas</h3>
+            
+            <h4>🐛 React Developer Tools</h4>
+            <ul>
+                <li>Instalar extensão do navegador</li>
+                <li>Inspecionar componentes e props</li>
+                <li>Monitorar context e estado</li>
+                <li>Profiling de performance</li>
+            </ul>
+            
+            <h4>📊 Monitoramento de Performance</h4>
+            <div class="code-block">
+// src/utils/performance.ts
+export const measurePerformance = (name: string, fn: () =&gt; void) =&gt; {
+  const start = performance.now();
+  fn();
+  const end = performance.now();
+  console.log(`${name} took ${end - start} milliseconds`);
+};
+
+// Uso em componentes
+useEffect(() =&gt; {
+  measurePerformance('Component Mount', () =&gt; {
+    // Lógica do componente
+  });
+}, []);
+            </div>
+            
+            <h3>🚀 Deploy e Build</h3>
+            
+            <h4>📦 Build de Produção</h4>
+            <div class="code-block">
+# Build otimizado
+npm run build
+
+# Preview do build
+npm run preview
+
+# Análise do bundle (adicionar se necessário)
+npm install --save-dev @rollup/plugin-analyzer
+            </div>
+            
+            <h4>🐳 Docker para Produção</h4>
+            <div class="code-block">
+# Dockerfile.prod (exemplo)
+FROM node:22-alpine as build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+            </div>
+            
+            <h3>🧪 Testes (Planejamento Futuro)</h3>
+            <div class="alert alert-warning">
+                <strong>Testing Strategy:</strong> Embora não implementado ainda, o projeto está preparado para incluir testes unitários com Jest/Vitest e testes E2E com Playwright.
+            </div>
+            
+            <div class="code-block">
+// Estrutura planejada para testes
+src/
+ ├── components/
+ │   └── __tests__/
+ │       └── Header.test.tsx
+ ├── pages/
+ │   └── __tests__/
+ │       └── Home.test.tsx
+ └── utils/
+     └── __tests__/
+         └── validation.test.ts
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer style="text-align: center; margin-top: 60px; padding: 40px 0; background: var(--primary-green); color: var(--white); border-radius: var(--border-radius);">
+            <h3>📚 IFala Frontend Documentation</h3>
+            <p>Desenvolvido com ❤️ para o Instituto Federal do Piauí - Campus Corrente</p>
+            <p><strong>Versão:</strong> 1.0.0 | <strong>Última atualização:</strong> Novembro 2025</p>
+            
+            <div style="margin-top: 20px;">
+                <strong>🚀 Tecnologias Principais:</strong>
+                <span class="badge" style="background: var(--white); color: var(--primary-green); margin: 0 5px;">React 19</span>
+                <span class="badge" style="background: var(--white); color: var(--primary-green); margin: 0 5px;">TypeScript</span>
+                <span class="badge" style="background: var(--white); color: var(--primary-green); margin: 0 5px;">Material-UI</span>
+                <span class="badge" style="background: var(--white); color: var(--primary-green); margin: 0 5px;">Vite</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Smooth scrolling para navegação interna
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Highlight da navegação ativa
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav a');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 150;
+                if (window.pageYOffset >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Console log para desenvolvedores
+        console.log('%c🎯 IFala Frontend Documentation', 'color: #2B7A2B; font-size: 16px; font-weight: bold;');
+        console.log('%cDocumentação técnica completa do frontend do sistema IFala', 'color: #6C757D; font-size: 12px;');
+        console.log('%cPara mais informações: https://github.com/ReneDouglas/projeto-IFala', 'color: #1976D2; font-size: 12px;');
+    </script>
+</body>
+</html>

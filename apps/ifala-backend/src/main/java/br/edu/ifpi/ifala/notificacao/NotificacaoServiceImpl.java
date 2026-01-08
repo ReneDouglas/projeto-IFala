@@ -1,8 +1,10 @@
 package br.edu.ifpi.ifala.notificacao;
 
-import java.util.List;
+import br.edu.ifpi.ifala.notificacao.dto.NotificacaoDto;
+import br.edu.ifpi.ifala.notificacao.dto.PaginatedNotificacaoDto;
 import java.util.Optional;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,15 +12,28 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificacaoServiceImpl implements NotificacaoService {
 
   private final NotificacaoRepository repository;
+  private final NotificacaoMapper mapper;
 
-  public NotificacaoServiceImpl(NotificacaoRepository repository) {
+  public NotificacaoServiceImpl(NotificacaoRepository repository, NotificacaoMapper mapper) {
     this.repository = repository;
+    this.mapper = mapper;
   }
 
   @Override
-  public List<Notificacao> listarNaoLidas() {
-    // Limita o retorno para 5 itens (mais antigas primeiro) para otimizar UI e performance
-    return repository.findLidaFalseOrderByDataEnvioAsc(PageRequest.of(0, 5));
+  public PaginatedNotificacaoDto listarNaoLidas(final Pageable pageable) {
+    // Busca notificações não lidas paginadas e converte para DTO
+    Page<Notificacao> page = repository.findLidaFalseOrderByDataEnvioDesc(pageable);
+    return mapper.toPaginatedDto(page);
+  }
+
+  @Override
+  public Optional<NotificacaoDto> marcarComoLidaDto(Long id, String usuario) {
+    return repository.findById(id).map(n -> {
+      n.setLida(true);
+      n.setLidaPor(usuario);
+      Notificacao saved = repository.save(n);
+      return mapper.toDto(saved);
+    });
   }
 
   @Override

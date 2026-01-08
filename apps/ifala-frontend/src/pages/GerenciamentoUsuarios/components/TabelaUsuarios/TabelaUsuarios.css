@@ -1,0 +1,144 @@
+/* ================================
+   TABELA DE USUÁRIOS - ESTILOS
+   ================================ */
+
+.tabela-usuarios-container {
+  width: 100%;
+}
+
+/* Barra de Ferramentas */
+.toolbar-usuarios {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Filtros Avançados */
+.filtros-avancados {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background-color: var(--cinza-claro);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Container da Tabela */
+.table-container {
+  border-radius: 12px !important;
+  box-shadow: var(--sombra-media) !important;
+  overflow: hidden;
+}
+
+/* Estados da Tabela */
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  color: var(--cinza-medio);
+}
+
+.empty-state .material-symbols-outlined {
+  font-size: 64px;
+  color: var(--cinza-medio);
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  color: var(--cinza-escuro);
+  margin: 0;
+}
+
+.empty-state p {
+  margin: 0;
+  text-align: center;
+  max-width: 400px;
+}
+
+/* Username code style */
+.username-code {
+  background-color: var(--cinza-claro);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: var(--azul-confianca);
+}
+
+/* Hover effect nas linhas */
+.MuiTableRow-root:hover {
+  transition: background-color 0.2s ease;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .toolbar-usuarios {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-usuarios .MuiTextField-root {
+    width: 100%;
+  }
+
+  .toolbar-usuarios > div:last-child {
+    justify-content: flex-end;
+  }
+
+  .filtros-avancados {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filtros-avancados .MuiFormControl-root {
+    width: 100%;
+  }
+
+  .filtros-avancados > div:last-child {
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  /* Tabela com scroll horizontal em mobile */
+  .table-container {
+    max-width: 100vw;
+  }
+
+  /* Ajusta tamanho de fonte e padding em células */
+  .MuiTableCell-root {
+    font-size: 0.875rem !important;
+    padding: 12px 8px !important;
+  }
+
+  /* Username code menor em mobile */
+  .username-code {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+  }
+
+  /* Esconde algumas colunas em mobile */
+  .table-container .MuiTableCell-root:nth-child(3),
+  .table-container .MuiTableCell-root:nth-child(4) {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Scroll horizontal para tabela em telas muito pequenas */
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .MuiTable-root {
+    min-width: 600px;
+  }
+}
