@@ -40,6 +40,7 @@ COPY --from=builder /app/target/ifala-0.0.1-SNAPSHOT.jar ifala-api.jar
 # -XX:+UseStringDeduplication: Otimização de strings duplicadas
 # Nota: Java 25 já usa o melhor GC disponível por padrão (não precisa especificar UseG1GC)
 ENTRYPOINT ["java", \
+    "-Djava.net.preferIPv4Stack=true", \
     "-Xms1g", \
     "-Xmx1g", \
     "-XX:+UseStringDeduplication", \
