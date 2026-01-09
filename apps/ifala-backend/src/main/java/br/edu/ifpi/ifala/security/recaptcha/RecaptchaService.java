@@ -22,16 +22,31 @@ public class RecaptchaService {
   private final RecaptchaConfig recaptchaConfig;
   private static final Logger log = LoggerFactory.getLogger(RecaptchaService.class);
 
+  /**
+   * Construtor do serviço de validação do reCAPTCHA.
+   *
+   * @param recaptchaConfig configuração contendo a URL e a chave secreta do reCAPTCHA
+   */
   public RecaptchaService(RecaptchaConfig recaptchaConfig) {
     this.restClient = RestClient.create();
     this.recaptchaConfig = recaptchaConfig;
   }
 
+  /**
+   * Valida o token do reCAPTCHA verificando a ação esperada e o score mínimo.
+   *
+   * @param token o token do reCAPTCHA recebido do cliente
+   * @param actionEsperada a ação esperada que deve corresponder à ação do token
+   * @param scoreMinimo o score mínimo aceitável (0.0 a 1.0)
+   * @return true se o token for válido, a ação corresponder e o score for maior ou igual ao mínimo;
+   *         false caso contrário
+   */
   public Boolean validarToken(String token, String actionEsperada, double scoreMinimo) {
     log.info("🔍 Iniciando validação do reCAPTCHA...");
-    log.debug("Token recebido (primeiros 50 chars): {}", token != null ? token.substring(0, Math.min(50, token.length())) : "null");
+    log.debug("Token recebido (primeiros 50 chars): {}",
+        token != null ? token.substring(0, Math.min(50, token.length())) : "null");
     log.debug("Action esperada: '{}', Score mínimo: {}", actionEsperada, scoreMinimo);
-    
+
     MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
     formData.add("secret", recaptchaConfig.getSecret());
     formData.add("response", token);
@@ -51,7 +66,7 @@ public class RecaptchaService {
       log.info("   - success: {}", dto.isSuccess());
       log.info("   - action: '{}'", dto.getAction());
       log.info("   - score: {}", dto.getScore());
-      log.info("   - errorCodes: {}", 
+      log.info("   - errorCodes: {}",
           dto.getErrorCodes() != null ? String.join(", ", dto.getErrorCodes()) : "nenhum");
 
       // Verificação específica para detectar uso de chaves v2 com código v3
