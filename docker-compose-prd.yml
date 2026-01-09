@@ -63,6 +63,8 @@ services:
       SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
       TZ: America/Sao_Paulo
+    volumes:
+      - provas_data_prd:/app/uploads/provas
     networks:
       - ifala-network
     depends_on:
