@@ -61,17 +61,6 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
       TZ: America/Sao_Paulo
-    logging:
-      driver: json-file
-      options:
-        max-size: '10m'
-        max-file: '3'
-        labels: 'app,environment'
-        tag: '{{.Name}}'
-    labels:
-      logging: 'promtail'
-      app: 'ifala-backend'
-      environment: 'production'
     networks:
       - ifala-network
     depends_on:
@@ -103,17 +92,6 @@ services:
         - VITE_RECAPTCHA_SITE_KEY=${VITE_RECAPTCHA_SITE_KEY}
     container_name: ifala-frontend-prd
     restart: always
-    logging:
-      driver: json-file
-      options:
-        max-size: '10m'
-        max-file: '3'
-        labels: 'app,environment'
-        tag: '{{.Name}}'
-    labels:
-      logging: 'promtail'
-      app: 'ifala-frontend'
-      environment: 'production'
     networks:
       - ifala-network
     depends_on:
@@ -224,17 +202,6 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../certs/ifala.cacor.ifpi.edu.br.crt:/etc/nginx/ssl/ifala.cacor.ifpi.edu.br.crt:ro
       - ../certs/ifala.cacor.ifpi.edu.br.key:/etc/nginx/ssl/ifala.cacor.ifpi.edu.br.key:ro
-    logging:
-      driver: json-file
-      options:
-        max-size: '10m'
-        max-file: '3'
-        labels: 'app,environment'
-        tag: '{{.Name}}'
-    labels:
-      logging: 'promtail'
-      app: 'nginx-gateway'
-      environment: 'production'
     networks:
       - ifala-network
     depends_on:

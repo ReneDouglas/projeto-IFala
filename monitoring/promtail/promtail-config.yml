@@ -9,50 +9,11 @@ clients:
   - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
-  # Configuração para coletar logs dos containers Docker
   - job_name: docker
     docker_sd_configs:
       - host: unix:///var/run/docker.sock
         refresh_interval: 5s
-        filters:
-          - name: label
-            values: ['logging=promtail']
-
     relabel_configs:
-      # Nome do container
       - source_labels: ['__meta_docker_container_name']
         regex: '/(.*)'
         target_label: 'container'
-
-      # Label customizada 'app'
-      - source_labels: ['__meta_docker_container_label_app']
-        target_label: 'app'
-
-      # Label customizada 'environment'
-      - source_labels: ['__meta_docker_container_label_environment']
-        target_label: 'environment'
-
-      # ID do container (útil para debug)
-      - source_labels: ['__meta_docker_container_id']
-        regex: '(.{12}).*'
-        target_label: 'container_id'
-
-      # Nome da imagem
-      - source_labels:
-          ['__meta_docker_container_label_com_docker_compose_service']
-        target_label: 'service'
-
-    # Pipeline para processar logs do Spring Boot
-    pipeline_stages:
-      # Extrai timestamp, level e mensagem de logs do Spring Boot
-      - regex:
-          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})\s+(?P<level>\w+)\s+\[(?P<class>[^\]]+)\]\s+::\s+(?P<message>.*)$'
-
-      # Define o nível de log como label
-      - labels:
-          level:
-
-      # Define o timestamp do log
-      - timestamp:
-          source: timestamp
-          format: '2006-01-02 15:04:05'
