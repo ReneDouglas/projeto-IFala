@@ -85,6 +85,16 @@ a:hover {
 }
 
 /* ================================
+   ÍCONES MATERIAL SYMBOLS - PROTEÇÃO CONTRA TRADUÇÃO
+   ================================ */
+.material-symbols-outlined {
+  /* Previne que tradutores automáticos traduzam os ícones */
+  -webkit-user-select: none;
+  user-select: none;
+  /* Adiciona atributo translate="no" via CSS */
+}
+
+/* ================================
    TÍTULOS (H1 a H6)
    ================================ */
 h1,

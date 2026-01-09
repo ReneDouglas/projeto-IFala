@@ -28,7 +28,7 @@ function Header({ setSidebarOpen, variant = 'home' }: HeaderProps) {
               onClick={() => navigate(-1)}
               aria-label='Voltar para a página anterior'
             >
-              <span className='material-symbols-outlined'>arrow_back</span>
+              <span className='material-symbols-outlined notranslate' translate="no">arrow_back</span>
             </button>
           )}
 
@@ -56,7 +56,7 @@ function Header({ setSidebarOpen, variant = 'home' }: HeaderProps) {
             onClick={() => setSidebarOpen(true)}
             aria-label='Abrir menu de navegação'
           >
-            <span className='material-symbols-outlined'>menu</span>
+            <span className='material-symbols-outlined notranslate' translate="no">menu</span>
           </button>
         </div>
       </div>
