@@ -18,6 +18,7 @@ import {
   Alert,
   Button,
   CircularProgress,
+  Backdrop,
   type SelectChangeEvent,
 } from '@mui/material';
 //import ReCAPTCHA from 'react-google-recaptcha';
@@ -322,6 +323,7 @@ export function Denuncia() {
       navigate('/denuncia/sucesso', {
         state: { token: response.tokenAcompanhamento },
       });
+      // Não desativa o submitting aqui - mantém o overlay até a próxima página carregar
     } catch (error) {
       console.error('Erro ao criar denúncia:', error);
 
@@ -340,7 +342,7 @@ export function Denuncia() {
           'Erro ao enviar denúncia. Por favor, tente novamente mais tarde.',
         );
       }
-    } finally {
+      // Só desativa o submitting se houver erro
       setSubmitting(false);
     }
   };
@@ -834,6 +836,36 @@ export function Denuncia() {
           </Paper>
         )}
       </Container>
+
+      {/* Backdrop com loading durante o envio */}
+      <Backdrop
+        sx={{
+          color: '#fff',
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        }}
+        open={submitting}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          <CircularProgress
+            size={60}
+            sx={{ color: 'var(--verde-esperanca)' }}
+          />
+          <Typography variant='h6' sx={{ color: '#fff', fontWeight: 'bold' }}>
+            Enviando sua denúncia...
+          </Typography>
+          <Typography variant='body2' sx={{ color: '#fff' }}>
+            Por favor, aguarde. Isso pode levar alguns segundos.
+          </Typography>
+        </Box>
+      </Backdrop>
     </Box>
   );
 }
