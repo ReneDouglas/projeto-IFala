@@ -12,7 +12,7 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PeopleIcon from '@mui/icons-material/People';
 import { FormularioUsuario } from './components/FormularioUsuario/FormularioUsuario';
 import { TabelaUsuarios } from './components/TabelaUsuarios/TabelaUsuarios';
-import type { Usuario } from './types/usuario';
+import type { Usuario } from '../../types/usuario';
 import './GerenciamentoUsuarios.css';
 
 export function GerenciamentoUsuarios() {
