@@ -431,9 +431,15 @@ public class AuthServiceImpl implements AuthService {
             cb.like(cb.lower(root.get("email")), term),
             cb.like(cb.lower(root.get("username")), term)));
       }
-
       if (role != null && !role.isEmpty()) {
-        predicates.add(cb.equal(root.get("role"), role));
+        try {
+          // converte a string que vem do front para o Enum
+          Perfis perfilEnum = Perfis.valueOf(role.toUpperCase());
+          // verifica se o perfilEnum é membro da lista roles
+          predicates.add(cb.isMember(perfilEnum, root.get("roles")));
+        } catch (IllegalArgumentException e) {
+          logger.warn("Filtro de perfil inválido recebido: {}", role);
+        }
       }
 
       if (mustChangePassword != null) {
@@ -503,7 +509,7 @@ public class AuthServiceImpl implements AuthService {
             } catch (IllegalArgumentException e) {
               throw new InvalidRoleException("O perfil '" + roleString + "' é inválido.");
             }
-          }).toList();
+          }).collect(Collectors.toList());
       usuario.setRoles(perfisConvertidos);
     }
 

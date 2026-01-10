@@ -18,7 +18,7 @@ export async function listarUsuarios(
   size = 10,
   filters: Partial<UsuarioFilters>,
 ): Promise<UsuariosResponse> {
-  const response = await axiosClient.get('/admin/usuarios', {
+  const response = await axiosClient.get('/auth/admin/usuarios', {
     params: {
       page,
       size,
@@ -37,7 +37,7 @@ export async function listarUsuarios(
  * @returns Uma promessa que resolve para os detalhes do usuário.
  */
 export async function buscarUsuarioPorId(id: number): Promise<Usuario> {
-  const response = await axiosClient.get(`/admin/usuarios/${id}`);
+  const response = await axiosClient.get(`/auth/admin/usuarios/${id}`);
   return response.data;
 }
 
@@ -50,7 +50,7 @@ export async function registrarUsuario(
   dadosUsuario: RegistroUsuarioRequest,
 ): Promise<Usuario> {
   const response = await axiosClient.post(
-    '/admin/registrar-usuario',
+    '/auth/admin/registrar-usuario',
     dadosUsuario,
   );
   return response.data;
@@ -66,6 +66,6 @@ export async function atualizarUsuario(
   id: number,
   dadosUsuario: AtualizarUsuarioRequest,
 ): Promise<Usuario> {
-  const response = await axiosClient.put(`/admin/usuarios/${id}`, dadosUsuario);
+  const response = await axiosClient.put(`/auth/admin/usuarios/${id}`, dadosUsuario);
   return response.data;
 }
