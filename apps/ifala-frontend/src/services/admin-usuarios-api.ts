@@ -66,6 +66,9 @@ export async function atualizarUsuario(
   id: number,
   dadosUsuario: AtualizarUsuarioRequest,
 ): Promise<Usuario> {
-  const response = await axiosClient.put(`/auth/admin/usuarios/${id}`, dadosUsuario);
+  const response = await axiosClient.put(
+    `/auth/admin/usuarios/${id}`,
+    dadosUsuario,
+  );
   return response.data;
 }
