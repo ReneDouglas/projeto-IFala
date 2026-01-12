@@ -8,10 +8,9 @@ import {
 } from '@react-pdf/renderer';
 
 // --- CONFIGURAÇÃO DAS IMAGENS ---
-// Caminhos exatos conforme estão na sua pasta public
 const logoIfpiUrl = '/logo-IFPI-Horizontal.png';
 const logoIfalaUrl = '/IFala-logo.png';
-const watermarkUrl = '/Logo-IFPI-Vertical.png'; // <--- AQUI ESTÁ A MÁGICA
+const watermarkUrl = '/Logo-IFPI-Vertical.png';
 // --------------------------------
 
 const styles = StyleSheet.create({
@@ -20,19 +19,25 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica',
     fontSize: 10,
     paddingBottom: 60,
-    position: 'relative', // Necessário para o fundo funcionar
+    position: 'relative',
   },
 
-  // --- ESTILO DA MARCA D'ÁGUA (FUNDO) ---
+  // --- ESTILO DA MARCA D'ÁGUA (AGORA GIGANTE!) ---
   watermark: {
     position: 'absolute',
-    top: 180, // Empurra para o meio da página
-    left: '25%', // Centraliza horizontalmente
-    width: '50%', // Tamanho da imagem (ajuste se ficar grande demais)
-    opacity: 0.1, // Bem clarinho (10%) para não atrapalhar o texto
-    zIndex: -1, // Garante que fica atrás do texto
+    // Centraliza verticalmente (mais ou menos no meio da página A4)
+    top: 150,
+    // Centraliza horizontalmente (5% de margem de cada lado = 90% de largura)
+    left: '5%',
+    // Largura total
+    width: '90%',
+    // Mantém a proporção da imagem para não distorcer
+    objectFit: 'contain',
+    // Opacidade (regule aqui se ficar muito forte ou fraco)
+    opacity: 0.12,
+    zIndex: -1,
   },
-  // ---------------------------------------
+  // -----------------------------------------------
 
   // Cabeçalho
   headerContainer: {
@@ -117,24 +122,22 @@ interface RelatorioProps {
 export const RelatorioDenunciaPDF = ({ dados }: RelatorioProps) => (
   <Document>
     <Page size='A4' style={styles.page}>
-      {/* 1. MARCA D'ÁGUA (Fica em primeiro para ser o fundo) */}
+      {/* Marca d'água de fundo */}
       <Image src={watermarkUrl} style={styles.watermark} fixed />
 
-      {/* 2. CABEÇALHO */}
+      {/* Cabeçalho */}
       <View style={styles.headerContainer}>
         <Image src={logoIfpiUrl} style={styles.logoIfpi} />
-
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>INSTITUTO FEDERAL DO PIAUÍ</Text>
           <Text style={styles.headerSub}>
             SISTEMA IFALA - Gestão de Ouvidoria
           </Text>
         </View>
-
         <Image src={logoIfalaUrl} style={styles.logoIfala} />
       </View>
 
-      {/* 3. CONTEÚDO */}
+      {/* Conteúdo */}
       <Text style={styles.title}>RELATÓRIO DE OCORRÊNCIA</Text>
 
       <Text style={styles.sectionTitle}>1. DADOS DO REGISTRO</Text>
@@ -168,7 +171,7 @@ export const RelatorioDenunciaPDF = ({ dados }: RelatorioProps) => (
         </Text>
       </View>
 
-      {/* 4. RODAPÉ FIXO */}
+      {/* Rodapé Fixo */}
       <View style={styles.footerContainer} fixed>
         <Text style={styles.footerText}>
           Este documento foi emitido eletronicamente pelo Sistema IFala. A sua
