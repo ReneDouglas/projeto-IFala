@@ -29,6 +29,13 @@ import type {
   MensagemAcompanhamento,
 } from '../../types/acompanhamento';
 import { useAuth } from '../../hooks/useAuth';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { RelatorioDenunciaPDF } from '../../components/RelatorioDenuncia';
+import PrintIcon from '@mui/icons-material/Print';
+type DetalhesComRelato = AcompanhamentoDetalhes & {
+  descricaoDetalhada?: string;
+  descricao?: string;
+};
 
 const statusColorMap = (status: string) => {
   switch (status.toUpperCase()) {
@@ -368,6 +375,19 @@ export function Acompanhamento() {
     (detalhes.status.toUpperCase() === 'RESOLVIDO' ||
       detalhes.status.toUpperCase() === 'REJEITADO');
 
+  const dadosParaRelatorio = detalhes
+    ? {
+        protocolo: detalhes.tokenAcompanhamento || detalhes.id.toString(),
+        data: formatarData(detalhes.criadoEm),
+        categoria: formatarCategoria(detalhes.categoria),
+        status: formatarStatus(detalhes.status),
+        relato:
+          (detalhes as DetalhesComRelato).descricaoDetalhada ||
+          (detalhes as DetalhesComRelato).descricao ||
+          'Sem descrição disponível.',
+      }
+    : null;
+
   // Estado de carregamento
   if (loading) {
     return (
@@ -661,6 +681,42 @@ export function Acompanhamento() {
                     </Box>
                   ))}
                 </Box>
+              </Box>
+            )}
+            {isAdmin && detalhes && dadosParaRelatorio && (
+              <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid #eee' }}>
+                <PDFDownloadLink
+                  document={<RelatorioDenunciaPDF dados={dadosParaRelatorio} />}
+                  fileName={`relatorio_${detalhes.tokenAcompanhamento || detalhes.id}.pdf`}
+                  style={{ textDecoration: 'none' }}
+                >
+                  {({ loading: pdfLoading }) => (
+                    <Button
+                      variant='outlined'
+                      fullWidth
+                      startIcon={
+                        pdfLoading ? (
+                          <CircularProgress size={20} />
+                        ) : (
+                          <PrintIcon />
+                        )
+                      }
+                      disabled={pdfLoading}
+                      sx={{
+                        color: '#555',
+                        borderColor: '#999',
+                        '&:hover': {
+                          backgroundColor: '#f5f5f5',
+                          borderColor: '#333',
+                        },
+                      }}
+                    >
+                      {pdfLoading
+                        ? 'Gerando PDF...'
+                        : 'Exportar Relatório / Imprimir'}
+                    </Button>
+                  )}
+                </PDFDownloadLink>
               </Box>
             )}
           </Paper>
