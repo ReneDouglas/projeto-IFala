@@ -9,6 +9,7 @@ import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioDetalheResponseDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.AtualizarUsuarioRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -107,6 +108,7 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   @Transactional
+  @CacheEvict(value = "userDetailsCache", key = "#registroRequest.email()")
   public UsuarioResponseDTO registrarUsuario(RegistroRequestDTO registroRequest) {
     logger.info("Tentativa de registro de usuário: {}", registroRequest.email());
 
@@ -244,6 +246,7 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   @Transactional
+  @CacheEvict(value = "userDetailsCache", key = "#req.email()")
   public LoginResponseDTO changePassword(MudarSenhaRequestDTO req) {
     logger.info("Tentativa de mudança de senha recebida para o e-mail: {}", req.email());
 
