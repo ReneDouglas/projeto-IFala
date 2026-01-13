@@ -165,6 +165,9 @@ export function Login() {
           errorMessage.includes('Um e-mail de redefinição foi enviado')
         ) {
           setSuccessMessage(errorMessage);
+          // Limpa o formulário para evitar reenvio acidental
+          setFormData({ matricula: '', senha: '' });
+          setErrors({ matricula: '', senha: '' });
         } else if ('response' in err) {
           const axiosError = err as {
             response?: { data?: { message?: string } };
@@ -214,6 +217,10 @@ export function Login() {
       setSuccessMessage(
         `Email enviado com sucesso para ${formData.matricula}! Confira sua caixa de entrada e siga as instruções para redefinir sua senha.`,
       );
+
+      // Limpa o formulário para evitar reenvio acidental
+      setFormData({ matricula: '', senha: '' });
+      setErrors({ matricula: '', senha: '' });
 
       // Limpar erro se existir
       setError('');
