@@ -10,6 +10,7 @@ import br.edu.ifpi.ifala.autenticacao.dto.UsuarioDetalheResponseDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.AtualizarUsuarioRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -23,6 +24,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -67,8 +69,8 @@ public class AuthServiceImpl implements AuthService {
   private final TokenBlacklistService tokenBlacklistService;
   private final RefreshTokenService refreshTokenService;
   private final NotificacaoExternaService notificacaoExternaService;
-
   private final AuthenticationManager authenticationManager;
+  private final CacheManager cacheManager;
 
   @Value("${app.frontend.reset-password-url:http://localhost:5173/redefinir-senha}")
   private String resetPasswordUrl;
@@ -76,7 +78,7 @@ public class AuthServiceImpl implements AuthService {
   public AuthServiceImpl(UsuarioRepository userRepository, PasswordEncoder passwordEncoder,
       JwtUtil jwtUtil, TokenBlacklistService tokenBlacklistService,
       RefreshTokenService refreshTokenService, NotificacaoExternaService notificacaoExternaService,
-      AuthenticationManager authenticationManager) {
+      AuthenticationManager authenticationManager, CacheManager cacheManager) {
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.jwtUtil = jwtUtil;
@@ -84,6 +86,7 @@ public class AuthServiceImpl implements AuthService {
     this.refreshTokenService = refreshTokenService;
     this.notificacaoExternaService = notificacaoExternaService;
     this.authenticationManager = authenticationManager;
+    this.cacheManager = cacheManager;
   }
 
   /**
@@ -104,11 +107,33 @@ public class AuthServiceImpl implements AuthService {
     return determinedPath;
   }
 
+  /**
+   * Invalida todas as entradas de cache para um usuário (email e username). Necessário porque o
+   * cache armazena UserDetails com duas chaves diferentes.
+   * 
+   * @param user O usuário cujo cache deve ser invalidado
+   */
+  private void evictUserCache(Usuario user) {
+    var cache = cacheManager.getCache("userDetailsCache");
+    if (cache != null) {
+      // Invalida cache pelo email
+      cache.evict(user.getEmail());
+      // Invalida cache pelo username (se existir)
+      if (user.getUsername() != null) {
+        cache.evict(user.getUsername());
+      }
+      logger.debug("Cache invalidado para usuário: {} (username: {})", user.getEmail(),
+          user.getUsername());
+    }
+  }
+
   // LÓGICA DE REGISTRO
 
   @Override
   @Transactional
-  @CacheEvict(value = "userDetailsCache", key = "#registroRequest.email()")
+  @Caching(evict = {@CacheEvict(value = "userDetailsCache", key = "#registroRequest.email()"),
+      @CacheEvict(value = "userDetailsCache", key = "#registroRequest.username()",
+          condition = "#registroRequest.username() != null")})
   public UsuarioResponseDTO registrarUsuario(RegistroRequestDTO registroRequest) {
     logger.info("Tentativa de registro de usuário: {}", registroRequest.email());
 
@@ -246,7 +271,6 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   @Transactional
-  @CacheEvict(value = "userDetailsCache", key = "#req.email()")
   public LoginResponseDTO changePassword(MudarSenhaRequestDTO req) {
     logger.info("Tentativa de mudança de senha recebida para o e-mail: {}", req.email());
 
@@ -294,6 +318,9 @@ public class AuthServiceImpl implements AuthService {
     user.setPasswordResetToken(null);
     user.setPasswordResetExpires(null);
     userRepository.save(user);
+
+    // Invalida cache manualmente para email e username
+    evictUserCache(user);
 
     logger.info("Senha alterada com sucesso para o usuário: {}", user.getEmail());
 

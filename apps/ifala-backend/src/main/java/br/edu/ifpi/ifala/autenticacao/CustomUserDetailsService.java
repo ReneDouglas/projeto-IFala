@@ -1,6 +1,8 @@
 package br.edu.ifpi.ifala.autenticacao;
 
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,7 +25,9 @@ public class CustomUserDetailsService implements UserDetailsService {
   }
 
   @Override
-  @Cacheable(value = "userDetailsCache", key = "#username")
+  @Caching(cacheable = @Cacheable(value = "userDetailsCache", key = "#username"),
+      put = {@CachePut(value = "userDetailsCache", key = "#result.username",
+          condition = "#result != null")})
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
     Usuario usuario = usuarioRepository.findByEmailOrUsername(username)
