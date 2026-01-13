@@ -384,6 +384,7 @@ export function Acompanhamento() {
         relato:
           (detalhes as DetalhesComRelato).descricaoDetalhada ||
           (detalhes as DetalhesComRelato).descricao ||
+          mensagens?.[0]?.mensagem ||
           'Sem descrição disponível.',
       }
     : null;

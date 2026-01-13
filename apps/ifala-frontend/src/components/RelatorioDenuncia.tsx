@@ -8,9 +8,8 @@ import {
 } from '@react-pdf/renderer';
 
 // --- CONFIGURAÇÃO DAS IMAGENS ---
-const logoIfpiUrl = '/logo-IFPI-Horizontal.png';
+const logoVerticalUrl = '/Logo-IFPI-Vertical.png';
 const logoIfalaUrl = '/IFala-logo.png';
-const watermarkUrl = '/Logo-IFPI-Vertical.png';
 // --------------------------------
 
 const styles = StyleSheet.create({
@@ -22,24 +21,18 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
 
-  // --- ESTILO DA MARCA D'ÁGUA (AGORA GIGANTE!) ---
+  // Marca D'água (VOLTOU PARA A POSIÇÃO ORIGINAL)
   watermark: {
     position: 'absolute',
-    // Centraliza verticalmente (mais ou menos no meio da página A4)
-    top: 150,
-    // Centraliza horizontalmente (5% de margem de cada lado = 90% de largura)
-    left: '5%',
-    // Largura total
-    width: '90%',
-    // Mantém a proporção da imagem para não distorcer
-    objectFit: 'contain',
-    // Opacidade (regule aqui se ficar muito forte ou fraco)
+    top: 299,
+    left: 0,
+    width: '100%',
+    height: 'auto',
     opacity: 0.12,
     zIndex: -1,
   },
-  // -----------------------------------------------
 
-  // Cabeçalho
+  // --- CABEÇALHO (LOGOS GRANDES) ---
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -47,10 +40,24 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderBottom: '1px solid #000',
     paddingBottom: 10,
-    height: 70,
+    height: 130,
   },
-  logoIfpi: { width: 100, height: 45, objectFit: 'contain' },
-  logoIfala: { width: 50, height: 50, objectFit: 'contain' },
+
+  // Logo IFPI (Esquerda)
+  logoIfpiVertical: {
+    width: 100,
+    height: 120,
+    objectFit: 'contain',
+  },
+
+  // Logo IFala (Direita)
+  logoIfala: {
+    width: 110,
+    height: 110,
+    objectFit: 'contain',
+  },
+  // -----------------------------
+
   headerTextContainer: { flex: 1, alignItems: 'center', marginHorizontal: 10 },
   headerTitle: {
     fontSize: 11,
@@ -65,7 +72,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
 
-  // Título e Seções
+  // Títulos e Seções
   title: {
     fontSize: 14,
     textAlign: 'center',
@@ -86,17 +93,47 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', marginBottom: 6, paddingLeft: 5 },
   label: { width: 120, fontWeight: 'bold', fontSize: 10 },
   value: { flex: 1, fontSize: 10 },
+
+  // CAIXA DE TEXTO (MENOR)
   textBox: {
     border: '1px solid #ccc',
     padding: 10,
-    minHeight: 120,
+    minHeight: 80,
     textAlign: 'justify',
     lineHeight: 1.5,
     fontSize: 10,
     marginTop: 5,
   },
 
-  // Rodapé
+  // Área de Assinaturas
+  signaturesContainer: {
+    marginTop: 50,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  signatureBlock: {
+    width: '45%',
+    alignItems: 'center',
+  },
+  signatureLine: {
+    borderTop: '1px solid #999',
+    width: '100%',
+    marginBottom: 5,
+  },
+  signatureText: {
+    fontSize: 9,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  signatureSubText: {
+    fontSize: 8,
+    textAlign: 'center',
+    color: '#666',
+    marginTop: 2,
+  },
+
+  // Rodapé Fixo
   footerContainer: {
     position: 'absolute',
     bottom: 30,
@@ -106,7 +143,7 @@ const styles = StyleSheet.create({
     borderTop: '1px solid #ccc',
     paddingTop: 10,
   },
-  footerText: { fontSize: 8, color: '#666' },
+  footerText: { fontSize: 8, color: '#999' },
 });
 
 interface RelatorioProps {
@@ -122,18 +159,22 @@ interface RelatorioProps {
 export const RelatorioDenunciaPDF = ({ dados }: RelatorioProps) => (
   <Document>
     <Page size='A4' style={styles.page}>
-      {/* Marca d'água de fundo */}
-      <Image src={watermarkUrl} style={styles.watermark} fixed />
+      {/* Marca D'água */}
+      <Image src={logoVerticalUrl} style={styles.watermark} fixed />
 
       {/* Cabeçalho */}
       <View style={styles.headerContainer}>
-        <Image src={logoIfpiUrl} style={styles.logoIfpi} />
+        {/* Logo IFPI Vertical Grande */}
+        <Image src={logoVerticalUrl} style={styles.logoIfpiVertical} />
+
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>INSTITUTO FEDERAL DO PIAUÍ</Text>
           <Text style={styles.headerSub}>
-            SISTEMA IFALA - Gestão de Ouvidoria
+            SISTEMA IFALA - Canal de Denúncias
           </Text>
         </View>
+
+        {/* Logo IFala Grande */}
         <Image src={logoIfalaUrl} style={styles.logoIfala} />
       </View>
 
@@ -163,19 +204,36 @@ export const RelatorioDenunciaPDF = ({ dados }: RelatorioProps) => (
         <Text>{dados.relato}</Text>
       </View>
 
-      <Text style={styles.sectionTitle}>3. ENCAMINHAMENTO / OBSERVAÇÕES</Text>
+      <Text style={styles.sectionTitle}>3. OBSERVAÇÕES </Text>
+      {}
       <View style={{ ...styles.textBox, minHeight: 60 }}>
         <Text>
           Este relatório deve ser analisado pela coordenação competente para as
-          devidas providências, conforme regulamento institucional.
+          devidas providências.
         </Text>
       </View>
 
-      {/* Rodapé Fixo */}
+      {/* Assinaturas */}
+      <View style={styles.signaturesContainer}>
+        <View style={styles.signatureBlock}>
+          <View style={styles.signatureLine} />
+          <Text style={styles.signatureText}>COORDENAÇÃO</Text>
+          <Text style={styles.signatureSubText}>Assinatura ou Carimbo</Text>
+        </View>
+
+        <View style={styles.signatureBlock}>
+          <View style={styles.signatureLine} />
+          <Text style={styles.signatureText}>ALUNO / RESPONSÁVEL</Text>
+          <Text style={styles.signatureSubText}>Assinatura</Text>
+        </View>
+      </View>
+
+      {/* Rodapé */}
       <View style={styles.footerContainer} fixed>
         <Text style={styles.footerText}>
-          Este documento foi emitido eletronicamente pelo Sistema IFala. A sua
-          autenticidade pode ser verificada junto à instituição.
+          Documento emitido pelo Sistema IFala em{' '}
+          {new Date().toLocaleDateString()}. Autenticidade verificável junto à
+          instituição.
         </Text>
       </View>
     </Page>
