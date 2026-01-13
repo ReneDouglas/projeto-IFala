@@ -51,7 +51,12 @@ function Sidebar({
             onClick={closeSidebar}
             aria-label='Fechar menu'
           >
-            <span className='material-symbols-outlined'>close</span>
+            <span
+              className='material-symbols-outlined notranslate'
+              translate='no'
+            >
+              close
+            </span>
           </button>
         </div>
 
@@ -67,7 +72,12 @@ function Sidebar({
                 closeSidebar();
               }}
             >
-              <span className='material-symbols-outlined'>home</span>
+              <span
+                className='material-symbols-outlined notranslate'
+                translate='no'
+              >
+                home
+              </span>
               Página Inicial
             </button>
             <button
@@ -77,7 +87,12 @@ function Sidebar({
                 closeSidebar();
               }}
             >
-              <span className='material-symbols-outlined'>shield</span>
+              <span
+                className='material-symbols-outlined notranslate'
+                translate='no'
+              >
+                shield
+              </span>
               Fazer Denúncia
             </button>
           </div>
@@ -93,7 +108,12 @@ function Sidebar({
                   closeSidebar();
                 }}
               >
-                <span className='material-symbols-outlined'>dashboard</span>
+                <span
+                  className='material-symbols-outlined notranslate'
+                  translate='no'
+                >
+                  dashboard
+                </span>
                 Dashboard de Denúncias
               </button>
               <button
@@ -103,7 +123,10 @@ function Sidebar({
                   closeSidebar();
                 }}
               >
-                <span className='material-symbols-outlined'>
+                <span
+                  className='material-symbols-outlined notranslate'
+                  translate='no'
+                >
                   admin_panel_settings
                 </span>
                 Gerenciar Usuários
@@ -115,7 +138,12 @@ function Sidebar({
                   closeSidebar();
                 }}
               >
-                <span className='material-symbols-outlined'>lock</span>
+                <span
+                  className='material-symbols-outlined notranslate'
+                  translate='no'
+                >
+                  lock
+                </span>
                 Alterar Senha
               </button>
               <button
@@ -125,7 +153,12 @@ function Sidebar({
                   closeSidebar();
                 }}
               >
-                <span className='material-symbols-outlined'>logout</span>
+                <span
+                  className='material-symbols-outlined notranslate'
+                  translate='no'
+                >
+                  logout
+                </span>
                 Sair
               </button>
             </div>
@@ -140,7 +173,12 @@ function Sidebar({
                   closeSidebar();
                 }}
               >
-                <span className='material-symbols-outlined'>login</span>
+                <span
+                  className='material-symbols-outlined notranslate'
+                  translate='no'
+                >
+                  login
+                </span>
                 Login
               </button>
             </div>

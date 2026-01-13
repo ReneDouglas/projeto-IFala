@@ -1,5 +1,8 @@
 package br.edu.ifpi.ifala.autenticacao;
 
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -22,14 +25,12 @@ public class CustomUserDetailsService implements UserDetailsService {
   }
 
   @Override
+  @Caching(cacheable = @Cacheable(value = "userDetailsCache", key = "#username"),
+      put = {@CachePut(value = "userDetailsCache", key = "#result.username",
+          condition = "#result != null")})
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    // Tenta localizar por e-mail primeiro; se não encontrado, tenta por username.
-    var usuarioOpt = usuarioRepository.findByEmail(username);
-    if (usuarioOpt.isEmpty()) {
-      usuarioOpt = usuarioRepository.findByUsername(username);
-    }
 
-    Usuario usuario = usuarioOpt
+    Usuario usuario = usuarioRepository.findByEmailOrUsername(username)
         .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
 
     // Retorna UserDetails com o e-mail como username (o token JWT usa e-mail como identificador).

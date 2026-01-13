@@ -29,7 +29,8 @@ import {
   Check,
   Close,
 } from '@mui/icons-material';
-import type { Usuario, UsuarioFilters } from '../../types/usuario';
+import { listarUsuarios } from '../../../../services/admin-usuarios-api';
+import type { Usuario, UsuarioFilters } from '../../../../types/usuario';
 import './TabelaUsuarios.css';
 
 interface TabelaUsuariosProps {
@@ -49,8 +50,8 @@ export function TabelaUsuarios({
   const [totalElements, setTotalElements] = useState(0);
   const [filters, setFilters] = useState<UsuarioFilters>({
     search: '',
-    perfil: '',
-    senhaTemporaria: '',
+    role: '',
+    mustChangePassword: '',
   });
   const [showFilters, setShowFilters] = useState(false);
 
@@ -64,63 +65,10 @@ export function TabelaUsuarios({
     setError(null);
 
     try {
-      // Simula chamada API com dados mockados
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // TODO: Substituir por chamada real à API
-      // const response = await buscarUsuarios(page, rowsPerPage, filters);
-
-      // Dados mockados para demonstração
-      const mockUsuarios: Usuario[] = [
-        {
-          id: 1,
-          nome: 'João Silva Santos',
-          username: 'joao.silva',
-          email: 'joao.silva@ifpi.edu.br',
-          senhaTemporaria: true,
-          perfil: 'ADMIN',
-          criadoEm: '2025-01-10T10:30:00',
-        },
-        {
-          id: 2,
-          nome: 'Maria Oliveira Costa',
-          username: 'maria.oliveira',
-          email: 'maria.oliveira@ifpi.edu.br',
-          senhaTemporaria: false,
-          perfil: 'USER',
-          criadoEm: '2025-01-11T14:20:00',
-        },
-        {
-          id: 3,
-          nome: 'Pedro Henrique Almeida',
-          username: 'pedro.almeida',
-          email: 'pedro.almeida@ifpi.edu.br',
-          senhaTemporaria: true,
-          perfil: 'USER',
-          criadoEm: '2025-01-12T09:15:00',
-        },
-        {
-          id: 4,
-          nome: 'Ana Paula Rodrigues',
-          username: 'ana.rodrigues',
-          email: 'ana.rodrigues@ifpi.edu.br',
-          senhaTemporaria: false,
-          perfil: 'ADMIN',
-          criadoEm: '2025-01-13T16:45:00',
-        },
-        {
-          id: 5,
-          nome: 'Carlos Eduardo Souza',
-          username: 'carlos.souza',
-          email: 'carlos.souza@ifpi.edu.br',
-          senhaTemporaria: true,
-          perfil: 'USER',
-          criadoEm: '2025-01-14T11:00:00',
-        },
-      ];
-
-      setUsuarios(mockUsuarios);
-      setTotalElements(mockUsuarios.length);
+      const data = await listarUsuarios(page, rowsPerPage, filters);
+      // const response = await listarUsuarios(page, rowsPerPage, filters);
+      setUsuarios(data.content);
+      setTotalElements(data.totalElements);
     } catch (err) {
       setError(
         err instanceof Error
@@ -155,8 +103,8 @@ export function TabelaUsuarios({
   const handleClearFilters = () => {
     setFilters({
       search: '',
-      perfil: '',
-      senhaTemporaria: '',
+      role: '',
+      mustChangePassword: '',
     });
     setPage(0);
     fetchUsuarios();
@@ -230,13 +178,13 @@ export function TabelaUsuarios({
           >
             <InputLabel>Perfil</InputLabel>
             <Select
-              value={filters.perfil}
+              value={filters.role}
               label='Perfil'
-              onChange={(e) => handleFilterChange('perfil', e.target.value)}
+              onChange={(e) => handleFilterChange('role', e.target.value)}
             >
               <MenuItem value=''>Todos</MenuItem>
               <MenuItem value='ADMIN'>Administrador</MenuItem>
-              <MenuItem value='USER'>Usuário</MenuItem>
+              <MenuItem value='ANONIMO'>Usuário</MenuItem>
             </Select>
           </FormControl>
 
@@ -250,10 +198,10 @@ export function TabelaUsuarios({
           >
             <InputLabel>Senha Temporária</InputLabel>
             <Select
-              value={filters.senhaTemporaria}
+              value={filters.mustChangePassword}
               label='Senha Temporária'
               onChange={(e) =>
-                handleFilterChange('senhaTemporaria', e.target.value)
+                handleFilterChange('mustChangePassword', e.target.value)
               }
             >
               <MenuItem value=''>Todos</MenuItem>
@@ -362,7 +310,7 @@ export function TabelaUsuarios({
                   </TableCell>
                   <TableCell>{usuario.email}</TableCell>
                   <TableCell align='center'>
-                    {usuario.senhaTemporaria ? (
+                    {usuario.mustChangePassword ? (
                       <Chip
                         icon={<Check />}
                         label='Sim'
@@ -386,13 +334,14 @@ export function TabelaUsuarios({
                   </TableCell>
                   <TableCell align='center'>
                     <Chip
-                      label={usuario.perfil === 'ADMIN' ? 'Admin' : 'Usuário'}
+                      label={
+                        usuario.roles.includes('ADMIN') ? 'Admin' : 'Usuário'
+                      }
                       size='small'
                       sx={{
-                        backgroundColor:
-                          usuario.perfil === 'ADMIN'
-                            ? 'var(--azul-confianca)'
-                            : 'var(--cinza-medio)',
+                        backgroundColor: usuario.roles.includes('ADMIN')
+                          ? 'var(--azul-confianca)'
+                          : 'var(--cinza-medio)',
                         color: 'var(--branco)',
                       }}
                     />
