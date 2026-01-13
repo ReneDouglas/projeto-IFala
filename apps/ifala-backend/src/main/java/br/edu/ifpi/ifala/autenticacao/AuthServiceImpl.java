@@ -496,10 +496,12 @@ public class AuthServiceImpl implements AuthService {
   @Transactional
   public UsuarioDetalheResponseDTO atualizarUsuario(Long id,
       AtualizarUsuarioRequestDTO atualizarUsuarioRequestDTO) {
-    logger.info("Atualizando usuário com id");
+    logger.info("Atualizando usuário com id: {}", id);
 
     Usuario usuario = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(
         "Usuário com id " + id + " não encontrado para atualização."));
+
+    evictUserCache(usuario);
 
     // Valida se o novo e-mail
     if (atualizarUsuarioRequestDTO.email() != null
@@ -544,7 +546,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     Usuario usuarioAtualizado = userRepository.save(usuario);
-    logger.info("Usuário com id atualizado com sucesso.");
+    logger.info("Usuário com id {} atualizado com sucesso.", id);
+
+    evictUserCache(usuarioAtualizado);
 
     return convertToUsuarioDetalheDTO(usuarioAtualizado);
   }
