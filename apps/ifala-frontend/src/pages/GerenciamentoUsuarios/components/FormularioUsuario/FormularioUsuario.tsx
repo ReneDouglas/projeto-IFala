@@ -59,7 +59,7 @@ export function FormularioUsuario({
     email: '',
     senha: '',
     confirmarSenha: '',
-    roles: ['ANONIMO'],
+    roles: ['ADMIN'],
     mustChangePassword: true,
   });
 
@@ -184,7 +184,7 @@ export function FormularioUsuario({
       email: '',
       senha: '',
       confirmarSenha: '',
-      roles: ['ANONIMO'],
+      roles: ['ADMIN'],
       mustChangePassword: true,
     });
     setErrors({});
@@ -318,12 +318,12 @@ export function FormularioUsuario({
               </InputLabel>
               <Select
                 name='perfil'
-                value={formData.roles[0] === 'ADMIN' ? 'ADMIN' : 'USER'}
+                value='ADMIN'
                 label='Perfil de Acesso *'
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    roles: [e.target.value as 'ADMIN' | 'USER'],
+                    roles: [e.target.value as 'ADMIN'],
                   }))
                 }
                 disabled={loading}
@@ -333,7 +333,6 @@ export function FormularioUsuario({
                   },
                 }}
               >
-                <MenuItem value='USER'>Usuário Padrão</MenuItem>
                 <MenuItem value='ADMIN'>Administrador</MenuItem>
               </Select>
             </FormControl>
