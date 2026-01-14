@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Table,
@@ -31,6 +31,7 @@ import {
 } from '@mui/icons-material';
 import { listarUsuarios } from '../../../../services/admin-usuarios-api';
 import type { Usuario, UsuarioFilters } from '../../../../types/usuario';
+import { extractErrorMessage } from '../../../../utils/error-handler';
 import './TabelaUsuarios.css';
 
 interface TabelaUsuariosProps {
@@ -55,12 +56,7 @@ export function TabelaUsuarios({
   });
   const [showFilters, setShowFilters] = useState(false);
 
-  // Buscar usuários quando a página ou filtros mudarem
-  useEffect(() => {
-    fetchUsuarios();
-  }, [page, rowsPerPage, refetchTrigger]);
-
-  const fetchUsuarios = async () => {
+  const fetchUsuarios = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -70,15 +66,18 @@ export function TabelaUsuarios({
       setUsuarios(data.content);
       setTotalElements(data.totalElements);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Erro ao carregar usuários. Tente novamente.',
-      );
+      console.error('Erro ao carregar usuários:', err);
+      const errorMessage = extractErrorMessage(err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, rowsPerPage, filters]);
+
+  // Buscar usuários quando a página ou filtros mudarem
+  useEffect(() => {
+    fetchUsuarios();
+  }, [fetchUsuarios, refetchTrigger]);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
