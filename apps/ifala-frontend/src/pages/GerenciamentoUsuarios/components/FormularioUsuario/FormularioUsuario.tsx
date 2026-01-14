@@ -30,6 +30,11 @@ import type {
   AtualizarUsuarioRequest,
   RegistroUsuarioRequest,
 } from '../../../../types/usuario';
+import {
+  extractErrorMessage,
+  isEmailConflictError,
+  isUsernameConflictError,
+} from '../../../../utils/error-handler';
 
 // Tipos locais para o formulário
 interface UsuarioFormData {
@@ -167,11 +172,23 @@ export function FormularioUsuario({
         onUsuarioSalvo();
       }, 1500);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Erro ao salvar usuário. Tente novamente.',
-      );
+      console.error('Erro ao salvar usuário:', err);
+
+      // Usa a função utilitária para extrair a mensagem de erro
+      const errorMessage = extractErrorMessage(err);
+      setError(errorMessage);
+
+      // Se for um erro de conflito específico, marca o campo correspondente
+      const newErrors: Record<string, string> = {};
+      if (isEmailConflictError(err)) {
+        newErrors.email = 'Este e-mail já está cadastrado';
+      }
+      if (isUsernameConflictError(err)) {
+        newErrors.username = 'Este nome de usuário já está em uso';
+      }
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+      }
     } finally {
       setLoading(false);
     }
