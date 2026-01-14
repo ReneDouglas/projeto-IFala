@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -94,6 +94,52 @@ const formatarHora = (dataISO: string): string => {
     minute: '2-digit',
   });
 };
+
+// --- COMPONENTE ISOLADO (Evita piscar ao digitar) ---
+
+const BotaoExportarPDF = memo(
+  ({
+    dados,
+  }: {
+    dados: {
+      protocolo: string;
+      data: string;
+      categoria: string;
+      status: string;
+      relato: string;
+      temAnexos: boolean;
+    };
+  }) => {
+    if (!dados) return null;
+
+    return (
+      <PDFDownloadLink
+        document={<RelatorioDenunciaPDF dados={dados} />}
+        fileName={`relatorio_${dados.protocolo}.pdf`}
+        style={{ textDecoration: 'none' }}
+      >
+        {({ loading }) => (
+          <Button
+            variant='outlined'
+            fullWidth
+            startIcon={loading ? <CircularProgress size={20} /> : <PrintIcon />}
+            disabled={loading}
+            sx={{
+              color: '#555',
+              borderColor: '#999',
+              '&:hover': {
+                backgroundColor: '#f5f5f5',
+                borderColor: '#333',
+              },
+            }}
+          >
+            {loading ? 'Gerando PDF...' : 'Exportar Relatório / Imprimir'}
+          </Button>
+        )}
+      </PDFDownloadLink>
+    );
+  },
+);
 
 export function Acompanhamento() {
   const { token, denunciaId: denunciaIdParam } = useParams<{
@@ -375,22 +421,23 @@ export function Acompanhamento() {
     (detalhes.status.toUpperCase() === 'RESOLVIDO' ||
       detalhes.status.toUpperCase() === 'REJEITADO');
 
-  const dadosParaRelatorio = detalhes
-    ? {
-        protocolo: detalhes.tokenAcompanhamento || detalhes.id.toString(),
-        data: formatarData(detalhes.criadoEm),
-        categoria: formatarCategoria(detalhes.categoria),
-        status: formatarStatus(detalhes.status),
-        temAnexos: provas && provas.length > 0,
+  const dadosParaRelatorio = useMemo(() => {
+    return detalhes
+      ? {
+          protocolo: detalhes.tokenAcompanhamento || detalhes.id.toString(),
+          data: formatarData(detalhes.criadoEm),
+          categoria: formatarCategoria(detalhes.categoria),
+          status: formatarStatus(detalhes.status),
+          temAnexos: provas && provas.length > 0,
 
-        relato:
-          (detalhes as DetalhesComRelato).descricaoDetalhada ||
-          (detalhes as DetalhesComRelato).descricao ||
-          mensagens?.[0]?.mensagem ||
-          'Sem descrição disponível.',
-      }
-    : null;
-
+          relato:
+            (detalhes as DetalhesComRelato).descricaoDetalhada ||
+            (detalhes as DetalhesComRelato).descricao ||
+            mensagens?.[0]?.mensagem ||
+            'Sem descrição disponível.',
+        }
+      : null;
+  }, [detalhes, mensagens, provas]); // <--- A LISTA DE DEPENDÊNCIAS É O SEGREDO
   // Estado de carregamento
   if (loading) {
     return (
@@ -688,38 +735,7 @@ export function Acompanhamento() {
             )}
             {isAdmin && detalhes && dadosParaRelatorio && (
               <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid #eee' }}>
-                <PDFDownloadLink
-                  document={<RelatorioDenunciaPDF dados={dadosParaRelatorio} />}
-                  fileName={`relatorio_${detalhes.tokenAcompanhamento || detalhes.id}.pdf`}
-                  style={{ textDecoration: 'none' }}
-                >
-                  {({ loading: pdfLoading }) => (
-                    <Button
-                      variant='outlined'
-                      fullWidth
-                      startIcon={
-                        pdfLoading ? (
-                          <CircularProgress size={20} />
-                        ) : (
-                          <PrintIcon />
-                        )
-                      }
-                      disabled={pdfLoading}
-                      sx={{
-                        color: '#555',
-                        borderColor: '#999',
-                        '&:hover': {
-                          backgroundColor: '#f5f5f5',
-                          borderColor: '#333',
-                        },
-                      }}
-                    >
-                      {pdfLoading
-                        ? 'Gerando PDF...'
-                        : 'Exportar Relatório / Imprimir'}
-                    </Button>
-                  )}
-                </PDFDownloadLink>
+                <BotaoExportarPDF dados={dadosParaRelatorio} />
               </Box>
             )}
           </Paper>
