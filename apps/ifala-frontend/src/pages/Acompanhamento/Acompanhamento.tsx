@@ -381,6 +381,8 @@ export function Acompanhamento() {
         data: formatarData(detalhes.criadoEm),
         categoria: formatarCategoria(detalhes.categoria),
         status: formatarStatus(detalhes.status),
+        temAnexos: provas && provas.length > 0,
+
         relato:
           (detalhes as DetalhesComRelato).descricaoDetalhada ||
           (detalhes as DetalhesComRelato).descricao ||

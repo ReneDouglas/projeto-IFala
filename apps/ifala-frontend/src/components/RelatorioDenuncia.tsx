@@ -8,8 +8,9 @@ import {
 } from '@react-pdf/renderer';
 
 // --- CONFIGURAÇÃO DAS IMAGENS ---
-const logoVerticalUrl = '/Logo-IFPI-Vertical.png';
+const logoCampusUrl = '/Logo-IFPI-Corrente-Vertical.png';
 const logoIfalaUrl = '/IFala-logo.png';
+const watermarkUrl = '/Logo-IFPI-Vertical.png';
 // --------------------------------
 
 const styles = StyleSheet.create({
@@ -20,19 +21,15 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
     position: 'relative',
   },
-
-  // Marca D'água (VOLTOU PARA A POSIÇÃO ORIGINAL)
   watermark: {
     position: 'absolute',
-    top: 299,
+    top: 300,
     left: 0,
     width: '100%',
     height: 'auto',
     opacity: 0.12,
     zIndex: -1,
   },
-
-  // --- CABEÇALHO (LOGOS GRANDES) ---
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -40,39 +37,26 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderBottom: '1px solid #000',
     paddingBottom: 10,
-    height: 130,
-  },
-
-  // Logo IFPI (Esquerda)
-  logoIfpiVertical: {
-    width: 100,
     height: 120,
-    objectFit: 'contain',
   },
-
-  // Logo IFala (Direita)
-  logoIfala: {
-    width: 110,
-    height: 110,
-    objectFit: 'contain',
-  },
-  // -----------------------------
-
+  logoEsquerda: { width: 90, height: 100, objectFit: 'contain' },
+  logoDireita: { width: 90, height: 90, objectFit: 'contain' },
   headerTextContainer: { flex: 1, alignItems: 'center', marginHorizontal: 10 },
-  headerTitle: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  headerSub: {
+  headerLine1: {
     fontSize: 9,
-    color: '#333',
+    fontWeight: 'bold',
+    marginBottom: 3,
     textAlign: 'center',
-    marginBottom: 2,
   },
+  headerLine2: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    marginBottom: 3,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+  },
+  headerLine3: { fontSize: 8, color: '#333', textAlign: 'center' },
 
-  // Títulos e Seções
   title: {
     fontSize: 14,
     textAlign: 'center',
@@ -91,10 +75,9 @@ const styles = StyleSheet.create({
     borderBottom: '1px solid #ccc',
   },
   row: { flexDirection: 'row', marginBottom: 6, paddingLeft: 5 },
-  label: { width: 120, fontWeight: 'bold', fontSize: 10 },
+  label: { width: 130, fontWeight: 'bold', fontSize: 10 },
   value: { flex: 1, fontSize: 10 },
 
-  // CAIXA DE TEXTO (MENOR)
   textBox: {
     border: '1px solid #ccc',
     padding: 10,
@@ -105,16 +88,12 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
 
-  // Área de Assinaturas
   signaturesContainer: {
     marginTop: 50,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  signatureBlock: {
-    width: '45%',
-    alignItems: 'center',
-  },
+  signatureBlock: { width: '45%', alignItems: 'center' },
   signatureLine: {
     borderTop: '1px solid #999',
     width: '100%',
@@ -133,7 +112,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Rodapé Fixo
   footerContainer: {
     position: 'absolute',
     bottom: 30,
@@ -153,32 +131,28 @@ interface RelatorioProps {
     categoria: string;
     status: string;
     relato: string;
+    temAnexos: boolean;
+    // Removi o histórico daqui
   };
 }
 
 export const RelatorioDenunciaPDF = ({ dados }: RelatorioProps) => (
   <Document>
     <Page size='A4' style={styles.page}>
-      {/* Marca D'água */}
-      <Image src={logoVerticalUrl} style={styles.watermark} fixed />
+      <Image src={watermarkUrl} style={styles.watermark} fixed />
 
-      {/* Cabeçalho */}
       <View style={styles.headerContainer}>
-        {/* Logo IFPI Vertical Grande */}
-        <Image src={logoVerticalUrl} style={styles.logoIfpiVertical} />
-
+        <Image src={logoCampusUrl} style={styles.logoEsquerda} />
         <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>INSTITUTO FEDERAL DO PIAUÍ</Text>
-          <Text style={styles.headerSub}>
-            SISTEMA IFALA - Canal de Denúncias
+          <Text style={styles.headerLine1}>
+            INSTITUTO FEDERAL DE CIÊNCIA E TECNOLOGIA DO PIAUÍ
           </Text>
+          <Text style={styles.headerLine2}>CAMPUS CORRENTE</Text>
+          <Text style={styles.headerLine3}>SISTEMA IFALA</Text>
         </View>
-
-        {/* Logo IFala Grande */}
-        <Image src={logoIfalaUrl} style={styles.logoIfala} />
+        <Image src={logoIfalaUrl} style={styles.logoDireita} />
       </View>
 
-      {/* Conteúdo */}
       <Text style={styles.title}>RELATÓRIO DE OCORRÊNCIA</Text>
 
       <Text style={styles.sectionTitle}>1. DADOS DO REGISTRO</Text>
@@ -198,14 +172,18 @@ export const RelatorioDenunciaPDF = ({ dados }: RelatorioProps) => (
         <Text style={styles.label}>Situação Atual:</Text>
         <Text style={styles.value}>{dados.status}</Text>
       </View>
+      <View style={styles.row}>
+        <Text style={styles.label}>Possui Anexos:</Text>
+        <Text style={styles.value}>{dados.temAnexos ? 'Sim' : 'Não'}</Text>
+      </View>
 
       <Text style={styles.sectionTitle}>2. DESCRIÇÃO DOS FATOS</Text>
       <View style={styles.textBox}>
         <Text>{dados.relato}</Text>
       </View>
 
-      <Text style={styles.sectionTitle}>3. OBSERVAÇÕES </Text>
-      {}
+      {/* Voltamos para o padrão simples */}
+      <Text style={styles.sectionTitle}>3. OBSERVAÇÕES</Text>
       <View style={{ ...styles.textBox, minHeight: 60 }}>
         <Text>
           Este relatório deve ser analisado pela coordenação competente para as
@@ -213,14 +191,12 @@ export const RelatorioDenunciaPDF = ({ dados }: RelatorioProps) => (
         </Text>
       </View>
 
-      {/* Assinaturas */}
       <View style={styles.signaturesContainer}>
         <View style={styles.signatureBlock}>
           <View style={styles.signatureLine} />
           <Text style={styles.signatureText}>COORDENAÇÃO</Text>
           <Text style={styles.signatureSubText}>Assinatura ou Carimbo</Text>
         </View>
-
         <View style={styles.signatureBlock}>
           <View style={styles.signatureLine} />
           <Text style={styles.signatureText}>ALUNO / RESPONSÁVEL</Text>
@@ -228,7 +204,6 @@ export const RelatorioDenunciaPDF = ({ dados }: RelatorioProps) => (
         </View>
       </View>
 
-      {/* Rodapé */}
       <View style={styles.footerContainer} fixed>
         <Text style={styles.footerText}>
           Documento emitido pelo Sistema IFala em{' '}
