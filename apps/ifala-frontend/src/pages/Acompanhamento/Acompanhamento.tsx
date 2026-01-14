@@ -33,7 +33,7 @@ import { useAuth } from '../../hooks/useAuth';
 const statusColorMap = (status: string) => {
   switch (status.toUpperCase()) {
     case 'EM_ANALISE':
-      return 'warning';
+      return 'default';
     case 'RECEBIDO':
       return 'success';
     case 'RESOLVIDO':
@@ -477,6 +477,16 @@ export function Acompanhamento() {
                       ? 'pointer'
                       : 'default',
                   opacity: denunciaFinalizada ? 0.8 : 1,
+                  ...(detalhes.status.toUpperCase() === 'EM_ANALISE'
+                    ? {
+                        backgroundColor: '#eae304',
+                        color: '#fefdfd',
+                        border: '1px solid #eae304',
+                        '& .MuiChip-icon': {
+                          color: '#fefdfd',
+                        },
+                      }
+                    : {}),
                   '&:hover':
                     isAdmin && modoAdmin && !denunciaFinalizada
                       ? {
@@ -520,9 +530,13 @@ export function Acompanhamento() {
                   >
                     <Chip
                       label='Em Análise'
-                      color='warning'
                       size='small'
-                      sx={{ mr: 1 }}
+                      sx={{
+                        mr: 1,
+                        backgroundColor: '#eae304',
+                        color: '#fefdfd',
+                        border: '1px solid #eae304',
+                      }}
                     />
                   </MenuItem>
                   <MenuItem
