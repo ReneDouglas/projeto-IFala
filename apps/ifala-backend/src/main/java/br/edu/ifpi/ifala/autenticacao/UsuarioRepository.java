@@ -1,7 +1,9 @@
 package br.edu.ifpi.ifala.autenticacao;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 import java.util.List;
 
@@ -12,10 +14,14 @@ import java.util.List;
  */
 
 
-public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+public interface UsuarioRepository
+    extends JpaRepository<Usuario, Long>, JpaSpecificationExecutor<Usuario> {
   Optional<Usuario> findByEmail(String email);
 
   Optional<Usuario> findByUsername(String username);
+
+  @Query("SELECT u FROM Usuario u WHERE u.email = :identifier OR u.username = :identifier")
+  Optional<Usuario> findByEmailOrUsername(@Param("identifier") String identifier);
 
   Optional<Usuario> findByPasswordResetToken(String passwordResetToken);
 

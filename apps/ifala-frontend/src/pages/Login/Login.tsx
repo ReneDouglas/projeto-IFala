@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import * as authApi from '../../services/auth-api';
 import {
@@ -29,6 +29,7 @@ import '../../App.css';
 
 export function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   // Estados do formulário
@@ -150,8 +151,11 @@ export function Login() {
         password: formData.senha,
       });
 
-      // Redirecionar após login bem-sucedido
-      navigate('/painel-denuncias');
+      // Redirecionar para a URL de origem ou para painel-denuncias
+      const from =
+        (location.state as { from?: { pathname: string } })?.from?.pathname ||
+        '/painel-denuncias';
+      navigate(from, { replace: true });
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'message' in err) {
         const errorMessage = (err as Error).message;
@@ -161,6 +165,9 @@ export function Login() {
           errorMessage.includes('Um e-mail de redefinição foi enviado')
         ) {
           setSuccessMessage(errorMessage);
+          // Limpa o formulário para evitar reenvio acidental
+          setFormData({ matricula: '', senha: '' });
+          setErrors({ matricula: '', senha: '' });
         } else if ('response' in err) {
           const axiosError = err as {
             response?: { data?: { message?: string } };
@@ -210,6 +217,10 @@ export function Login() {
       setSuccessMessage(
         `Email enviado com sucesso para ${formData.matricula}! Confira sua caixa de entrada e siga as instruções para redefinir sua senha.`,
       );
+
+      // Limpa o formulário para evitar reenvio acidental
+      setFormData({ matricula: '', senha: '' });
+      setErrors({ matricula: '', senha: '' });
 
       // Limpar erro se existir
       setError('');
