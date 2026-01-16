@@ -81,15 +81,37 @@ const styles = StyleSheet.create({
   textBox: {
     border: '1px solid #ccc',
     padding: 10,
-    minHeight: 80,
+    minHeight: 60,
     textAlign: 'justify',
     lineHeight: 1.5,
     fontSize: 10,
     marginTop: 5,
   },
 
+  // --- ESTILOS DO CHAT ---
+  chatContainer: {
+    marginTop: 5,
+    // Mudei para #ccc para ficar igual às outras caixas
+    border: '1px solid #ccc',
+  },
+  chatItem: {
+    padding: 8,
+    // Mantive a borda de baixo para separar as mensagens, mas sem fundo
+    borderBottom: '1px solid #eee',
+    flexDirection: 'column',
+  },
+  chatHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  chatAuthor: { fontSize: 9, fontWeight: 'bold', color: '#333' },
+  chatDate: { fontSize: 8, color: '#666' },
+  chatMessage: { fontSize: 10, color: '#444' },
+  // -----------------------
+
   signaturesContainer: {
-    marginTop: 50,
+    marginTop: 40,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
@@ -132,7 +154,11 @@ interface RelatorioProps {
     status: string;
     relato: string;
     temAnexos: boolean;
-    // Removi o histórico daqui
+    historico: Array<{
+      autor: string;
+      mensagem: string;
+      data: string;
+    }>;
   };
 }
 
@@ -182,8 +208,33 @@ export const RelatorioDenunciaPDF = ({ dados }: RelatorioProps) => (
         <Text>{dados.relato}</Text>
       </View>
 
-      {/* Voltamos para o padrão simples */}
-      <Text style={styles.sectionTitle}>3. OBSERVAÇÕES</Text>
+      {/* --- SEÇÃO DO HISTÓRICO (CHAT) --- */}
+      <Text style={styles.sectionTitle}>3. HISTÓRICO DE TRAMITAÇÃO (CHAT)</Text>
+      {dados.historico && dados.historico.length > 0 ? (
+        <View style={styles.chatContainer}>
+          {dados.historico.map((msg, index) => (
+            <View
+              key={index}
+              style={styles.chatItem} // Removi o backgroundColor aqui!
+            >
+              <View style={styles.chatHeader}>
+                <Text style={styles.chatAuthor}>{msg.autor}</Text>
+                <Text style={styles.chatDate}>{msg.data}</Text>
+              </View>
+              <Text style={styles.chatMessage}>{msg.mensagem}</Text>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View style={styles.textBox}>
+          <Text style={{ color: '#666', fontStyle: 'italic' }}>
+            Nenhuma tramitação registrada além do relato inicial.
+          </Text>
+        </View>
+      )}
+
+      {/* --- SEÇÃO DE OBSERVAÇÕES --- */}
+      <Text style={styles.sectionTitle}>4. OBSERVAÇÕES</Text>
       <View style={{ ...styles.textBox, minHeight: 60 }}>
         <Text>
           Este relatório deve ser analisado pela coordenação competente para as
@@ -200,7 +251,7 @@ export const RelatorioDenunciaPDF = ({ dados }: RelatorioProps) => (
         <View style={styles.signatureBlock}>
           <View style={styles.signatureLine} />
           <Text style={styles.signatureText}>ALUNO / RESPONSÁVEL</Text>
-          <Text style={styles.signatureSubText}>Assinatura</Text>
+          <Text style={styles.signatureSubText}>Assinatura (Opcional)</Text>
         </View>
       </View>
 
