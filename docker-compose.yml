@@ -144,7 +144,7 @@ services:
 
   # Adicionado para a Task 72 - Coletor de Logs Promtail
   promtail:
-    image: grafana/promtail:2.9.5
+    image: grafana/promtail:3.1.0
     container_name: promtail
     volumes:
       - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml

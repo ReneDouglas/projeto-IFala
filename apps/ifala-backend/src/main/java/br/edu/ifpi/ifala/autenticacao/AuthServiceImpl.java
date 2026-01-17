@@ -6,16 +6,25 @@ import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.TokenDataDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.UsuarioDetalheResponseDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.AtualizarUsuarioRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
 import br.edu.ifpi.ifala.security.JwtUtil;
 import br.edu.ifpi.ifala.security.TokenBlacklistService;
 import br.edu.ifpi.ifala.notificacao.NotificacaoExternaService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.persistence.criteria.Predicate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -37,6 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -59,8 +69,8 @@ public class AuthServiceImpl implements AuthService {
   private final TokenBlacklistService tokenBlacklistService;
   private final RefreshTokenService refreshTokenService;
   private final NotificacaoExternaService notificacaoExternaService;
-
   private final AuthenticationManager authenticationManager;
+  private final CacheManager cacheManager;
 
   @Value("${app.frontend.reset-password-url:http://localhost:5173/redefinir-senha}")
   private String resetPasswordUrl;
@@ -68,7 +78,7 @@ public class AuthServiceImpl implements AuthService {
   public AuthServiceImpl(UsuarioRepository userRepository, PasswordEncoder passwordEncoder,
       JwtUtil jwtUtil, TokenBlacklistService tokenBlacklistService,
       RefreshTokenService refreshTokenService, NotificacaoExternaService notificacaoExternaService,
-      AuthenticationManager authenticationManager) {
+      AuthenticationManager authenticationManager, CacheManager cacheManager) {
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.jwtUtil = jwtUtil;
@@ -76,6 +86,7 @@ public class AuthServiceImpl implements AuthService {
     this.refreshTokenService = refreshTokenService;
     this.notificacaoExternaService = notificacaoExternaService;
     this.authenticationManager = authenticationManager;
+    this.cacheManager = cacheManager;
   }
 
   /**
@@ -96,10 +107,33 @@ public class AuthServiceImpl implements AuthService {
     return determinedPath;
   }
 
+  /**
+   * Invalida todas as entradas de cache para um usuário (email e username). Necessário porque o
+   * cache armazena UserDetails com duas chaves diferentes.
+   * 
+   * @param user O usuário cujo cache deve ser invalidado
+   */
+  private void evictUserCache(Usuario user) {
+    var cache = cacheManager.getCache("userDetailsCache");
+    if (cache != null) {
+      // Invalida cache pelo email
+      cache.evict(user.getEmail());
+      // Invalida cache pelo username (se existir)
+      if (user.getUsername() != null) {
+        cache.evict(user.getUsername());
+      }
+      logger.debug("Cache invalidado para usuário: {} (username: {})", user.getEmail(),
+          user.getUsername());
+    }
+  }
+
   // LÓGICA DE REGISTRO
 
   @Override
   @Transactional
+  @Caching(evict = {@CacheEvict(value = "userDetailsCache", key = "#registroRequest.email()"),
+      @CacheEvict(value = "userDetailsCache", key = "#registroRequest.username()",
+          condition = "#registroRequest.username() != null")})
   public UsuarioResponseDTO registrarUsuario(RegistroRequestDTO registroRequest) {
     logger.info("Tentativa de registro de usuário: {}", registroRequest.email());
 
@@ -285,6 +319,9 @@ public class AuthServiceImpl implements AuthService {
     user.setPasswordResetExpires(null);
     userRepository.save(user);
 
+    // Invalida cache manualmente para email e username
+    evictUserCache(user);
+
     logger.info("Senha alterada com sucesso para o usuário: {}", user.getEmail());
 
     // Gera novo token de acesso após a mudança de senha
@@ -406,5 +443,124 @@ public class AuthServiceImpl implements AuthService {
     }
 
     return user.getEmail();
+  }
+
+  @Override
+  public Page<UsuarioDetalheResponseDTO> listarUsuario(Pageable pageable, String search,
+      String role, Boolean mustChangePassword) {
+    logger.info("Filtrando usuários");
+
+
+    Specification<Usuario> spec = (root, query, cb) -> {
+      List<Predicate> predicates = new ArrayList<>();
+
+      // filtra Search (Nome, Email ou Username)
+      if (search != null && !search.trim().isEmpty()) {
+        String term = "%" + search.trim().toLowerCase() + "%";
+        predicates.add(cb.or(cb.like(cb.lower(root.get("nome")), term),
+            cb.like(cb.lower(root.get("email")), term),
+            cb.like(cb.lower(root.get("username")), term)));
+      }
+      if (role != null && !role.isEmpty()) {
+        try {
+          // converte a string que vem do front para o Enum
+          Perfis perfilEnum = Perfis.valueOf(role.toUpperCase());
+          // verifica se o perfilEnum é membro da lista roles
+          predicates.add(cb.isMember(perfilEnum, root.get("roles")));
+        } catch (IllegalArgumentException e) {
+          logger.warn("Filtro de perfil inválido recebido: {}", role);
+        }
+      }
+
+      if (mustChangePassword != null) {
+        predicates.add(cb.equal(root.get("mustChangePassword"), mustChangePassword));
+      }
+
+      return cb.and(predicates.toArray(new Predicate[0]));
+    };
+
+    Page<Usuario> usuariosPage = userRepository.findAll(spec, pageable);
+
+    return usuariosPage.map(this::convertToUsuarioDetalheDTO);
+  }
+
+  @Override
+  public UsuarioDetalheResponseDTO buscarUsuarioPorId(Long id) {
+    logger.info("Buscando usuário com id: {}", id);
+    Usuario usuario = userRepository.findById(id)
+        .orElseThrow(() -> new UserNotFoundException("Usuário com id " + id + " não encontrado."));
+    return convertToUsuarioDetalheDTO(usuario);
+  }
+
+  @Override
+  @Transactional
+  public UsuarioDetalheResponseDTO atualizarUsuario(Long id,
+      AtualizarUsuarioRequestDTO atualizarUsuarioRequestDTO) {
+    logger.info("Atualizando usuário com id: {}", id);
+
+    Usuario usuario = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(
+        "Usuário com id " + id + " não encontrado para atualização."));
+
+    evictUserCache(usuario);
+
+    // Valida se o novo e-mail
+    if (atualizarUsuarioRequestDTO.email() != null
+        && !atualizarUsuarioRequestDTO.email().equals(usuario.getEmail())) {
+      userRepository.findByEmail(atualizarUsuarioRequestDTO.email()).ifPresent(existingUser -> {
+        if (!existingUser.getId().equals(id)) {
+          throw new EmailAlreadyExistsException(
+              "O e-mail " + atualizarUsuarioRequestDTO.email() + " já está em uso.");
+        }
+      });
+      usuario.setEmail(atualizarUsuarioRequestDTO.email());
+    }
+
+    // Valida se o novo username
+    if (atualizarUsuarioRequestDTO.username() != null
+        && !atualizarUsuarioRequestDTO.username().equals(usuario.getUsername())) {
+      userRepository.findByUsername(atualizarUsuarioRequestDTO.username())
+          .ifPresent(existingUser -> {
+            if (!existingUser.getId().equals(id)) {
+              throw new UsernameAlreadyExistsException(
+                  "O username " + atualizarUsuarioRequestDTO.username() + " já está em uso.");
+            }
+          });
+      usuario.setUsername(atualizarUsuarioRequestDTO.username());
+    }
+
+    // Atualiza os outros campos
+    usuario.setNome(atualizarUsuarioRequestDTO.nome());
+    usuario.setMustChangePassword(atualizarUsuarioRequestDTO.mustChangePassword());
+
+    if (atualizarUsuarioRequestDTO.roles() != null
+        && !atualizarUsuarioRequestDTO.roles().isEmpty()) {
+      List<Perfis> perfisConvertidos =
+          atualizarUsuarioRequestDTO.roles().stream().map(roleString -> {
+            try {
+              return Perfis.valueOf(roleString.toUpperCase());
+            } catch (IllegalArgumentException e) {
+              throw new InvalidRoleException("O perfil '" + roleString + "' é inválido.");
+            }
+          }).collect(Collectors.toList());
+      usuario.setRoles(perfisConvertidos);
+    }
+
+    Usuario usuarioAtualizado = userRepository.save(usuario);
+    logger.info("Usuário com id {} atualizado com sucesso.", id);
+
+    evictUserCache(usuarioAtualizado);
+
+    return convertToUsuarioDetalheDTO(usuarioAtualizado);
+  }
+
+  /**
+   * Converte uma entidade Usuario para seu DTO de detalhe.
+   *
+   * @param usuario A entidade a ser convertida.
+   * @return O DTO com os detalhes do usuário.
+   */
+  private UsuarioDetalheResponseDTO convertToUsuarioDetalheDTO(Usuario usuario) {
+    return new UsuarioDetalheResponseDTO(usuario.getId(), usuario.getNome(), usuario.getUsername(),
+        usuario.getEmail(), usuario.getRoles(), usuario.isMustChangePassword());
   }
 }

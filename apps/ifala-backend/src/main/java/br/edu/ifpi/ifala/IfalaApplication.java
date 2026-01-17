@@ -2,6 +2,8 @@ package br.edu.ifpi.ifala;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.retry.annotation.EnableRetry;
 
 
 /**
@@ -10,6 +12,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Renê Morais
  */
 @SpringBootApplication
+@EnableRetry
+@EnableCaching
 public class IfalaApplication {
 
   /**

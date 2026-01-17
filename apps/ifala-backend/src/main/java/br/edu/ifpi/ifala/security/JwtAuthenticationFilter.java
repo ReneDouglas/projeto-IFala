@@ -106,7 +106,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
           authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
           SecurityContextHolder.getContext().setAuthentication(authentication);
-          logger.info("Usuário autenticado: {}", maskEmail(username));
+          logger.debug("Usuário autenticado via JWT: {}", maskEmail(username));
         } else {
           logger.warn("Access Token inválido para usuário: {}. Requisição bloqueada.",
               maskEmail(username));

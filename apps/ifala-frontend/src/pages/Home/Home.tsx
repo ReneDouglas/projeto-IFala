@@ -69,7 +69,12 @@ export function Home() {
             <div className='action-buttons'>
               <div className='action-card'>
                 <div className='action-card-icon'>
-                  <span className='material-symbols-outlined'>shield</span>
+                  <span
+                    className='material-symbols-outlined notranslate'
+                    translate='no'
+                  >
+                    shield
+                  </span>
                 </div>
                 <h3>Fazer uma Denúncia</h3>
                 <p>
@@ -82,7 +87,12 @@ export function Home() {
 
               <div className='action-card'>
                 <div className='action-card-icon'>
-                  <span className='material-symbols-outlined'>search</span>
+                  <span
+                    className='material-symbols-outlined notranslate'
+                    translate='no'
+                  >
+                    search
+                  </span>
                 </div>
                 <h3>Acompanhar Denúncia</h3>
                 <p>Use seu token para verificar o status da sua denúncia</p>
@@ -156,21 +166,36 @@ export function Home() {
           <div className='security-features'>
             <div className='security-feature'>
               <div className='security-feature-icon'>
-                <span className='material-symbols-outlined'>lock</span>
+                <span
+                  className='material-symbols-outlined notranslate'
+                  translate='no'
+                >
+                  lock
+                </span>
               </div>
               <h3>Anonimato Total</h3>
               <p>Sua identidade nunca será revelada. Sistema 100% anônimo.</p>
             </div>
             <div className='security-feature'>
               <div className='security-feature-icon'>
-                <span className='material-symbols-outlined'>block</span>
+                <span
+                  className='material-symbols-outlined notranslate'
+                  translate='no'
+                >
+                  block
+                </span>
               </div>
               <h3>Nenhum Dado Pessoal</h3>
               <p>Não coletamos nem armazenamos informações pessoais.</p>
             </div>
             <div className='security-feature'>
               <div className='security-feature-icon'>
-                <span className='material-symbols-outlined'>encrypted</span>
+                <span
+                  className='material-symbols-outlined notranslate'
+                  translate='no'
+                >
+                  encrypted
+                </span>
               </div>
               <h3>Comunicação Criptografada</h3>
               <p>
@@ -179,7 +204,12 @@ export function Home() {
             </div>
             <div className='security-feature'>
               <div className='security-feature-icon'>
-                <span className='material-symbols-outlined'>smartphone</span>
+                <span
+                  className='material-symbols-outlined notranslate'
+                  translate='no'
+                >
+                  smartphone
+                </span>
               </div>
               <h3>Acompanhamento Seguro</h3>
               <p>
@@ -191,8 +221,13 @@ export function Home() {
           <div className='warning-section'>
             <div className='warning-card'>
               <h3 className='warning-title'>
-                <span className='material-symbols-outlined'>warning</span> Aviso
-                Importante
+                <span
+                  className='material-symbols-outlined notranslate'
+                  translate='no'
+                >
+                  warning
+                </span>{' '}
+                Aviso Importante
               </h3>
               <p className='warning-text'>
                 Este canal é destinado a denúncias sérias e legítimas. O uso

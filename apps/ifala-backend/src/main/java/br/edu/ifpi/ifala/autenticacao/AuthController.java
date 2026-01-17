@@ -6,8 +6,14 @@ import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.MudarSenhaRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RefreshTokenRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.RegistroRequestDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.UsuarioDetalheResponseDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioResponseDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.EmailTokenResponseDTO;
+import br.edu.ifpi.ifala.autenticacao.dto.AtualizarUsuarioRequestDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import br.edu.ifpi.ifala.shared.exceptions.RefreshTokenException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseCookie;
@@ -18,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,6 +55,30 @@ public class AuthController {
     logger.info("Requisição de registro recebida para e-mail: {}", registroRequest.email());
     UsuarioResponseDTO usuarioResponse = authService.registrarUsuario(registroRequest);
     return ResponseEntity.status(201).body(usuarioResponse);
+  }
+
+  @GetMapping("/admin/usuarios")
+  public ResponseEntity<Page<UsuarioDetalheResponseDTO>> listarUsuarios(Pageable pageable,
+      @RequestParam(required = false) String search, @RequestParam(required = false) String role,
+      @RequestParam(required = false) Boolean mustChangePassword) {
+
+    logger.info("Requisição administrativa para listar usuários paginados.");
+    return ResponseEntity.ok(authService.listarUsuario(pageable, search, role, mustChangePassword));
+  }
+
+  @GetMapping("/admin/usuarios/{id}")
+  public ResponseEntity<UsuarioDetalheResponseDTO> buscarPorId(@PathVariable Long id) {
+    logger.info("Requisição administrativa para buscar usuário");
+    return ResponseEntity.ok(authService.buscarUsuarioPorId(id));
+  }
+
+  @PutMapping("/admin/usuarios/{id}")
+  public ResponseEntity<UsuarioDetalheResponseDTO> atualizarUsuario(@PathVariable Long id,
+      @Valid @RequestBody AtualizarUsuarioRequestDTO atualizarUsuarioRequestDTO) {
+    logger.info("Requisição administrativa para atualizar usuário");
+    UsuarioDetalheResponseDTO atualizado =
+        authService.atualizarUsuario(id, atualizarUsuarioRequestDTO);
+    return ResponseEntity.ok(atualizado);
   }
 
   /**
