@@ -129,7 +129,8 @@ public class DenunciaService {
 
     log.info("Denúncia salva com sucesso");
     log.info("Denúncia criada com ID: {}", denunciaSalva.getId());
-    log.info("Token de acompanhamento gerado: {}", denunciaSalva.getTokenAcompanhamento());
+    log.info("Token de acompanhamento gerado: {}",
+        maskToken(denunciaSalva.getTokenAcompanhamento()));
 
     // Processar upload de provas se houver
     if (provas != null && !provas.isEmpty()) {
@@ -271,7 +272,7 @@ public class DenunciaService {
 
   @Transactional(readOnly = true)
   public List<AcompanhamentoDto> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
-    log.info("Listando acompanhamentos (público) para o token: {}", tokenAcompanhamento);
+    log.info("Listando acompanhamentos (público) para o token: {}", maskToken(tokenAcompanhamento));
     Denuncia denuncia =
         denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
             () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
@@ -292,7 +293,8 @@ public class DenunciaService {
 
   public AcompanhamentoDto adicionarAcompanhamentoDenunciante(UUID tokenAcompanhamento,
       AcompanhamentoDto dto) {
-    log.info("Adicionando acompanhamento (público) para o token: {}", tokenAcompanhamento);
+    log.info("Adicionando acompanhamento (público) para o token: {}",
+        maskToken(tokenAcompanhamento));
 
     Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento)
         .filter(d -> d.getStatus() != Status.RESOLVIDO && d.getStatus() != Status.REJEITADO)
@@ -306,7 +308,7 @@ public class DenunciaService {
     if (ultimoOpt.isPresent()) {
       Acompanhamento ultimo = ultimoOpt.get();
       if (ultimo.getAutor() == Perfis.ANONIMO) {
-        log.warn("Bloqueio de flood no token: {}", tokenAcompanhamento);
+        log.warn("Bloqueio de flood no token: {}", maskToken(tokenAcompanhamento));
         throw new ResponseStatusException(HttpStatus.FORBIDDEN,
             "Você precisa aguardar a resposta do administrador antes de enviar outra mensagem.");
       }
@@ -322,7 +324,8 @@ public class DenunciaService {
     novoAcompanhamento.setAutor(Perfis.ANONIMO);
 
     Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
-    log.info("Acompanhamento adicionado com sucesso a denúncia de token: {}", tokenAcompanhamento);
+    log.info("Acompanhamento adicionado com sucesso a denúncia de token: {}",
+        maskToken(tokenAcompanhamento));
     // Disparar notificação externa para informar que uma nova mensagem do
     // denunciante
     // foi recebida para a denúncia. Envolve apenas mensagens enviadas pelo
@@ -433,6 +436,24 @@ public class DenunciaService {
   private AcompanhamentoDto mapToAcompanhamentoResponseDto(Acompanhamento acompanhamento) {
     return new AcompanhamentoDto(acompanhamento.getId(), acompanhamento.getMensagem(),
         acompanhamento.getAutor().getDisplayName(), acompanhamento.getDataEnvio());
+  }
+
+  /**
+   * Mascara um token UUID mostrando apenas os primeiros 8 caracteres seguidos de "...***". Previne
+   * exposição completa de tokens sensíveis nos logs.
+   * 
+   * @param token o token UUID a ser mascarado
+   * @return token mascarado ou indicação de null
+   */
+  private static String maskToken(UUID token) {
+    if (token == null) {
+      return "null";
+    }
+    String tokenStr = token.toString();
+    if (tokenStr.length() <= 8) {
+      return "***";
+    }
+    return tokenStr.substring(0, 8) + "...***";
   }
 
 }

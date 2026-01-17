@@ -106,9 +106,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
           authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
           SecurityContextHolder.getContext().setAuthentication(authentication);
-          logger.info("Usuário autenticado: {}", username);
+          logger.info("Usuário autenticado: {}", maskEmail(username));
         } else {
-          logger.warn("Access Token inválido para usuário: {}. Requisição bloqueada.", username);
+          logger.warn("Access Token inválido para usuário: {}. Requisição bloqueada.",
+              maskEmail(username));
           response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
           response.setContentType("application/json");
           response.getWriter().write("{\"error\": \"Access Token inválido.\"}");
@@ -141,5 +142,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       return header.substring(7);
     }
     return null;
+  }
+
+  /**
+   * Mascara um endereço de e-mail mostrando apenas as primeiras 3 letras e o domínio. Previne
+   * exposição completa de PII (dados pessoais) nos logs.
+   * 
+   * @param email o e-mail a ser mascarado
+   * @return e-mail mascarado ou indicação de null/inválido
+   */
+  private static String maskEmail(String email) {
+    if (email == null) {
+      return "null";
+    }
+    if (email.isEmpty()) {
+      return "[empty]";
+    }
+    int atIndex = email.indexOf('@');
+    if (atIndex <= 0) {
+      return "***@invalid";
+    }
+    String localPart = email.substring(0, atIndex);
+    String domain = email.substring(atIndex);
+
+    if (localPart.length() <= 3) {
+      return "***" + domain;
+    }
+    return localPart.substring(0, 3) + "***" + domain;
   }
 }

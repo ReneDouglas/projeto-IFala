@@ -25,8 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Controlador de Autenticação responsável por receber requisições HTTP e
- * delegar a lógica de
+ * Controlador de Autenticação responsável por receber requisições HTTP e delegar a lógica de
  * negócio para o AuthService.
  * 
  * @author Phaola
@@ -64,22 +63,21 @@ public class AuthController {
     ResponseCookie cookie = cookieService.createRefreshTokenCookie(response.refreshToken());
     try {
       String masked = response.refreshToken() != null && response.refreshToken().length() > 8
-          ? response.refreshToken().substring(0, 8) + "..."
-          : response.refreshToken();
+          ? response.refreshToken().substring(0, 8) + "...***"
+          : "***";
       logger.info("Enviando Set-Cookie de refresh token: {} (len={})", masked,
           response.refreshToken() != null ? response.refreshToken().length() : 0);
     } catch (Exception e) {
-      logger.debug("Erro ao mascarar refresh token para log: {}", e.getMessage());
+      logger.debug("Erro ao mascarar refresh token para log");
     }
-    LoginResponseDTO sanitized = new LoginResponseDTO(response.token(), response.issuedAt(), response.expirationTime(),
-        null,
-        response.passwordChangeRequired(), response.redirect(), response.message());
+    LoginResponseDTO sanitized =
+        new LoginResponseDTO(response.token(), response.issuedAt(), response.expirationTime(), null,
+            response.passwordChangeRequired(), response.redirect(), response.message());
     return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(sanitized);
   }
 
   /**
-   * Endpoint para redefinir a senha (via token de e-mail) ou mudar a senha (via
-   * senha atual).
+   * Endpoint para redefinir a senha (via token de e-mail) ou mudar a senha (via senha atual).
    */
   @PostMapping("/redefinir-senha")
   public ResponseEntity<LoginResponseDTO> changePassword(
@@ -124,14 +122,14 @@ public class AuthController {
 
       // Atualiza o cookie HttpOnly com o novo refresh token (roteamento seguro)
       ResponseCookie cookie = cookieService.createRefreshTokenCookie(response.refreshToken());
-      LoginResponseDTO sanitized = new LoginResponseDTO(response.token(), response.issuedAt(),
-          response.expirationTime(),
-          null, response.passwordChangeRequired(), response.redirect(), response.message());
+      LoginResponseDTO sanitized =
+          new LoginResponseDTO(response.token(), response.issuedAt(), response.expirationTime(),
+              null, response.passwordChangeRequired(), response.redirect(), response.message());
 
       return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(sanitized);
 
     } catch (RefreshTokenException e) {
-      logger.warn("Falha no refresh token para {}. Motivo: {}", tokenToUse, e.getMessage());
+      logger.warn("Falha no refresh token. Motivo: {}", e.getMessage());
       ResponseCookie logoutCookie = cookieService.createLogoutCookie();
 
       String errorMessage = "Sessão expirada ou token inválido. " + e.getMessage();
