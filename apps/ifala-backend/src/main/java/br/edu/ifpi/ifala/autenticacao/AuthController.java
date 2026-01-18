@@ -94,12 +94,12 @@ public class AuthController {
     ResponseCookie cookie = cookieService.createRefreshTokenCookie(response.refreshToken());
     try {
       String masked = response.refreshToken() != null && response.refreshToken().length() > 8
-          ? response.refreshToken().substring(0, 8) + "..."
-          : response.refreshToken();
+          ? response.refreshToken().substring(0, 8) + "...***"
+          : "***";
       logger.info("Enviando Set-Cookie de refresh token: {} (len={})", masked,
           response.refreshToken() != null ? response.refreshToken().length() : 0);
     } catch (Exception e) {
-      logger.debug("Erro ao mascarar refresh token para log: {}", e.getMessage());
+      logger.debug("Erro ao mascarar refresh token para log");
     }
     LoginResponseDTO sanitized =
         new LoginResponseDTO(response.token(), response.issuedAt(), response.expirationTime(), null,
@@ -160,7 +160,7 @@ public class AuthController {
       return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(sanitized);
 
     } catch (RefreshTokenException e) {
-      logger.warn("Falha no refresh token para {}. Motivo: {}", tokenToUse, e.getMessage());
+      logger.warn("Falha no refresh token. Motivo: {}", e.getMessage());
       ResponseCookie logoutCookie = cookieService.createLogoutCookie();
 
       String errorMessage = "Sessão expirada ou token inválido. " + e.getMessage();

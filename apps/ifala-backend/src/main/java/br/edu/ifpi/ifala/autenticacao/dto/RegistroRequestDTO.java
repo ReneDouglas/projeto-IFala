@@ -28,4 +28,12 @@ public record RegistroRequestDTO(@NotBlank(message = "O nome é obrigatório.") 
 
     List<String> roles) {
 
+  /**
+   * Implementação segura de toString() que mascara a senha. NUNCA expõe senhas nos logs.
+   */
+  @Override
+  public String toString() {
+    return "RegistroRequestDTO{" + "nome='" + nome + '\'' + ", email='" + email + '\''
+        + ", senha='***'" + ", username='" + username + '\'' + ", roles=" + roles + '}';
+  }
 }

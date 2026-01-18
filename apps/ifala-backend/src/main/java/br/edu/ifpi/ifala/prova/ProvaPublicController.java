@@ -59,7 +59,7 @@ public class ProvaPublicController {
       Path caminhoArquivo = Paths.get(prova.getCaminhoArquivo());
 
       if (!Files.exists(caminhoArquivo)) {
-        log.error("Arquivo não encontrado no sistema de arquivos: {}", caminhoArquivo);
+        log.error("Arquivo não encontrado no sistema de arquivos para prova ID: {}", provaId);
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             "Arquivo não encontrado no servidor");
       }

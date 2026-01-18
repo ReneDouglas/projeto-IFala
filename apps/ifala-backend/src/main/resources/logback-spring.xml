@@ -1,11 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+    
+    <!-- Appender para console com padrão seguro -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${CONSOLE_LOG_PATTERN}</pattern>
         </encoder>
     </appender>
+    
+    <!-- Configurações específicas para evitar exposição de dados sensíveis -->
+    <!-- HIBERNATE: Desabilitar logs detalhados que expõem valores de parâmetros -->
+    <!-- Obs: caso alguém precise de mais detalhes para debug, use DEBUG, depois de resolvido o problema volte para INFO -->
+    <logger name="org.hibernate.SQL" level="INFO" />
+    <logger name="org.hibernate.orm.jdbc.bind" level="INFO" />
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="INFO" />
+    <logger name="org.hibernate.type.descriptor.sql.BasicExtractor" level="INFO" />
+    
+    <!-- SEGURANÇA: Logs de autenticação já mascarados no código -->
+    <logger name="br.edu.ifpi.ifala.security" level="INFO" />
+    <logger name="br.edu.ifpi.ifala.autenticacao" level="INFO" />
+    
     <root level="INFO">
         <appender-ref ref="CONSOLE" />
     </root>

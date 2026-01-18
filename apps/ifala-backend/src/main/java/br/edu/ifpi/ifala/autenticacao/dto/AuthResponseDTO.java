@@ -55,4 +55,34 @@ public class AuthResponseDTO {
   public String getMessage() {
     return message;
   }
+
+  /**
+   * Implementação segura de toString() que mascara informações sensíveis. Nunca deve expor tokens
+   * completos nos logs.
+   */
+  @Override
+  public String toString() {
+    return "AuthResponseDTO{" + "accessToken='" + maskToken(accessToken) + '\'' + ", refreshToken='"
+        + maskToken(refreshToken) + '\'' + ", success=" + success + ", redirectUrl='" + redirectUrl
+        + '\'' + ", message='" + message + '\'' + '}';
+  }
+
+  /**
+   * Mascara um token mostrando apenas os primeiros 8 caracteres seguidos de "...***".
+   * 
+   * @param token o token a ser mascarado
+   * @return token mascarado ou indicação de null/vazio
+   */
+  private static String maskToken(String token) {
+    if (token == null) {
+      return "null";
+    }
+    if (token.isEmpty()) {
+      return "[empty]";
+    }
+    if (token.length() <= 8) {
+      return "***";
+    }
+    return token.substring(0, 8) + "...***";
+  }
 }

@@ -66,4 +66,24 @@ public class RefreshToken {
     this.dataExpiracao = dataExpiracao;
   }
 
+  /**
+   * Implementação segura de toString() que mascara o refresh token. NUNCA expor tokens completos
+   * nos logs.
+   */
+  @Override
+  public String toString() {
+    return "RefreshToken{" + "id=" + id + ", token='" + maskToken(token) + '\'' + ", usuario="
+        + (usuario != null ? usuario.getEmail() : "null") + ", dataExpiracao=" + dataExpiracao
+        + '}';
+  }
+
+  private static String maskToken(String token) {
+    if (token == null)
+      return "null";
+    if (token.isEmpty())
+      return "[empty]";
+    if (token.length() <= 8)
+      return "***";
+    return token.substring(0, 8) + "...***";
+  }
 }
