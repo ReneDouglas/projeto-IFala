@@ -60,23 +60,16 @@ public class SmtpEmailService implements EmailService {
     java.util.List<String> bccFiltered = filterByNotificationPreference(request.bcc());
 
     // Se não houver nenhum destinatário após filtrar, cancela envio
-    if ((toFiltered == null || toFiltered.isEmpty()) 
-        && (ccFiltered == null || ccFiltered.isEmpty()) 
+    if ((toFiltered == null || toFiltered.isEmpty()) && (ccFiltered == null || ccFiltered.isEmpty())
         && (bccFiltered == null || bccFiltered.isEmpty())) {
-      log.info("Envio CANCELADO: Nenhum destinatário quer receber notificações para '{}'", 
+      log.info("Envio CANCELADO: Nenhum destinatário quer receber notificações para '{}'",
           request.subject());
       return;
     }
 
     // Cria novo request com destinatários filtrados
-    EmailRequest filteredRequest = new EmailRequest(
-        toFiltered, 
-        ccFiltered, 
-        bccFiltered, 
-        request.subject(), 
-        request.body(), 
-        request.html()
-    );
+    EmailRequest filteredRequest = new EmailRequest(toFiltered, ccFiltered, bccFiltered,
+        request.subject(), request.body(), request.html());
 
     log.info("[ASYNC] Tentando enviar e-mail (Assunto: '{}')", request.subject());
     try {
@@ -102,7 +95,7 @@ public class SmtpEmailService implements EmailService {
     java.util.List<String> filtered = new java.util.ArrayList<>();
     for (String email : emails) {
       Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
-      
+
       if (usuarioOpt.isEmpty()) {
         // Se não encontrou usuário no banco, permite envio (pode ser email externo)
         filtered.add(email);
