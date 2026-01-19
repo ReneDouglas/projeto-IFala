@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -29,6 +29,13 @@ import type {
   MensagemAcompanhamento,
 } from '../../types/acompanhamento';
 import { useAuth } from '../../hooks/useAuth';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { RelatorioDenunciaPDF } from '../../components/RelatorioDenuncia';
+import PrintIcon from '@mui/icons-material/Print';
+type DetalhesComRelato = AcompanhamentoDetalhes & {
+  descricaoDetalhada?: string;
+  descricao?: string;
+};
 
 const statusColorMap = (status: string) => {
   switch (status.toUpperCase()) {
@@ -87,6 +94,57 @@ const formatarHora = (dataISO: string): string => {
     minute: '2-digit',
   });
 };
+
+// --- COMPONENTE ISOLADO (Evita piscar ao digitar) ---
+
+const BotaoExportarPDF = memo(
+  ({
+    dados,
+  }: {
+    dados: {
+      protocolo: string;
+      data: string;
+      categoria: string;
+      status: string;
+      relato: string;
+      temAnexos: boolean;
+      historico: Array<{
+        autor: string;
+        mensagem: string;
+        data: string;
+      }>;
+    };
+  }) => {
+    if (!dados) return null;
+
+    return (
+      <PDFDownloadLink
+        document={<RelatorioDenunciaPDF dados={dados} />}
+        fileName={`relatorio_${dados.protocolo}.pdf`}
+        style={{ textDecoration: 'none' }}
+      >
+        {({ loading }) => (
+          <Button
+            variant='outlined'
+            fullWidth
+            startIcon={loading ? <CircularProgress size={20} /> : <PrintIcon />}
+            disabled={loading}
+            sx={{
+              color: '#555',
+              borderColor: '#999',
+              '&:hover': {
+                backgroundColor: '#f5f5f5',
+                borderColor: '#333',
+              },
+            }}
+          >
+            {loading ? 'Gerando PDF...' : 'Exportar Relatório / Imprimir'}
+          </Button>
+        )}
+      </PDFDownloadLink>
+    );
+  },
+);
 
 export function Acompanhamento() {
   const { token, denunciaId: denunciaIdParam } = useParams<{
@@ -368,6 +426,58 @@ export function Acompanhamento() {
     (detalhes.status.toUpperCase() === 'RESOLVIDO' ||
       detalhes.status.toUpperCase() === 'REJEITADO');
 
+  // --- MEMOIZAÇÃO DOS DADOS PARA O PDF ---
+  // --- MEMOIZAÇÃO COMPLETA DOS DADOS PARA O PDF ---
+  const dadosParaRelatorio = useMemo(() => {
+    // 1. Definimos o relato primeiro para poder comparar depois
+    const textoRelato =
+      (detalhes as DetalhesComRelato)?.descricaoDetalhada ||
+      (detalhes as DetalhesComRelato)?.descricao ||
+      mensagens?.[0]?.mensagem ||
+      'Sem descrição disponível.';
+
+    return detalhes
+      ? {
+          protocolo: detalhes.tokenAcompanhamento || detalhes.id.toString(),
+          data: formatarData(detalhes.criadoEm),
+          categoria: formatarCategoria(detalhes.categoria),
+          status: formatarStatus(detalhes.status),
+          temAnexos: provas && provas.length > 0,
+
+          // LÓGICA DO HISTÓRICO (CHAT) COM FILTRO DE DUPLICIDADE
+          historico: mensagens
+            ? mensagens
+                // FILTRO: Remove a mensagem se ela for idêntica ao texto da Seção 2
+                .filter((item) => item.mensagem.trim() !== textoRelato.trim())
+                .map((item) => {
+                  const msg = item as unknown as {
+                    mensagem: string;
+                    dataEnvio: string;
+                    respondidoPor?: unknown;
+                    admin?: unknown;
+                    autor?: string;
+                  };
+
+                  // Verifica quem mandou a mensagem
+                  const ehAdmin =
+                    msg.respondidoPor ||
+                    msg.admin ||
+                    (msg.autor && msg.autor !== 'Usuário Anônimo');
+
+                  return {
+                    mensagem: msg.mensagem,
+                    // MUDANÇA DE NOME AQUI 👇
+                    autor: ehAdmin ? 'Coordenação/Admin' : 'Usuário',
+                    data: formatarData(msg.dataEnvio),
+                  };
+                })
+            : [],
+
+          // RELATO ORIGINAL (SEÇÃO 2)
+          relato: textoRelato,
+        }
+      : null;
+  }, [detalhes, mensagens, provas]); // <--- A LISTA DE DEPENDÊNCIAS É O SEGREDO
   // Estado de carregamento
   if (loading) {
     return (
@@ -675,6 +785,11 @@ export function Acompanhamento() {
                     </Box>
                   ))}
                 </Box>
+              </Box>
+            )}
+            {isAdmin && detalhes && dadosParaRelatorio && (
+              <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid #eee' }}>
+                <BotaoExportarPDF dados={dadosParaRelatorio} />
               </Box>
             )}
           </Paper>
