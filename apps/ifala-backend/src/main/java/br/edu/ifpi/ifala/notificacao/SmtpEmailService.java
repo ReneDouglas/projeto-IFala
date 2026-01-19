@@ -54,20 +54,33 @@ public class SmtpEmailService implements EmailService {
   public void sendEmail(EmailRequest request) {
 
     // --- NOVO BLOQUEIO: Verifica se o usuário desativou notificações
-    if (request.to() != null && !request.to().isEmpty()) {
-      String emailDestino = request.to().get(0);
-      Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(emailDestino);
+    // Filtra destinatários que optaram por não receber notificações
+    java.util.List<String> toFiltered = filterByNotificationPreference(request.to());
+    java.util.List<String> ccFiltered = filterByNotificationPreference(request.cc());
+    java.util.List<String> bccFiltered = filterByNotificationPreference(request.bcc());
 
-      if (usuarioOpt.isPresent() && !usuarioOpt.get().isReceberNotificacoes()) {
-        log.info("Envio CANCELADO para '{}': usuário optou por não receber notificações.",
-            emailDestino);
-        return;
-      }
+    // Se não houver nenhum destinatário após filtrar, cancela envio
+    if ((toFiltered == null || toFiltered.isEmpty()) 
+        && (ccFiltered == null || ccFiltered.isEmpty()) 
+        && (bccFiltered == null || bccFiltered.isEmpty())) {
+      log.info("Envio CANCELADO: Nenhum destinatário quer receber notificações para '{}'", 
+          request.subject());
+      return;
     }
+
+    // Cria novo request com destinatários filtrados
+    EmailRequest filteredRequest = new EmailRequest(
+        toFiltered, 
+        ccFiltered, 
+        bccFiltered, 
+        request.subject(), 
+        request.body(), 
+        request.html()
+    );
 
     log.info("[ASYNC] Tentando enviar e-mail (Assunto: '{}')", request.subject());
     try {
-      executeSend(request);
+      executeSend(filteredRequest);
       log.info("E-mail enviado com sucesso: '{}'", request.subject());
     } catch (Exception e) {
       log.warn(
@@ -76,6 +89,32 @@ public class SmtpEmailService implements EmailService {
       // Re-lança para ativar o Retry
       throw new EmailServiceException("Erro de envio SMTP: " + e.getMessage());
     }
+  }
+
+  /**
+   * Filtra lista de emails removendo usuários que desativaram notificações.
+   */
+  private java.util.List<String> filterByNotificationPreference(java.util.List<String> emails) {
+    if (emails == null || emails.isEmpty()) {
+      return emails;
+    }
+
+    java.util.List<String> filtered = new java.util.ArrayList<>();
+    for (String email : emails) {
+      Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
+      
+      if (usuarioOpt.isEmpty()) {
+        // Se não encontrou usuário no banco, permite envio (pode ser email externo)
+        filtered.add(email);
+      } else if (usuarioOpt.get().isReceberNotificacoes()) {
+        // Usuário existe e quer receber notificações
+        filtered.add(email);
+      } else {
+        // Usuário existe mas desativou notificações
+        log.info("Envio CANCELADO para '{}': usuário optou por não receber notificações.", email);
+      }
+    }
+    return filtered;
   }
 
   @Override

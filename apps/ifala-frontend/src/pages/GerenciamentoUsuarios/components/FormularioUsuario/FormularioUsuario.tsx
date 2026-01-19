@@ -160,6 +160,7 @@ export function FormularioUsuario({
           username: formData.username,
           roles: formData.roles,
           mustChangePassword: formData.mustChangePassword,
+          receberNotificacoes: formData.receberNotificacoes,
         };
         response = await atualizarUsuario(usuarioEditando.id, dadosAtualizados);
       } else {
