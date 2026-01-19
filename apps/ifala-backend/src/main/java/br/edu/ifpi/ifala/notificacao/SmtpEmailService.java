@@ -17,6 +17,9 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import br.edu.ifpi.ifala.autenticacao.Usuario;
+import br.edu.ifpi.ifala.autenticacao.UsuarioRepository;
+import java.util.Optional;
 
 /**
  * Serviço para enviar e-mails via SMTP.
@@ -29,12 +32,14 @@ public class SmtpEmailService implements EmailService {
 
   private static final Logger log = LoggerFactory.getLogger(SmtpEmailService.class);
   private final JavaMailSender mailSender;
+  private final UsuarioRepository usuarioRepository;
 
   @Value("${spring.mail.username:}")
   private String fromAddress;
 
-  public SmtpEmailService(JavaMailSender mailSender) {
+  public SmtpEmailService(JavaMailSender mailSender, UsuarioRepository usuarioRepository) {
     this.mailSender = mailSender;
+    this.usuarioRepository = usuarioRepository;
   }
 
   /*
@@ -47,6 +52,19 @@ public class SmtpEmailService implements EmailService {
   @Retryable(retryFor = {Exception.class}, maxAttempts = 3,
       backoff = @Backoff(delay = 5000, multiplier = 2))
   public void sendEmail(EmailRequest request) {
+
+    // --- NOVO BLOQUEIO: Verifica se o usuário desativou notificações
+    if (request.to() != null && !request.to().isEmpty()) {
+      String emailDestino = request.to().get(0);
+      Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(emailDestino);
+
+      if (usuarioOpt.isPresent() && !usuarioOpt.get().isReceberNotificacoes()) {
+        log.info("Envio CANCELADO para '{}': usuário optou por não receber notificações.",
+            emailDestino);
+        return;
+      }
+    }
+
     log.info("[ASYNC] Tentando enviar e-mail (Assunto: '{}')", request.subject());
     try {
       executeSend(request);
