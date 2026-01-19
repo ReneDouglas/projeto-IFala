@@ -62,7 +62,7 @@ public class ProvaService {
   public void init() {
     try {
       Files.createDirectories(Paths.get(baseUploadPath));
-      log.info("Diretório de uploads de provas criado/verificado: {}", baseUploadPath);
+      log.info("Diretório de uploads de provas criado/verificado:");
     } catch (IOException e) {
       log.error("Erro ao criar diretório de uploads: {}", e.getMessage(), e);
       throw new RuntimeException("Não foi possível criar diretório de uploads", e);
@@ -90,7 +90,7 @@ public class ProvaService {
 
     try {
       Files.createDirectories(diretorioDenuncia);
-      log.info("Diretório criado para denúncia {}: {}", denuncia.getId(), diretorioDenuncia);
+      log.info("Diretório criado para denúncia ID: {}", denuncia.getId());
     } catch (IOException e) {
       log.error("Erro ao criar diretório para denúncia {}: {}", denuncia.getId(), e.getMessage());
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -151,7 +151,7 @@ public class ProvaService {
 
       // Salvar arquivo no disco
       Files.copy(arquivo.getInputStream(), caminhoCompleto);
-      log.info("Arquivo salvo: {}", caminhoCompleto);
+      log.info("Arquivo salvo: {}", nomeArquivo);
 
       // Criar entidade Prova
       Prova prova = new Prova();

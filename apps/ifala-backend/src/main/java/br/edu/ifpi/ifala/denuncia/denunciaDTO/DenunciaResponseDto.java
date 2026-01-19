@@ -13,4 +13,11 @@ import java.util.UUID;
 public record DenunciaResponseDto(Long id, UUID tokenAcompanhamento, Status status,
     Categorias categoria, LocalDateTime criadoEm, LocalDateTime alteradoEm,
     Boolean temMensagemNaoLida) {
+  @Override
+  public String toString() {
+    return "DenunciaResponseDto[" + "id=" + id
+        + ", tokenAcompanhamento=********-****-****-****-************" + // Mascara o UUID
+        ", status=" + status + ", categoria=" + categoria + ", criadoEm=" + criadoEm
+        + ", alteradoEm=" + alteradoEm + ", temMensagemNaoLida=" + temMensagemNaoLida + "]";
+  }
 }

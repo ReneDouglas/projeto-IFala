@@ -77,7 +77,7 @@ public class DenunciaPublicController {
           .buildAndExpand(denunciaSalvaDto.tokenAcompanhamento()).toUri();
 
       log.info("Denúncia criada com sucesso. Token de acompanhamento: {}",
-          denunciaSalvaDto.tokenAcompanhamento());
+          maskToken(denunciaSalvaDto.tokenAcompanhamento()));
 
       return ResponseEntity.created(uri).body(denunciaSalvaDto);
     } catch (Exception e) {
@@ -113,7 +113,7 @@ public class DenunciaPublicController {
           .buildAndExpand(denunciaSalvaDto.tokenAcompanhamento()).toUri();
 
       log.info("Denúncia com provas criada com sucesso. Token: {}",
-          denunciaSalvaDto.tokenAcompanhamento());
+          maskToken(denunciaSalvaDto.tokenAcompanhamento()));
 
       return ResponseEntity.created(uri).body(denunciaSalvaDto);
     } catch (Exception e) {
@@ -134,10 +134,12 @@ public class DenunciaPublicController {
   public ResponseEntity<DenunciaResponseDto> consultarPorToken(@Parameter(
       description = "Token de acompanhamento da denúncia", required = true,
       example = "123e4567-e89b-12d3-a456-426614174000") @PathVariable UUID tokenAcompanhamento) {
-    log.info("Recebida requisição de consulta pública por token: {}", tokenAcompanhamento);
+    log.info("Recebida requisição de consulta pública por token: {}",
+        maskToken(tokenAcompanhamento));
     return denunciaService.consultarPorTokenAcompanhamento(tokenAcompanhamento)
         .map(ResponseEntity::ok).orElseGet(() -> {
-          log.warn("Denúncia não encontrada (público) para o token: {}", tokenAcompanhamento);
+          log.warn("Denúncia não encontrada (público) para o token: {}",
+              maskToken(tokenAcompanhamento));
           return ResponseEntity.notFound().build();
         });
   }
@@ -153,14 +155,14 @@ public class DenunciaPublicController {
       @Parameter(description = "Token de acompanhamento da denúncia",
           required = true) @PathVariable UUID tokenAcompanhamento) {
     log.info("Recebida requisição para listar acompanhamentos (público) por token: {}",
-        tokenAcompanhamento);
+        maskToken(tokenAcompanhamento));
     try {
       List<AcompanhamentoDto> acompanhamentos =
           denunciaService.listarAcompanhamentosPorToken(tokenAcompanhamento);
       return ResponseEntity.ok(acompanhamentos);
     } catch (EntityNotFoundException e) {
       log.warn("Denúncia não encontrada (público) ao listar acompanhamentos por token: {}",
-          tokenAcompanhamento);
+          maskToken(tokenAcompanhamento));
       return ResponseEntity.notFound().build();
     }
   }
@@ -180,7 +182,7 @@ public class DenunciaPublicController {
           required = true) @PathVariable UUID tokenAcompanhamento,
       @Valid @RequestBody AcompanhamentoDto novoAcompanhamento) {
     log.info("Recebida requisição para adicionar acompanhamento (público) por token: {}",
-        tokenAcompanhamento);
+        maskToken(tokenAcompanhamento));
     try {
       AcompanhamentoDto acompanhamentoSalvo = denunciaService
           .adicionarAcompanhamentoDenunciante(tokenAcompanhamento, novoAcompanhamento);
@@ -188,9 +190,27 @@ public class DenunciaPublicController {
     } catch (EntityNotFoundException e) {
       log.warn(
           "Denúncia não encontrada ou finalizada ao adicionar acompanhamento (público) por token: {}",
-          tokenAcompanhamento);
+          maskToken(tokenAcompanhamento));
       return ResponseEntity.notFound().build();
     }
+  }
+
+  /**
+   * Mascara um token UUID mostrando apenas os primeiros 8 caracteres seguidos de "...***". Previne
+   * exposição completa de tokens sensíveis nos logs.
+   * 
+   * @param token o token UUID a ser mascarado
+   * @return token mascarado ou indicação de null
+   */
+  private static String maskToken(UUID token) {
+    if (token == null) {
+      return "null";
+    }
+    String tokenStr = token.toString();
+    if (tokenStr.length() <= 8) {
+      return "***";
+    }
+    return tokenStr.substring(0, 8) + "...***";
   }
 
 }
