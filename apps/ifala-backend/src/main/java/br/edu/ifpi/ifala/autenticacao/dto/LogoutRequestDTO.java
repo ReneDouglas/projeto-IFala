@@ -24,4 +24,23 @@ public class LogoutRequestDTO {
   public void setRefreshToken(String refreshToken) {
     this.refreshToken = refreshToken;
   }
+
+  /**
+   * Implementação segura de toString() que mascara o refresh token. NUNCA expor tokens completos
+   * nos logs.
+   */
+  @Override
+  public String toString() {
+    return "LogoutRequestDTO{refreshToken='" + maskToken(refreshToken) + "'}";
+  }
+
+  private static String maskToken(String token) {
+    if (token == null)
+      return "null";
+    if (token.isEmpty())
+      return "[empty]";
+    if (token.length() <= 8)
+      return "***";
+    return token.substring(0, 8) + "...***";
+  }
 }
