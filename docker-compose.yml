@@ -28,6 +28,8 @@ services:
     build:
       context: ./apps/ifala-frontend
       dockerfile: Dockerfile.dev
+      args:
+        - VITE_RECAPTCHA_SITE_KEY=${VITE_RECAPTCHA_SITE_KEY}
     container_name: ifala-frontend
     env_file:
       - .env
@@ -53,6 +55,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: 00112233445566778899aabbccddeeff
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
       JAVA_TOOL_OPTIONS:
         '-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=*:5005'
     ports:
