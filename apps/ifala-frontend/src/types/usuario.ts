@@ -11,6 +11,7 @@ export interface Usuario {
   email: string;
   roles: Perfis[];
   mustChangePassword: boolean;
+  receberNotificacoes: boolean;
 }
 
 export interface UsuarioFilters {
@@ -65,4 +66,5 @@ export interface AtualizarUsuarioRequest {
   username: string;
   roles: string[];
   mustChangePassword: boolean;
+  receberNotificacoes?: boolean;
 }

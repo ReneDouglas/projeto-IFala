@@ -11,6 +11,8 @@ import {
   CircularProgress,
   InputAdornment,
   IconButton,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import {
   Visibility,
@@ -45,6 +47,7 @@ interface UsuarioFormData {
   confirmarSenha?: string;
   roles: string[];
   mustChangePassword: boolean;
+  receberNotificacoes: boolean;
 }
 
 interface FormularioUsuarioProps {
@@ -66,6 +69,7 @@ export function FormularioUsuario({
     confirmarSenha: '',
     roles: ['ADMIN'],
     mustChangePassword: true,
+    receberNotificacoes: true,
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -78,6 +82,9 @@ export function FormularioUsuario({
   // Preenche o formulário quando está editando ou limpa para um novo usuário
   useEffect(() => {
     if (usuarioEditando) {
+      const usuarioComOpcionais = usuarioEditando as Usuario & {
+        receberNotificacoes?: boolean;
+      };
       setFormData({
         nome: usuarioEditando.nome,
         username: usuarioEditando.username,
@@ -86,6 +93,7 @@ export function FormularioUsuario({
         confirmarSenha: '',
         roles: usuarioEditando.roles,
         mustChangePassword: usuarioEditando.mustChangePassword,
+        receberNotificacoes: usuarioComOpcionais.receberNotificacoes ?? true,
       });
       setSuccess(false);
       setError(null);
@@ -152,6 +160,7 @@ export function FormularioUsuario({
           username: formData.username,
           roles: formData.roles,
           mustChangePassword: formData.mustChangePassword,
+          receberNotificacoes: formData.receberNotificacoes,
         };
         response = await atualizarUsuario(usuarioEditando.id, dadosAtualizados);
       } else {
@@ -202,6 +211,7 @@ export function FormularioUsuario({
       confirmarSenha: '',
       roles: ['ADMIN'],
       mustChangePassword: true,
+      receberNotificacoes: true,
     });
     setErrors({});
     setError(null);
@@ -217,7 +227,16 @@ export function FormularioUsuario({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // CORREÇÃO: Se for o botão Switch (checkbox), pega o valor 'checked' (true/false)
+    // Se for campo de texto normal, pega o 'value' (o que foi digitado)
+    const valorFinal =
+      (e.target as HTMLInputElement).type === 'checkbox'
+        ? (e.target as HTMLInputElement).checked
+        : value;
+
+    setFormData((prev) => ({ ...prev, [name]: valorFinal }));
+
     // Limpa o erro do campo quando o usuário começa a digitar
     if (errors[name]) {
       setErrors((prev) => {
@@ -434,6 +453,33 @@ export function FormularioUsuario({
             <Box sx={{ flex: 1 }}></Box>
           </Box>
         )}
+      </Box>
+
+      {/* NOVO: Switch para Ativar/Desativar Notificações */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 1 }}>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={formData.receberNotificacoes}
+              onChange={handleChange}
+              name='receberNotificacoes'
+              color='primary'
+              sx={{
+                '& .MuiSwitch-switchBase.Mui-checked': {
+                  color: 'var(--verde-esperanca)',
+                },
+                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                  backgroundColor: 'var(--verde-esperanca)',
+                },
+              }}
+            />
+          }
+          label={
+            <span style={{ fontSize: '0.95rem', color: 'var(--cinza-escuro)' }}>
+              Receber notificações automáticas por e-mail
+            </span>
+          }
+        />
       </Box>
 
       {/* Botões de Ação */}
