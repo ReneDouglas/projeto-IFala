@@ -100,12 +100,22 @@ export const Filters = ({
               icon='pending'
             />
 
-            {/* ORDENAR POR — CORRIGIDO */}
+            {/* ORDENAR POR*/}
             <Select
               label='Ordenar por'
               // Pegamos sortProperty + sortDirection e montamos o value visual
-              value={`${searchParams.sortProperty},${searchParams.sortDirection}`}
+              value={
+                searchParams.sortProperty && searchParams.sortDirection
+                  ? `${searchParams.sortProperty},${searchParams.sortDirection.toLowerCase()}`
+                  : ''
+              }
               onChange={(value) => {
+                if (!value) {
+                  onFilterChange('sortProperty', '');
+                  onFilterChange('sortDirection', '');
+                  return;
+                }
+
                 const [property, direction] = value.split(',');
                 onFilterChange('sortProperty', property);
                 onFilterChange('sortDirection', direction.toUpperCase());
@@ -149,7 +159,8 @@ export const Filters = ({
           {/* RESUMO DOS ATIVOS */}
           {(searchParams.search ||
             searchParams.categoria ||
-            searchParams.status) && (
+            searchParams.status ||
+            (searchParams.sortProperty && searchParams.sortDirection)) && (
             <div className='active-filters-summary'>
               <div className='summary-header'>
                 <span className='material-symbols-outlined'>tune</span>
@@ -202,6 +213,39 @@ export const Filters = ({
                     </button>
                   </span>
                 )}
+
+                {searchParams.sortProperty &&
+                  searchParams.sortDirection &&
+                  (() => {
+                    const direction =
+                      searchParams.sortDirection.toLowerCase() as
+                        | 'asc'
+                        | 'desc';
+
+                    return (
+                      <span className='filter-chip sort-chip'>
+                        Ordenação:{' '}
+                        {
+                          ordenacaoOptions.find(
+                            (opt) =>
+                              opt.value ===
+                              `${searchParams.sortProperty},${direction}`,
+                          )?.label
+                        }
+                        <button
+                          onClick={() => {
+                            onFilterChange('sortProperty', '');
+                            onFilterChange('sortDirection', '');
+                          }}
+                          className='chip-close'
+                        >
+                          <span className='material-symbols-outlined'>
+                            close
+                          </span>
+                        </button>
+                      </span>
+                    );
+                  })()}
               </div>
             </div>
           )}
