@@ -245,7 +245,7 @@ export function ProvasModal({
                 )}
 
                 <img
-                  key={provaSelecionada.id} // ✅ garante que troca realmente a imagem
+                  key={provaSelecionada.id}
                   className='provasModal-image'
                   src={getProvaUrl(provaSelecionada.id)}
                   alt={provaSelecionada.nomeArquivo}
