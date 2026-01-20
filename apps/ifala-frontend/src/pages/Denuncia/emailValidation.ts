@@ -6,22 +6,6 @@ const EMAIL_REGEX = /^[a-zA-Z0-9]([a-zA-Z0-9._+-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-z
 // mas deve seguir a estrutura: campus + ponto + ano(4) + período(variavel) + curso(variável) + matrícula(variável)
 const IFPI_ALUNO_REGEX = /^[a-z]+\.20\d{4}\d*[a-zA-Z]*\d+@aluno\.ifpi\.edu\.br$/i;
 
-// formato: nome.sobrenome@ifpi.edu.br
-// info: deve conter nome e sobrenome separados por ponto, com pelo menos 2 letras em cada parte
-const IFPI_SERVIDOR_REGEX = /^[a-z]{2,}(\.[a-z]{2,})+@ifpi\.edu\.br$/i;
-
-// formato: nome.sobrenome143@ifpi.edu.br
-// info: nome e sobrenome separados por ponto, com números opcionais no final
-const IFPI_SERVIDOR_COM_PONTO_COM_NUMERO_REGEX = /^[a-z]{2,}(\.[a-z]{2,})+\d+@ifpi\.edu\.br$/i;
-
-// formato: nomesobrenome@ifpi.edu.br
-// info: nome completo sem separação, mínimo 4 caracteres
-const IFPI_SERVIDOR_SEM_PONTO_REGEX = /^[a-z]{4,}@ifpi\.edu\.br$/i;
-
-// formato: nomesobrenome12@ifpi.edu.br
-// info: nome completo sem separação com números no final, mínimo 3 letras + números
-const IFPI_SERVIDOR_COM_NUMERO_REGEX = /^[a-z]{3,}\d+@ifpi\.edu\.br$/i;
-
 
 const DOMINIOS_COMUNS = [
   'ifpi.edu.br',
@@ -217,7 +201,6 @@ export const validateEmail = (email: string): string => {
     }
     
     else if (lowerEmail.endsWith('@ifpi.edu.br')) {
-      // Usar expressões regex para validação mais rigorosa
       const localPartLower = localPart.toLowerCase();
       
       // validar formato com ponto
