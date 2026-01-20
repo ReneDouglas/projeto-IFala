@@ -75,7 +75,13 @@ export async function criarDenunciaComProvas(
 
 // ENDPOINT DE PROVAS
 
-export async function listarProvasDenuncia(denunciaId: number): Promise<any[]> {
+export async function listarProvasDenuncia(denunciaId: number): Promise<Array<{
+  id: number;
+  nomeArquivo: string;
+  tipo: string;
+  tamanho: number;
+  uploadEm: string;
+}>> {
   const response = await axiosClient.get(
     `/public/provas/denuncia/${denunciaId}`,
   );
