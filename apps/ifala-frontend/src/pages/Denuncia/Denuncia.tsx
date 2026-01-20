@@ -69,7 +69,7 @@ export function Denuncia() {
     turma: false,
     categoria: false,
     relato: false,
-    //recaptcha: false, 
+    //recaptcha: false,
   });
   // estados para mensagens de erro e sugestões de e-mail
   const [emailErrorMessage, setEmailErrorMessage] = useState<string>('');
@@ -185,12 +185,12 @@ export function Denuncia() {
       setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
     } else if (name === 'email') {
       setFormData((prev) => ({ ...prev, [name]: value }));
-      
+
       // validação em tempo real apenas se tiver mais de 3 caracteres
       if (value.trim().length > 3) {
         const errorMsg = validateEmail(value);
         const suggestion = errorMsg ? getEmailSuggestion(value) : '';
-        
+
         setEmailErrorMessage(errorMsg);
         setEmailSuggestion(suggestion);
         setErrors((prev) => ({ ...prev, email: errorMsg !== '' }));
@@ -213,7 +213,8 @@ export function Denuncia() {
 
     const validationErrors = {
       nome: tipoDenuncia === 'identificada' && formData.nome.trim() === '',
-      email: tipoDenuncia === 'identificada' && validateEmail(formData.email) !== '',
+      email:
+        tipoDenuncia === 'identificada' && validateEmail(formData.email) !== '',
       grau: tipoDenuncia === 'identificada' && formData.grau.trim() === '',
       curso:
         tipoDenuncia === 'identificada' &&
@@ -237,8 +238,9 @@ export function Denuncia() {
     const hasErrors = Object.values(validationErrors).some((error) => error);
 
     if (hasErrors) {
-      let errorMessage = 'Por favor, preencha todos os campos obrigatórios corretamente.';
-      
+      let errorMessage =
+        'Por favor, preencha todos os campos obrigatórios corretamente.';
+
       if (validationErrors.email && tipoDenuncia === 'identificada') {
         const emailError = validateEmail(formData.email);
         const suggestion = getEmailSuggestion(formData.email);
@@ -247,7 +249,7 @@ export function Denuncia() {
         errorMessage =
           'Por favor, preencha todos os campos obrigatórios e garanta que a descrição tenha no mínimo 50 caracteres.';
       }
-      
+
       alert(errorMessage);
       return;
     }
@@ -501,10 +503,15 @@ export function Denuncia() {
                     onChange={handleChange}
                     onBlur={(e) => {
                       const errorMsg = validateEmail(e.target.value);
-                      const suggestion = errorMsg ? getEmailSuggestion(e.target.value) : '';
+                      const suggestion = errorMsg
+                        ? getEmailSuggestion(e.target.value)
+                        : '';
                       setEmailErrorMessage(errorMsg);
                       setEmailSuggestion(suggestion);
-                      setErrors((prev) => ({ ...prev, email: errorMsg !== '' }));
+                      setErrors((prev) => ({
+                        ...prev,
+                        email: errorMsg !== '',
+                      }));
                     }}
                     error={errors.email}
                     helperText={

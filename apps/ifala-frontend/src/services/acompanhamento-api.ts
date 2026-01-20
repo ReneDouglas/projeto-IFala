@@ -87,14 +87,14 @@ export async function consultarDenunciaPorId(denunciaId: number): Promise<{
 }
 
 // ENDPOINT ADMIN PARA LISTAR ACOMPANHAMENTOS POR ID
-export async function listarAcompanhamentosPorId(
-  denunciaId: number,
-): Promise<Array<{
-  id: number;
-  mensagem: string;
-  autor: string;
-  dataEnvio: string;
-}>> {
+export async function listarAcompanhamentosPorId(denunciaId: number): Promise<
+  Array<{
+    id: number;
+    mensagem: string;
+    autor: string;
+    dataEnvio: string;
+  }>
+> {
   const response = await axiosClient.get(
     `/admin/denuncias/${denunciaId}/acompanhamentos`,
   );

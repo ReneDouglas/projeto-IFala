@@ -28,9 +28,11 @@ export const useDenuncias = (
       setDenuncias(response.content || []);
       setTotalPages(response.totalPages || 0);
     } catch (err: unknown) {
-      const errorMessage = err && typeof err === 'object' && 'response' in err
-        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-        : undefined;
+      const errorMessage =
+        err && typeof err === 'object' && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : undefined;
       setError(errorMessage || 'Erro ao carregar denúncias.');
       setDenuncias([]);
       setTotalPages(0);
