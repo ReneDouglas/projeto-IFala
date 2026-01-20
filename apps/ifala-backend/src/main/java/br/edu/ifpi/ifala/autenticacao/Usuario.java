@@ -64,6 +64,9 @@ public class Usuario implements Serializable {
   @Column(name = "password_reset_expires")
   private Instant passwordResetExpires;
 
+  @Column(name = "receber_notificacoes", nullable = false)
+  private boolean receberNotificacoes = true;
+
   @ElementCollection(targetClass = Perfis.class, fetch = FetchType.EAGER)
   @CollectionTable(name = "usuarios_perfil", joinColumns = @JoinColumn(name = "usuarios_id"))
   @Column(name = "perfil", columnDefinition = "perfis_enum")
@@ -149,6 +152,14 @@ public class Usuario implements Serializable {
 
   public void setRoles(List<Perfis> roles) {
     this.roles = roles;
+  }
+
+  public boolean isReceberNotificacoes() {
+    return receberNotificacoes;
+  }
+
+  public void setReceberNotificacoes(boolean receberNotificacoes) {
+    this.receberNotificacoes = receberNotificacoes;
   }
 
   @Override

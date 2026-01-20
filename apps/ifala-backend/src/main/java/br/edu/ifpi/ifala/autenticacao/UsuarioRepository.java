@@ -25,8 +25,7 @@ public interface UsuarioRepository
 
   Optional<Usuario> findByPasswordResetToken(String passwordResetToken);
 
-  @Query("SELECT u.email FROM Usuario u WHERE u.email IS NOT NULL AND u.email <> ''")
+  @Query("SELECT u.email FROM Usuario u WHERE u.email IS NOT NULL AND u.email <> '' AND u.receberNotificacoes = true")
   List<String> findAllEmailsExcludingBlanks();
 }
-
 
