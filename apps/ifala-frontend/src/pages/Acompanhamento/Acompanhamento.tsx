@@ -444,7 +444,6 @@ export function Acompanhamento() {
     (detalhes.status.toUpperCase() === 'RESOLVIDO' ||
       detalhes.status.toUpperCase() === 'REJEITADO');
 
-<<<<<<< Updated upstream
   // --- MEMOIZAÇÃO DOS DADOS PARA O PDF ---
   // --- MEMOIZAÇÃO COMPLETA DOS DADOS PARA O PDF ---
   const dadosParaRelatorio = useMemo(() => {
@@ -497,11 +496,10 @@ export function Acompanhamento() {
         }
       : null;
   }, [detalhes, mensagens, provas]); // <--- A LISTA DE DEPENDÊNCIAS É O SEGREDO
-=======
+
   const indexSeguro =
     provas.length > 0 ? Math.min(provaIndexSelecionada, provas.length - 1) : 0;
 
->>>>>>> Stashed changes
   // Estado de carregamento
   if (loading) {
     return (
