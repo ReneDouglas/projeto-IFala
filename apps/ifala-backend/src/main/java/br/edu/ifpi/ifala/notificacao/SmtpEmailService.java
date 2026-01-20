@@ -14,6 +14,7 @@ import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -51,6 +52,7 @@ public class SmtpEmailService implements EmailService {
   @Async
   @Retryable(retryFor = {Exception.class}, maxAttempts = 3,
       backoff = @Backoff(delay = 5000, multiplier = 2))
+  @Transactional(readOnly = true)
   public void sendEmail(EmailRequest request) {
 
     // --- NOVO BLOQUEIO: Verifica se o usuário desativou notificações
