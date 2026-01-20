@@ -25,14 +25,7 @@ if (siteKey) {
   script.onerror = () => {
     console.error('❌ Erro ao carregar o script do reCAPTCHA');
   };
-  script.onload = () => {
-    console.log('✅ Script do reCAPTCHA carregado com sucesso');
-  };
   document.head.appendChild(script);
-} else {
-  console.warn(
-    '⚠️ VITE_RECAPTCHA_SITE_KEY não definida - reCAPTCHA desabilitado (modo dev)',
-  );
 }
 
 createRoot(document.getElementById('root')!).render(

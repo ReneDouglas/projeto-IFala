@@ -531,7 +531,9 @@ public class AuthServiceImpl implements AuthService {
     // Atualiza os outros campos
     usuario.setNome(atualizarUsuarioRequestDTO.nome());
     usuario.setMustChangePassword(atualizarUsuarioRequestDTO.mustChangePassword());
-
+    if (atualizarUsuarioRequestDTO.receberNotificacoes() != null) {
+      usuario.setReceberNotificacoes(atualizarUsuarioRequestDTO.receberNotificacoes());
+    }
     if (atualizarUsuarioRequestDTO.roles() != null
         && !atualizarUsuarioRequestDTO.roles().isEmpty()) {
       List<Perfis> perfisConvertidos =
@@ -561,6 +563,7 @@ public class AuthServiceImpl implements AuthService {
    */
   private UsuarioDetalheResponseDTO convertToUsuarioDetalheDTO(Usuario usuario) {
     return new UsuarioDetalheResponseDTO(usuario.getId(), usuario.getNome(), usuario.getUsername(),
-        usuario.getEmail(), usuario.getRoles(), usuario.isMustChangePassword());
+        usuario.getEmail(), usuario.getRoles(), usuario.isMustChangePassword(),
+        usuario.isReceberNotificacoes());
   }
 }

@@ -18,11 +18,7 @@ export async function listarDenunciasAdmin(
     sortDirection: searchParams.sortDirection || 'DESC',
   };
 
-  console.debug('[API] Params enviados:', params);
-
   const response = await axiosClient.get('/admin/denuncias', { params });
-
-  console.debug('[API] Pageable:', response.data.pageable);
 
   return response.data;
 }
