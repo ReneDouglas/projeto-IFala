@@ -164,7 +164,6 @@ export function FormularioUsuario({
         };
         response = await registrarUsuario(dadosRegistro);
       }
-      console.log('Usuário salvo com sucesso:', response);
 
       setSuccess(true);
       setTimeout(() => {
