@@ -21,7 +21,6 @@ import {
   Backdrop,
   type SelectChangeEvent,
 } from '@mui/material';
-//import ReCAPTCHA from 'react-google-recaptcha';
 import '../../styles/theme.css';
 import {
   getCategorias,
@@ -34,23 +33,9 @@ import {
 } from '../../services/api';
 import type { EnumOption, ApiError } from '../../types/denuncia';
 import { FileUpload } from '../../components/FileUpload';
-/*
-declare global {
-  interface Window {
-    grecaptcha: {
-      ready?: (cb: () => void) => void;
-      execute: (
-        siteKey: string,
-        options?: { action?: string },
-      ) => Promise<string>;
-      reset?: () => void;
-    };
-  }
-}
-export {};*/
+import { validateEmail, getEmailSuggestion } from './emailValidation';
 
 export function Denuncia() {
-  // Estados para dados carregados da API
   const [categorias, setCategorias] = useState<EnumOption[]>([]);
   const [graus, setGraus] = useState<EnumOption[]>([]);
   const [cursos, setCursos] = useState<EnumOption[]>([]);
@@ -59,12 +44,10 @@ export function Denuncia() {
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // Estados para dados filtrados por grau
   const [cursosFiltrados, setCursosFiltrados] = useState<EnumOption[]>([]);
   const [anosFiltrados, setAnosFiltrados] = useState<EnumOption[]>([]);
   const [turmasFiltradas, setTurmasFiltradas] = useState<EnumOption[]>([]);
 
-  // Estado do formulário
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -76,7 +59,6 @@ export function Denuncia() {
     relato: '',
   });
   const [tipoDenuncia, setTipoDenuncia] = useState('anonima');
-  //const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [provas, setProvas] = useState<File[]>([]);
   const [errors, setErrors] = useState({
     nome: false,
@@ -87,13 +69,15 @@ export function Denuncia() {
     turma: false,
     categoria: false,
     relato: false,
-    //recaptcha: false,
+    //recaptcha: false, 
   });
+  // estados para mensagens de erro e sugestões de e-mail
+  const [emailErrorMessage, setEmailErrorMessage] = useState<string>('');
+  const [emailSuggestion, setEmailSuggestion] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
 
   const navigate = useNavigate();
 
-  // Carregar dados da API ao montar o componente
   useEffect(() => {
     const carregarDados = async () => {
       try {
@@ -126,7 +110,6 @@ export function Denuncia() {
     carregarDados();
   }, []);
 
-  // Filtrar cursos, anos e turmas para o grau selecionado
   useEffect(() => {
     if (!formData.grau) {
       setCursosFiltrados([]);
@@ -200,6 +183,26 @@ export function Denuncia() {
       // Remove múltiplos espaços consecutivos, permitindo apenas espaços simples
       const sanitizedValue = value.replace(/\s{2,}/g, ' ');
       setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
+    } else if (name === 'email') {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+      
+      // validação em tempo real apenas se tiver mais de 3 caracteres
+      if (value.trim().length > 3) {
+        const errorMsg = validateEmail(value);
+        const suggestion = errorMsg ? getEmailSuggestion(value) : '';
+        
+        setEmailErrorMessage(errorMsg);
+        setEmailSuggestion(suggestion);
+        setErrors((prev) => ({ ...prev, email: errorMsg !== '' }));
+      } else if (value.trim().length === 0) {
+        setEmailErrorMessage('');
+        setEmailSuggestion('');
+        setErrors((prev) => ({ ...prev, email: false }));
+      } else {
+        setEmailErrorMessage('');
+        setEmailSuggestion('');
+        setErrors((prev) => ({ ...prev, email: false }));
+      }
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -207,12 +210,10 @@ export function Denuncia() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     const validationErrors = {
       nome: tipoDenuncia === 'identificada' && formData.nome.trim() === '',
-      email:
-        tipoDenuncia === 'identificada' && !emailRegex.test(formData.email),
+      email: tipoDenuncia === 'identificada' && validateEmail(formData.email) !== '',
       grau: tipoDenuncia === 'identificada' && formData.grau.trim() === '',
       curso:
         tipoDenuncia === 'identificada' &&
@@ -236,16 +237,21 @@ export function Denuncia() {
     const hasErrors = Object.values(validationErrors).some((error) => error);
 
     if (hasErrors) {
-      let errorMessage = 'Por favor, preencha todos os campos obrigatórios.';
-      if (validationErrors.relato) {
+      let errorMessage = 'Por favor, preencha todos os campos obrigatórios corretamente.';
+      
+      if (validationErrors.email && tipoDenuncia === 'identificada') {
+        const emailError = validateEmail(formData.email);
+        const suggestion = getEmailSuggestion(formData.email);
+        errorMessage = `Erro no e-mail:\n${emailError}${suggestion ? '\n\n' + suggestion : ''}`;
+      } else if (validationErrors.relato) {
         errorMessage =
           'Por favor, preencha todos os campos obrigatórios e garanta que a descrição tenha no mínimo 50 caracteres.';
       }
+      
       alert(errorMessage);
       return;
     }
 
-    // enviar denuncia para o backend
     setSubmitting(true);
     setApiError(null);
 
@@ -273,7 +279,6 @@ export function Denuncia() {
         return;
       }
 
-      // gera token v3 acao: 'denuncia'
       console.log('🔄 Executando reCAPTCHA com action: denuncia');
       console.log('📋 Site Key utilizada:', siteKey);
 
@@ -312,24 +317,20 @@ export function Denuncia() {
 
       let response;
 
-      // Se houver provas, usa o endpoint com multipart/form-data
       if (provas.length > 0) {
         response = await criarDenunciaComProvas(payload, provas);
       } else {
         response = await criarDenuncia(payload);
       }
 
-      // redireciona para página de sucesso com token real
       navigate('/denuncia/sucesso', {
         state: { token: response.tokenAcompanhamento },
       });
-      // Não desativa o submitting aqui - mantém o overlay até a próxima página carregar
     } catch (error) {
       console.error('Erro ao criar denúncia:', error);
 
       const apiErr = error as ApiError;
 
-      // Tratamento de erros de validação
       if (apiErr.errors) {
         const errorMessages = Object.entries(apiErr.errors)
           .map(([field, message]) => `${field}: ${message}`)
@@ -342,17 +343,9 @@ export function Denuncia() {
           'Erro ao enviar denúncia. Por favor, tente novamente mais tarde.',
         );
       }
-      // Só desativa o submitting se houver erro
       setSubmitting(false);
     }
   };
-
-  /* const handleRecaptchaChange = (token: string | null) => {
-    setRecaptchaToken(token);
-    if (token) {
-      setErrors((prevErrors) => ({ ...prevErrors, recaptcha: false }));
-    }
-  }; */
 
   const fieldStyles = {
     '& .MuiOutlinedInput-root': {
@@ -386,14 +379,12 @@ export function Denuncia() {
   return (
     <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh' }}>
       <Container maxWidth='md' sx={{ py: 4 }}>
-        {/* Mensagem de erro ao carregar dados */}
         {apiError && (
           <Alert severity='error' sx={{ mb: 3 }}>
             {apiError}
           </Alert>
         )}
 
-        {/* Loading ao carregar dados da API */}
         {loading ? (
           <Box
             sx={{
@@ -509,14 +500,25 @@ export function Denuncia() {
                   />
                   <TextField
                     name='email'
-                    label='Email *'
+                    label='Email Institucional *'
                     variant='outlined'
                     fullWidth
+                    type='email'
+                    placeholder='Ex: seu.nome@ifpi.edu.br ou campus.202412curso0000@aluno.ifpi.edu.br'
                     value={formData.email}
                     onChange={handleChange}
+                    onBlur={(e) => {
+                      const errorMsg = validateEmail(e.target.value);
+                      const suggestion = errorMsg ? getEmailSuggestion(e.target.value) : '';
+                      setEmailErrorMessage(errorMsg);
+                      setEmailSuggestion(suggestion);
+                      setErrors((prev) => ({ ...prev, email: errorMsg !== '' }));
+                    }}
                     error={errors.email}
                     helperText={
-                      errors.email ? 'Por favor, insira um email válido.' : ''
+                      errors.email && emailErrorMessage
+                        ? `${emailErrorMessage}${emailSuggestion ? ' ' + emailSuggestion : ''}`
+                        : 'Preferencial: Use seu e-mail institucional @ifpi.edu.br ou @aluno.ifpi.edu.br'
                     }
                     sx={fieldStyles}
                   />
@@ -780,26 +782,6 @@ export function Denuncia() {
                 pessoais ou qualquer informação que possa identificá-lo.
               </Alert>
 
-              {/*<Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  my: 1,
-                }}
-              >
-                <ReCAPTCHA
-                  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                  onChange={handleRecaptchaChange}
-                />
-                {errors.recaptcha && (
-                  <FormHelperText error sx={{ mt: 1 }}>
-                    Por favor, complete o desafio.
-                  </FormHelperText>
-                )}
-              </Box>
-              */}
-
               <Button
                 variant='contained'
                 size='large'
@@ -837,7 +819,6 @@ export function Denuncia() {
         )}
       </Container>
 
-      {/* Backdrop com loading durante o envio */}
       <Backdrop
         sx={{
           color: '#fff',
