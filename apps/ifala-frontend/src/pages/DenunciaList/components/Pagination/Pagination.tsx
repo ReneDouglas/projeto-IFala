@@ -29,7 +29,7 @@ export const Pagination = ({
           <button
             key={i}
             className={`pagination-page border-primary ${
-              currentPage === i ? 'bg-primary text-white' : 'text-primary'
+              currentPage === i ? 'active' : 'text-primary'
             }`}
             onClick={() => onPageChange(i)}
           >
