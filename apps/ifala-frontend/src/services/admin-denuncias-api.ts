@@ -5,7 +5,8 @@ import type {
 } from '../pages/DenunciaList/types/denunciaTypes';
 
 // Regex para validar formato UUID
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Verifica se o termo de busca é válido para enviar à API.
