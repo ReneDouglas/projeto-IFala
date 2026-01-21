@@ -13,6 +13,10 @@ import {
   Alert,
   MenuItem,
   Menu,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
 } from '@mui/material';
 import {
   consultarDenunciaPorToken,
@@ -95,6 +99,55 @@ const formatarHora = (dataISO: string): string => {
   });
 };
 
+const formatarGrau = (grau: string): string => {
+  const grauMap: Record<string, string> = {
+    MEDIO: 'Médio',
+    SUPERIOR: 'Superior',
+  };
+  return grauMap[grau.toUpperCase()] || grau;
+};
+
+const formatarCurso = (curso: string): string => {
+  const cursoMap: Record<string, string> = {
+    ADMINISTRACAO: 'Administração',
+    AGROPECUARIA: 'Agropecuária',
+    INFORMATICA: 'Informática',
+    MEIO_AMBIENTE: 'Meio Ambiente',
+    ANALISE_DESENVOLVIMENTO_SISTEMAS: 'Análise e Desenvolvimento de Sistemas',
+    LICENCIATURA_MATEMATICA: 'Licenciatura em Matemática',
+    LICENCIATURA_FISICA: 'Licenciatura em Física',
+    GESTAO_AMBIENTAL: 'Gestão Ambiental',
+  };
+  return cursoMap[curso.toUpperCase()] || curso;
+};
+
+const formatarTurma = (turma: string): string => {
+  const turmaMap: Record<string, string> = {
+    UNICA: 'Única',
+    A: 'A',
+    B: 'B',
+    MODULO_I: 'Módulo I',
+    MODULO_II: 'Módulo II',
+    MODULO_III: 'Módulo III',
+    MODULO_IV: 'Módulo IV',
+    MODULO_V: 'Módulo V',
+    MODULO_VI: 'Módulo VI',
+    MODULO_VII: 'Módulo VII',
+    MODULO_VIII: 'Módulo VIII',
+  };
+  return turmaMap[turma.toUpperCase()] || turma;
+};
+
+const formatarAno = (ano: string | null): string => {
+  if (!ano) return '';
+  const anoMap: Record<string, string> = {
+    PRIMEIRO_ANO: '1º Ano',
+    SEGUNDO_ANO: '2º Ano',
+    TERCEIRO_ANO: '3º Ano',
+  };
+  return anoMap[ano.toUpperCase()] || ano;
+};
+
 // --- COMPONENTE ISOLADO (Evita piscar ao digitar) ---
 
 const BotaoExportarPDF = memo(
@@ -171,6 +224,7 @@ export function Acompanhamento() {
   const [anchorElStatus, setAnchorElStatus] = useState<null | HTMLElement>(
     null,
   );
+  const [modalDenuncianteAberto, setModalDenuncianteAberto] = useState(false);
 
   const mensagensBoxRef = useRef<HTMLDivElement>(null);
 
@@ -858,6 +912,17 @@ export function Acompanhamento() {
                   // Determinar se é minha mensagem
                   const minhaMsg = ehMinhaMensagem(msg.id, msg.autor);
 
+                  // Determinar o nome a ser exibido
+                  let nomeExibido = msg.autor;
+                  if (minhaMsg) {
+                    nomeExibido = 'Você';
+                  } else if (
+                    msg.autor === 'Usuário Anônimo' &&
+                    detalhes.denunciante
+                  ) {
+                    nomeExibido = detalhes.denunciante.nomeCompleto;
+                  }
+
                   return (
                     <Box
                       key={msg.id}
@@ -872,9 +937,34 @@ export function Acompanhamento() {
                     >
                       <Typography
                         variant='caption'
-                        sx={{ fontWeight: 600, color: 'text.secondary' }}
+                        sx={{
+                          fontWeight: 600,
+                          color:
+                            msg.autor === 'Usuário Anônimo' &&
+                            detalhes.denunciante
+                              ? 'primary.main'
+                              : 'text.secondary',
+                          cursor:
+                            msg.autor === 'Usuário Anônimo' &&
+                            detalhes.denunciante
+                              ? 'pointer'
+                              : 'default',
+                          '&:hover':
+                            msg.autor === 'Usuário Anônimo' &&
+                            detalhes.denunciante
+                              ? { textDecoration: 'underline' }
+                              : {},
+                        }}
+                        onClick={() => {
+                          if (
+                            msg.autor === 'Usuário Anônimo' &&
+                            detalhes.denunciante
+                          ) {
+                            setModalDenuncianteAberto(true);
+                          }
+                        }}
                       >
-                        {minhaMsg ? 'Você' : msg.autor}
+                        {nomeExibido}
                       </Typography>
                       <Typography
                         variant='body2'
@@ -1000,6 +1090,96 @@ export function Acompanhamento() {
           </Paper>
         </Box>
       </Container>
+
+      {/* Modal de Informações do Denunciante */}
+      <Dialog
+        open={modalDenuncianteAberto}
+        onClose={() => setModalDenuncianteAberto(false)}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            pb: 1,
+          }}
+        >
+          <Typography variant='h6' sx={{ fontWeight: 600 }}>
+            Informações do Denunciante
+          </Typography>
+          <IconButton
+            onClick={() => setModalDenuncianteAberto(false)}
+            size='small'
+          >
+            <span className='material-symbols-outlined'>close</span>
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {detalhes?.denunciante && (
+            <Stack spacing={3} sx={{ mt: 1 }}>
+              <Box>
+                <Typography
+                  variant='caption'
+                  sx={{ color: 'text.secondary', fontWeight: 600 }}
+                >
+                  Nome Completo
+                </Typography>
+                <Typography variant='body1' sx={{ fontWeight: 500, mt: 0.5 }}>
+                  {detalhes.denunciante.nomeCompleto}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography
+                  variant='caption'
+                  sx={{ color: 'text.secondary', fontWeight: 600 }}
+                >
+                  Grau
+                </Typography>
+                <Typography variant='body1' sx={{ fontWeight: 500, mt: 0.5 }}>
+                  {formatarGrau(detalhes.denunciante.grau)}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography
+                  variant='caption'
+                  sx={{ color: 'text.secondary', fontWeight: 600 }}
+                >
+                  Curso
+                </Typography>
+                <Typography variant='body1' sx={{ fontWeight: 500, mt: 0.5 }}>
+                  {formatarCurso(detalhes.denunciante.curso)}
+                </Typography>
+              </Box>
+              {detalhes.denunciante.ano && (
+                <Box>
+                  <Typography
+                    variant='caption'
+                    sx={{ color: 'text.secondary', fontWeight: 600 }}
+                  >
+                    Ano
+                  </Typography>
+                  <Typography variant='body1' sx={{ fontWeight: 500, mt: 0.5 }}>
+                    {formatarAno(detalhes.denunciante.ano)}
+                  </Typography>
+                </Box>
+              )}
+              <Box>
+                <Typography
+                  variant='caption'
+                  sx={{ color: 'text.secondary', fontWeight: 600 }}
+                >
+                  Turma
+                </Typography>
+                <Typography variant='body1' sx={{ fontWeight: 500, mt: 0.5 }}>
+                  {formatarTurma(detalhes.denunciante.turma)}
+                </Typography>
+              </Box>
+            </Stack>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

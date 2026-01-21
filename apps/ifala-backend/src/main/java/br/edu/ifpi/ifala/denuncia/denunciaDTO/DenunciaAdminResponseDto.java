@@ -16,5 +16,5 @@ import java.util.UUID;
  */
 public record DenunciaAdminResponseDto(Long id, UUID tokenAcompanhamento, Status status,
     Categorias categoria, LocalDateTime criadoEm, LocalDateTime alteradoEm,
-    Boolean temMensagemNaoLida) {
+    Boolean temMensagemNaoLida, DenuncianteResponseDto denunciante) {
 }
