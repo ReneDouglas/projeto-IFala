@@ -27,6 +27,7 @@ import org.owasp.html.Sanitizers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -184,38 +185,76 @@ public class DenunciaService {
    * filtrar resultados
    */
 
+  /**
+   * Lista todas as denúncias com filtros e paginação.
+   *
+   * @param search filtro de busca por token
+   * @param status filtro de status
+   * @param categoria filtro de categoria
+   * @param pageable informações de paginação
+   * @return página de denúncias
+   */
   @Transactional(readOnly = true)
   public Page<DenunciaAdminResponseDto> listarTodas(String search, Status status,
       Categorias categoria, Pageable pageable) {
-    Specification<Denuncia> spec = (root, query, criteriaBuilder) -> {
-      List<Predicate> predicates = new ArrayList<>();
 
-      // filtro por Status
-      if (status != null) {
-        predicates.add(criteriaBuilder.equal(root.get("status"), status));
+    log.info("Iniciando listagem de denúncias com filtros: status={}, categoria={}, search={}",
+        status, categoria, search);
+
+    // Passo 1: Buscar apenas os IDs com paginação e ordenação personalizada
+    Page<Long> idsPage;
+
+    if (search != null && !search.trim().isEmpty()) {
+      // Se tem busca por token, tenta converter
+      String tokenSearch = null;
+      try {
+        UUID token = UUID.fromString(search.trim());
+        tokenSearch = token.toString();
+        log.debug("Busca por token UUID: {}", tokenSearch);
+      } catch (IllegalArgumentException e) {
+        log.warn("Busca inválida (não é UUID): {}", search);
+        // Retorna página vazia se não for um UUID válido
+        return Page.empty(pageable);
       }
 
-      // filtro por Categoria
-      if (categoria != null) {
-        predicates.add(criteriaBuilder.equal(root.get("categoria"), categoria));
-      }
+      idsPage = denunciaRepository.findAllIdsWithFiltersOrderedByNewMessages(
+          status, categoria, tokenSearch, pageable);
+    } else {
+      // Sem busca por token
+      idsPage = denunciaRepository.findAllIdsWithFiltersOrderedByNewMessages(
+          status, categoria, null, pageable);
+    }
 
-      // filtro por Busca Textual (Search)
-      if (search != null && !search.trim().isEmpty()) {
-        try {
-          UUID token = UUID.fromString(search.trim());
-          predicates.add(criteriaBuilder.equal(root.get("tokenAcompanhamento"), token));
+    // Se não encontrou nada, retorna página vazia
+    if (idsPage.isEmpty()) {
+      log.info("Nenhuma denúncia encontrada com os filtros aplicados");
+      return Page.empty(pageable);
+    }
 
-        } catch (IllegalArgumentException e) {
-          log.error("Erro ao processar o filtro de busca textual: {}", e.getMessage(), e);
-          predicates.add(criteriaBuilder.disjunction()); // Nenhum resultado
-        }
-      }
+    log.debug("Encontrados {} IDs de denúncias", idsPage.getContent().size());
 
-      return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-    };
+    // Passo 2: Buscar as entidades completas com relacionamentos (1 query com JOINs)
+    List<Denuncia> denuncias = denunciaRepository.findAllByIdWithRelations(idsPage.getContent());
 
-    return denunciaRepository.findAll(spec, pageable).map(this::mapToDenunciaAdminResponseDto);
+    log.debug("Carregadas {} denúncias com relacionamentos", denuncias.size());
+
+    // Passo 3: Ordenar a lista na mesma ordem dos IDs retornados
+    List<Long> idsOrder = idsPage.getContent();
+    denuncias.sort((d1, d2) -> {
+      int index1 = idsOrder.indexOf(d1.getId());
+      int index2 = idsOrder.indexOf(d2.getId());
+      return Integer.compare(index1, index2);
+    });
+
+    // Passo 4: Converter para DTO
+    List<DenunciaAdminResponseDto> dtos = denuncias.stream()
+        .map(this::mapToDenunciaAdminResponseDto)
+        .collect(Collectors.toList());
+
+    log.info("Retornando {} denúncias para a página {}", dtos.size(), pageable.getPageNumber());
+
+    // Retornar Page com os dados originais de paginação
+    return new PageImpl<>(dtos, pageable, idsPage.getTotalElements());
   }
 
   // buscar denúncia por ID
@@ -423,14 +462,26 @@ public class DenunciaService {
         denuncia.getAlteradoEm(), temMensagemNaoLida);
   }
 
+  /**
+   * Mapeia uma entidade Denuncia para DenunciaAdminResponseDto.
+   *
+   * @param denuncia entidade a ser mapeada
+   * @return DTO mapeado
+   */
   private DenunciaAdminResponseDto mapToDenunciaAdminResponseDto(Denuncia denuncia) {
-    // Verifica se há mensagens não lidas do ANONIMO (usuário) para o ADMIN
-    boolean temMensagemNaoLida = acompanhamentoRepository
-        .existsByDenunciaIdAndAutorAndVisualizadoFalse(denuncia.getId(), Perfis.ANONIMO);
+    // Verificar se tem mensagens não lidas do ANONIMO (usuário/denunciante)
+    boolean temMensagemNaoLida = denuncia.getAcompanhamentos().stream()
+        .anyMatch(a -> a.getAutor() == Perfis.ANONIMO && !a.getVisualizado());
 
-    return new DenunciaAdminResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
-        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(),
-        denuncia.getAlteradoEm(), temMensagemNaoLida);
+    return new DenunciaAdminResponseDto(
+        denuncia.getId(),
+        denuncia.getTokenAcompanhamento(),
+        denuncia.getStatus(),
+        denuncia.getCategoria(),
+        denuncia.getCriadoEm(),
+        denuncia.getAlteradoEm(),
+        temMensagemNaoLida
+    );
   }
 
   private AcompanhamentoDto mapToAcompanhamentoResponseDto(Acompanhamento acompanhamento) {
