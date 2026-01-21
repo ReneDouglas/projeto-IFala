@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDenuncias } from './hooks/useDenuncias';
 import type { SearchParams } from './types/denunciaTypes';
@@ -27,16 +27,19 @@ export function DenunciasList() {
       (urlSearchParams.get('sortDirection') as 'ASC' | 'DESC') || '',
   });
 
-  const normalizedParams: SearchParams = {
-    ...searchParams,
+  const normalizedParams: SearchParams = useMemo(
+    () => ({
+      ...searchParams,
 
-    sortProperty: searchParams.sortProperty || 'id',
-    sortDirection:
-      searchParams.sortDirection === 'ASC' ||
-      searchParams.sortDirection === 'DESC'
-        ? searchParams.sortDirection
-        : 'DESC',
-  };
+      sortProperty: searchParams.sortProperty || 'id',
+      sortDirection:
+        searchParams.sortDirection === 'ASC' ||
+        searchParams.sortDirection === 'DESC'
+          ? searchParams.sortDirection
+          : 'DESC',
+    }),
+    [searchParams],
+  );
 
   const { denuncias, loading, error, totalPages, refetch } = useDenuncias(
     currentPage,
