@@ -1,0 +1,80 @@
+/* Container clicável da miniatura */
+.prova-thumb {
+  position: relative;
+  display: block;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e6e6e6;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+/* Imagem da miniatura */
+.prova-thumb__img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Overlay (camada por cima) */
+.prova-thumb__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+/* Conteúdo do overlay */
+.prova-thumb__overlayContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+/* Texto do overlay */
+.prova-thumb__overlayText {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+/* Hover: destaca e mostra overlay */
+.prova-thumb:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+  border-color: var(--verde-esperanca);
+}
+
+.prova-thumb:hover .prova-thumb__overlay {
+  opacity: 1;
+}
+
+/* Acessibilidade: foco pelo teclado */
+.prova-thumb:focus-visible {
+  outline: 2px solid var(--verde-esperanca);
+  outline-offset: 3px;
+}
+
+@media (hover: none) {
+  .prova-thumb__overlay {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.28);
+  }
+
+  .prova-thumb__overlayContent {
+    background: rgba(0, 0, 0, 0.25);
+  }
+}

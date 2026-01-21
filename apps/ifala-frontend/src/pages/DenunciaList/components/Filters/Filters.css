@@ -244,6 +244,12 @@
   border: 1px solid #7dd3fc;
 }
 
+.sort-chip {
+  background: #eef2ff;
+  border: 1px solid #6366f1;
+  color: #3730a3;
+}
+
 .status-chip {
   background: #f0fdf4;
   color: #166534;
