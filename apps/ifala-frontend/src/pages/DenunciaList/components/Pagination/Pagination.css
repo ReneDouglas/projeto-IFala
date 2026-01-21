@@ -44,6 +44,15 @@
   cursor: not-allowed;
 }
 
+.pagination-ellipsis {
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  color: var(--cinza-escuro);
+  font-size: 0.8rem;
+  user-select: none;
+}
+
 @media (max-width: 768px) {
   .pagination {
     flex-direction: column;

@@ -95,6 +95,21 @@ function Sidebar({
               </span>
               Fazer Denúncia
             </button>
+            <button
+              className='menu-item'
+              onClick={() => {
+                window.location.href = '/sobre';
+                closeSidebar();
+              }}
+            >
+              <span
+                className='material-symbols-outlined notranslate'
+                translate='no'
+              >
+                info
+              </span>
+              Sobre
+            </button>
           </div>
 
           {isLoggedIn ? (

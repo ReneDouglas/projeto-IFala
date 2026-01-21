@@ -8,6 +8,7 @@ import br.edu.ifpi.ifala.denuncia.denunciaDTO.CriarDenunciaDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DadosDeIdentificacaoDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaAdminResponseDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenuncianteResponseDto;
 import br.edu.ifpi.ifala.notificacao.NotificacaoExternaService;
 import br.edu.ifpi.ifala.prova.ProvaService;
 import br.edu.ifpi.ifala.security.recaptcha.RecaptchaService;
@@ -55,7 +56,7 @@ public class DenunciaService {
   private final NotificacaoExternaService notificacaoExternaService;
   private final ProvaService provaService;
   private final PolicyFactory policy;
-  private final Double score = 0.1;
+  private final Double score = 0.2;
 
   // A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO
   // private final RecaptchaService recaptchaService;
@@ -439,9 +440,18 @@ public class DenunciaService {
     boolean temMensagemNaoLida = acompanhamentoRepository
         .existsByDenunciaIdAndAutorAndVisualizadoFalse(denuncia.getId(), Perfis.ADMIN);
 
+    // Mapear dados do denunciante, se existir e se deseja se identificar
+    DenuncianteResponseDto denuncianteDto = null;
+    if (denuncia.isDesejaSeIdentificar() && denuncia.getDenunciante() != null) {
+      Denunciante denunciante = denuncia.getDenunciante();
+      denuncianteDto =
+          new DenuncianteResponseDto(denunciante.getNomeCompleto(), denunciante.getGrau(),
+              denunciante.getCurso(), denunciante.getAno(), denunciante.getTurma());
+    }
+
     return new DenunciaResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
         denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(),
-        denuncia.getAlteradoEm(), temMensagemNaoLida);
+        denuncia.getAlteradoEm(), temMensagemNaoLida, denuncianteDto);
   }
 
   private DenunciaAdminResponseDto mapToDenunciaAdminResponseDto(Denuncia denuncia) {
@@ -449,9 +459,18 @@ public class DenunciaService {
     boolean temMensagemNaoLida = acompanhamentoRepository
         .existsByDenunciaIdAndAutorAndVisualizadoFalse(denuncia.getId(), Perfis.ANONIMO);
 
+    // Mapear dados do denunciante, se existir e se deseja se identificar
+    DenuncianteResponseDto denuncianteDto = null;
+    if (denuncia.isDesejaSeIdentificar() && denuncia.getDenunciante() != null) {
+      Denunciante denunciante = denuncia.getDenunciante();
+      denuncianteDto =
+          new DenuncianteResponseDto(denunciante.getNomeCompleto(), denunciante.getGrau(),
+              denunciante.getCurso(), denunciante.getAno(), denunciante.getTurma());
+    }
+
     return new DenunciaAdminResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
         denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(),
-        denuncia.getAlteradoEm(), temMensagemNaoLida);
+        denuncia.getAlteradoEm(), temMensagemNaoLida, denuncianteDto);
   }
 
   private AcompanhamentoDto mapToAcompanhamentoResponseDto(Acompanhamento acompanhamento) {

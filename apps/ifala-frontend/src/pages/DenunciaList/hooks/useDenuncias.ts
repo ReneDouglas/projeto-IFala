@@ -27,14 +27,19 @@ export const useDenuncias = (
 
       setDenuncias(response.content || []);
       setTotalPages(response.totalPages || 0);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Erro ao carregar denúncias.');
+    } catch (err: unknown) {
+      const errorMessage =
+        err && typeof err === 'object' && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : undefined;
+      setError(errorMessage || 'Erro ao carregar denúncias.');
       setDenuncias([]);
       setTotalPages(0);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, JSON.stringify(searchParams)]);
+  }, [currentPage, searchParams]);
 
   useEffect(() => {
     load();
