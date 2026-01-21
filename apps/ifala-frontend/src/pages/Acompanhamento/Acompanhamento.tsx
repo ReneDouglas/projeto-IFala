@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ProvasModal } from '../../components/ProvasModal';
+import './AcompanhamentoProvas.css';
 import {
   Container,
   Typography,
@@ -156,6 +158,16 @@ export function Acompanhamento() {
 
   // Converter denunciaId para número se existir
   const denunciaId = denunciaIdParam ? parseInt(denunciaIdParam, 10) : null;
+
+  const [modalProvasOpen, setModalProvasOpen] = useState(false);
+  const [provaIndexSelecionada, setProvaIndexSelecionada] = useState(0);
+
+  const abrirModalProvas = (index: number) => {
+    setProvaIndexSelecionada(index);
+    setModalProvasOpen(true);
+  };
+
+  const fecharModalProvas = () => setModalProvasOpen(false);
 
   const [detalhes, setDetalhes] = useState<AcompanhamentoDetalhes | null>(null);
   const [mensagens, setMensagens] = useState<MensagemAcompanhamento[]>([]);
@@ -335,6 +347,12 @@ export function Acompanhamento() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detalhes]);
 
+  useEffect(() => {
+    if (modalProvasOpen && provas.length === 0) {
+      setModalProvasOpen(false);
+    }
+  }, [modalProvasOpen, provas.length]);
+
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
@@ -478,6 +496,10 @@ export function Acompanhamento() {
         }
       : null;
   }, [detalhes, mensagens, provas]); // <--- A LISTA DE DEPENDÊNCIAS É O SEGREDO
+
+  const indexSeguro =
+    provas.length > 0 ? Math.min(provaIndexSelecionada, provas.length - 1) : 0;
+
   // Estado de carregamento
   if (loading) {
     return (
@@ -753,35 +775,37 @@ export function Acompanhamento() {
                     gap: 1,
                   }}
                 >
-                  {provas.map((prova) => (
+                  {provas.map((prova, index) => (
                     <Box
                       key={prova.id}
-                      component='a'
-                      href={getProvaUrl(prova.id)}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      sx={{
-                        display: 'block',
-                        borderRadius: 1,
-                        overflow: 'hidden',
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        '&:hover': {
-                          opacity: 0.8,
-                          borderColor: 'var(--verde-esperanca)',
-                        },
+                      role='button'
+                      tabIndex={0}
+                      onClick={() => abrirModalProvas(index)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          abrirModalProvas(index);
+                        }
                       }}
+                      className='prova-thumb'
                     >
-                      <Box
-                        component='img'
+                      <img
                         src={getProvaUrl(prova.id)}
                         alt={prova.nomeArquivo}
-                        sx={{
-                          width: '100%',
-                          height: 120,
-                          objectFit: 'cover',
-                        }}
+                        className='prova-thumb__img'
+                        loading='lazy'
                       />
+
+                      <div className='prova-thumb__overlay'>
+                        <div className='prova-thumb__overlayContent'>
+                          <span className='material-symbols-outlined'>
+                            zoom_in
+                          </span>
+                          <span className='prova-thumb__overlayText'>
+                            Clique para ampliar
+                          </span>
+                        </div>
+                      </div>
                     </Box>
                   ))}
                 </Box>
@@ -999,6 +1023,13 @@ export function Acompanhamento() {
             </Box>
           </Paper>
         </Box>
+        <ProvasModal
+          open={modalProvasOpen}
+          provas={provas}
+          indexAtual={indexSeguro}
+          onClose={fecharModalProvas}
+          onChangeIndex={setProvaIndexSelecionada}
+        />
       </Container>
     </Box>
   );
