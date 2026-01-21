@@ -13,6 +13,35 @@ export const Pagination = ({
 }: PaginationProps) => {
   if (totalPages <= 1) return null;
 
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible + 2) {
+      return Array.from({ length: totalPages }, (_, i) => i);
+    }
+
+    pages.push(0);
+
+    if (currentPage <= 2) {
+      for (let i = 1; i < maxVisible; i++) pages.push(i);
+      pages.push('...');
+    } else if (currentPage >= totalPages - 3) {
+      pages.push('...');
+      for (let i = totalPages - maxVisible + 1; i < totalPages - 1; i++)
+        pages.push(i);
+    } else {
+      pages.push('...');
+      pages.push(currentPage - 1);
+      pages.push(currentPage);
+      pages.push(currentPage + 1);
+      pages.push('...');
+    }
+
+    pages.push(totalPages - 1);
+    return pages;
+  };
+
   return (
     <div className='pagination'>
       <button
@@ -25,17 +54,23 @@ export const Pagination = ({
       </button>
 
       <div className='pagination-pages'>
-        {Array.from({ length: totalPages }, (_, i) => (
-          <button
-            key={i}
-            className={`pagination-page border-primary ${
-              currentPage === i ? 'bg-primary text-white' : 'text-primary'
-            }`}
-            onClick={() => onPageChange(i)}
-          >
-            {i + 1}
-          </button>
-        ))}
+        {getPageNumbers().map((page, idx) =>
+          typeof page === 'string' ? (
+            <span key={`ellipsis-${idx}`} className='pagination-ellipsis'>
+              {page}
+            </span>
+          ) : (
+            <button
+              key={page}
+              className={`pagination-page border-primary ${
+                currentPage === page ? 'active' : 'text-primary'
+              }`}
+              onClick={() => onPageChange(page)}
+            >
+              {page + 1}
+            </button>
+          ),
+        )}
       </div>
 
       <button
