@@ -28,7 +28,8 @@ export const Pagination = ({
       pages.push('...');
     } else if (currentPage >= totalPages - 3) {
       pages.push('...');
-      for (let i = totalPages - maxVisible + 1; i < totalPages - 1; i++) pages.push(i);
+      for (let i = totalPages - maxVisible + 1; i < totalPages - 1; i++)
+        pages.push(i);
     } else {
       pages.push('...');
       pages.push(currentPage - 1);
@@ -53,7 +54,7 @@ export const Pagination = ({
       </button>
 
       <div className='pagination-pages'>
-        {getPageNumbers().map((page, idx) => 
+        {getPageNumbers().map((page, idx) =>
           typeof page === 'string' ? (
             <span key={`ellipsis-${idx}`} className='pagination-ellipsis'>
               {page}
@@ -68,7 +69,7 @@ export const Pagination = ({
             >
               {page + 1}
             </button>
-          )
+          ),
         )}
       </div>
 
