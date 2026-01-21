@@ -22,14 +22,25 @@ export function DenunciasList() {
     search: urlSearchParams.get('search') || '',
     categoria: urlSearchParams.get('categoria') || '',
     status: urlSearchParams.get('status') || '',
-    sortProperty: urlSearchParams.get('sortProperty') || 'id',
+    sortProperty: urlSearchParams.get('sortProperty') || '',
     sortDirection:
-      (urlSearchParams.get('sortDirection') as 'ASC' | 'DESC') || 'DESC',
+      (urlSearchParams.get('sortDirection') as 'ASC' | 'DESC') || '',
   });
+
+  const normalizedParams: SearchParams = {
+    ...searchParams,
+
+    sortProperty: searchParams.sortProperty || 'id',
+    sortDirection:
+      searchParams.sortDirection === 'ASC' ||
+      searchParams.sortDirection === 'DESC'
+        ? searchParams.sortDirection
+        : 'DESC',
+  };
 
   const { denuncias, loading, error, totalPages, refetch } = useDenuncias(
     currentPage,
-    searchParams,
+    normalizedParams,
   );
   const [showWelcome, setShowWelcome] = useState(true);
 
@@ -43,8 +54,8 @@ export function DenunciasList() {
       search: '',
       categoria: '',
       status: '',
-      sortProperty: 'id',
-      sortDirection: 'DESC',
+      sortProperty: '',
+      sortDirection: '',
     });
     setCurrentPage(0);
   };
@@ -59,9 +70,9 @@ export function DenunciasList() {
     if (searchParams.search) params.search = searchParams.search;
     if (searchParams.categoria) params.categoria = searchParams.categoria;
     if (searchParams.status) params.status = searchParams.status;
-    if (searchParams.sortProperty && searchParams.sortProperty !== 'id')
+    if (searchParams.sortProperty)
       params.sortProperty = searchParams.sortProperty;
-    if (searchParams.sortDirection && searchParams.sortDirection !== 'DESC')
+    if (searchParams.sortDirection)
       params.sortDirection = searchParams.sortDirection;
 
     setUrlSearchParams(params, { replace: true });
@@ -138,8 +149,8 @@ export function DenunciasList() {
               search: '',
               categoria: '',
               status: '',
-              sortProperty: 'id',
-              sortDirection: 'DESC',
+              sortProperty: '',
+              sortDirection: '',
             }}
             onFilterChange={handleFilterChange}
             onClearFilters={handleClearFilters}
