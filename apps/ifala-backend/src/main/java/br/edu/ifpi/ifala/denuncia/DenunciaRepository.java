@@ -29,7 +29,6 @@ public interface DenunciaRepository
   @EntityGraph(attributePaths = {"acompanhamentos", "provas", "denunciante"})
   Optional<Denuncia> findByTokenAcompanhamento(UUID tokenAcompanhamento);
 
-<<<<<<< HEAD
   @EntityGraph(attributePaths = {"acompanhamentos", "provas", "denunciante"})
   Optional<Denuncia> findById(Long id);
 
