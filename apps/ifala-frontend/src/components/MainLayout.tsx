@@ -30,10 +30,6 @@ export function MainLayout() {
     navigate('/painel-denuncias');
   };
 
-  const handleChangePassword = () => {
-    // TODO: Implementar navegação para alterar senha
-  };
-
   const handleNewDenuncia = () => {
     navigate('/denuncia');
   };
@@ -51,7 +47,6 @@ export function MainLayout() {
         onLogin={handleLogin}
         onLogout={handleLogout}
         onDashboard={handleDashboard}
-        onChangePassword={handleChangePassword}
         onNewDenuncia={handleNewDenuncia}
       />
       <main>

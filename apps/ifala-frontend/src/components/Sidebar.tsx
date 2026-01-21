@@ -12,7 +12,6 @@ interface SidebarProps {
   onLogin: () => void;
   onLogout: () => void;
   onDashboard: () => void;
-  onChangePassword: () => void;
   onNewDenuncia: () => void;
 }
 
@@ -26,7 +25,6 @@ function Sidebar({
   onLogin,
   onLogout,
   onDashboard,
-  onChangePassword,
   onNewDenuncia,
 }: SidebarProps) {
   // Fecha o menu lateral
@@ -146,21 +144,7 @@ function Sidebar({
                 </span>
                 Gerenciar Usuários
               </button>
-              <button
-                className='menu-item'
-                onClick={() => {
-                  onChangePassword();
-                  closeSidebar();
-                }}
-              >
-                <span
-                  className='material-symbols-outlined notranslate'
-                  translate='no'
-                >
-                  lock
-                </span>
-                Alterar Senha
-              </button>
+              {/* botão 'Alterar Senha' removido */}
               <button
                 className='menu-item logout'
                 onClick={() => {
