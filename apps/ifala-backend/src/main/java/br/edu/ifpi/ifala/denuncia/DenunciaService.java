@@ -201,14 +201,35 @@ public class DenunciaService {
       }
 
       // filtro por Busca Textual (Search)
+      // Busca por: token (UUID exato) OU descrição OU mensagens de acompanhamento
       if (search != null && !search.trim().isEmpty()) {
+        String termo = search.trim();
+
+        // Tenta primeiro como UUID (busca exata por token)
         try {
-          UUID token = UUID.fromString(search.trim());
+          UUID token = UUID.fromString(termo);
           predicates.add(criteriaBuilder.equal(root.get("tokenAcompanhamento"), token));
+          log.info("Busca por token UUID: {}", maskToken(token));
 
         } catch (IllegalArgumentException e) {
-          log.error("Erro ao processar o filtro de busca textual: {}", e.getMessage(), e);
-          predicates.add(criteriaBuilder.disjunction()); // Nenhum resultado
+          // Não é UUID - verifica se tem pelo menos 3 caracteres para busca textual
+          if (termo.length() >= 3) {
+            log.info("Busca textual por termo: '{}' (caracteres: {})", termo, termo.length());
+
+            // Usa a função SQL otimizada para buscar IDs das denúncias
+            List<Long> idsEncontrados = denunciaRepository.buscarIdsPorTexto(termo);
+            
+            if (idsEncontrados.isEmpty()) {
+              // Nenhum resultado encontrado - força retorno vazio
+              predicates.add(criteriaBuilder.disjunction());
+            } else {
+              // Filtra pelos IDs encontrados pela função SQL
+              predicates.add(root.get("id").in(idsEncontrados));
+            }
+          } else {
+            log.info("Termo de busca muito curto (< 3 caracteres): '{}' - ignorando filtro", termo);
+            // Menos de 3 caracteres: não aplica filtro de busca textual
+          }
         }
       }
 
