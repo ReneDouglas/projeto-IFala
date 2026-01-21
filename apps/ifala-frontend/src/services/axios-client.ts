@@ -59,24 +59,16 @@ axiosClient.interceptors.response.use(
 
     // Se erro for 401 e naa for uma tentativa de retry
     if (error.response?.status === 401 && !originalRequest._retry) {
-      console.log('[AUTH] Erro 401 detectado:', originalRequest.url);
-
       // Evitar refresh em rotas de autenticacao
       if (
         originalRequest.url?.includes('/auth/login') ||
         originalRequest.url?.includes('/auth/refresh') ||
         originalRequest.url?.includes('/auth/redefinir-senha')
       ) {
-        console.log('[AUTH] Ignorando refresh (rota de autenticação)');
         return Promise.reject(error);
       }
 
-      console.log('[AUTH] Verificando estado de refresh...');
-
       if (isRefreshing) {
-        console.log(
-          '[AUTH] Refresh em andamento, adicionando requisição à fila',
-        );
         // caso for refresh, adicionar à fila
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -95,8 +87,6 @@ axiosClient.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      console.log('[AUTH] Iniciando tentativa de refresh token...');
-
       try {
         //  fazendo refresh do token
         const response = await axios.post<LoginResponse>(
@@ -109,15 +99,11 @@ axiosClient.interceptors.response.use(
 
         const { token } = response.data;
 
-        console.log('[AUTH] Refresh bem-sucedido, novo token recebido');
-
         // Atualizacao do token no localStorage
         localStorage.setItem('access_token', token);
 
         // Processar fila de requisições pendentes
         processQueue(null, token);
-
-        console.log('[AUTH] Requisições pendentes processadas');
 
         // Atualizar header da requisicao original
         if (originalRequest.headers) {
@@ -133,9 +119,6 @@ axiosClient.interceptors.response.use(
         processQueue(refreshError as Error, null);
         localStorage.removeItem('access_token');
         localStorage.removeItem('usuarioLogado');
-
-        console.log('[AUTH] localStorage limpo');
-        console.log('[AUTH] Redirecionando para /login...');
 
         // redireciona para login
         window.location.href = '/login';

@@ -14,5 +14,6 @@ public record AtualizarUsuarioRequestDTO(@NotBlank(message = "O nome é obrigat�
 
     List<String> roles,
 
-    @NotNull(message = "O campo 'mustChangePassword' é obrigatório.") Boolean mustChangePassword) {
+    @NotNull(message = "O campo 'mustChangePassword' é obrigatório.") Boolean mustChangePassword,
+    Boolean receberNotificacoes) {
 }

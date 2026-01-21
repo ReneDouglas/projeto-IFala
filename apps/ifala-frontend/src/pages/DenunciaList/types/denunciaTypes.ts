@@ -15,7 +15,7 @@ export interface SearchParams {
   categoria: string;
   status: string;
   sortProperty?: string;
-  sortDirection?: 'ASC' | 'DESC';
+  sortDirection?: 'ASC' | 'DESC' | '';
 }
 
 /*export interface DenunciasResponse {
@@ -40,7 +40,7 @@ export interface FieldErrors {
   categoria: string;
   status: string;
   sortProperty?: string;
-  sortDirection?: 'ASC' | 'DESC';
+  sortDirection?: string;
 }
 
 export interface StatusConfig {
