@@ -18,7 +18,6 @@ export function App() {
         <Routes>
           {/* Rotas sem layout */}
           <Route path='/login' element={<Login />} />
-          {/* rota de redefinição de senha removida */}
 
           {/* Layout principal */}
           <Route element={<MainLayout />}>
