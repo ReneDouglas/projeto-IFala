@@ -71,10 +71,10 @@ export const Filters = ({
         <div className='filters-form'>
           {/* BUSCA */}
           <Input
-            label='Buscar por Token'
+            label='Buscar por Token, Descrição ou Mensagens'
             value={searchParams.search}
             onChange={(value) => onFilterChange('search', value)}
-            placeholder='Insira o token'
+            placeholder='Digite pelo menos 3 caracteres para buscar...'
             error={fieldErrors.search}
             icon='search'
           />
