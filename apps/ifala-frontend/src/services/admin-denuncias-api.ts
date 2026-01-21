@@ -10,7 +10,7 @@ export async function listarDenunciasAdmin(
 ): Promise<DenunciasResponse> {
   const params: Record<string, string | number> = {
     pageNumber: page,
-    size: 10,
+    size: 12,
     search: searchParams.search || '',
     categoria: searchParams.categoria || '',
     status: searchParams.status || '',

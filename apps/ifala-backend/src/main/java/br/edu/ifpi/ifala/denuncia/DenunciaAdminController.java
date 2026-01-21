@@ -84,7 +84,7 @@ public class DenunciaAdminController {
       @Parameter(description = "Filtrar por status") @RequestParam(required = false) Status status,
       @Parameter(description = "Filtrar por categoria") @RequestParam(required = false) Categorias categoria,
       @Parameter(description = "Número da página (base 0)", example = "0") @RequestParam(defaultValue = "0") int pageNumber,
-      @Parameter(description = "Tamanho da página", example = "10") @RequestParam(defaultValue = "10") int size,
+      @Parameter(description = "Tamanho da página", example = "12") @RequestParam(defaultValue = "12") int size,
       @Parameter(description = "Campo para ordenação", example = "id") @RequestParam(defaultValue = "id") String sortProperty,
       @Parameter(description = "Direção da ordenação (ASC ou DESC)", example = "DESC") @RequestParam(defaultValue = "DESC") String sortDirection) {
 
