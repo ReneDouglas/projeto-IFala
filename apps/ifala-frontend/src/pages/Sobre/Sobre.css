@@ -4,7 +4,11 @@
 
 /* Hero Section */
 .sobre-hero {
-  background: linear-gradient(135deg, var(--verde-esperanca) 0%, var(--azul-confianca) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--verde-esperanca) 0%,
+    var(--azul-confianca) 100%
+  );
   padding: 4rem 0 3rem;
   text-align: center;
   color: var(--branco);
@@ -43,7 +47,9 @@
   padding: 2.5rem;
   margin-bottom: 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .sobre-section:hover {
@@ -128,7 +134,9 @@
   border-radius: 8px;
   text-decoration: none;
   font-weight: 600;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
   box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
 }
 
@@ -241,7 +249,11 @@
   align-items: center;
   gap: 2rem;
   padding: 2rem;
-  background: linear-gradient(135deg, rgba(46, 139, 87, 0.05) 0%, rgba(30, 58, 138, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(46, 139, 87, 0.05) 0%,
+    rgba(30, 58, 138, 0.05) 100%
+  );
   border-radius: 12px;
   border: 2px solid var(--verde-esperanca);
   transition: all 0.3s ease;
@@ -433,7 +445,11 @@
 
 /* Agradecimentos Section */
 .agradecimentos-section {
-  background: linear-gradient(135deg, rgba(46, 139, 87, 0.05) 0%, rgba(30, 58, 138, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(46, 139, 87, 0.05) 0%,
+    rgba(30, 58, 138, 0.05) 100%
+  );
   border: 2px solid var(--verde-esperanca);
 }
 
