@@ -5,11 +5,11 @@ import java.util.UUID;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain. Pageable;
-import org.springframework.data.jpa.repository. JpaRepository;
-import org. springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework. data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
@@ -24,9 +24,7 @@ import org.springframework.data.repository.query.Param;
 public interface DenunciaRepository
     extends JpaRepository<Denuncia, Long>, JpaSpecificationExecutor<Denuncia> {
 
-  // Método para buscar uma denúncia pelo token de acompanhamento
-  // Optional<Denuncia> findByTokenAcompanhamento(UUID tokenAcompanhamento);
-
+  
   @EntityGraph(attributePaths = {"acompanhamentos", "provas", "denunciante"})
   Optional<Denuncia> findByTokenAcompanhamento(UUID tokenAcompanhamento);
 
@@ -52,7 +50,7 @@ public interface DenunciaRepository
    * @return lista de denúncias com todos os relacionamentos carregados
    */
   @EntityGraph(attributePaths = {"acompanhamentos", "provas", "denunciante"})
-  @Query("SELECT DISTINCT d FROM Denuncia d WHERE d. id IN :ids")
+  @Query("SELECT DISTINCT d FROM Denuncia d WHERE d.id IN :ids")
   List<Denuncia> findAllByIdWithRelations(@Param("ids") List<Long> ids);
 
   /**

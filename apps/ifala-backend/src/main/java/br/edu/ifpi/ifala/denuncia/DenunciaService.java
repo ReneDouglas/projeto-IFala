@@ -15,13 +15,14 @@ import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
 import br.edu.ifpi.ifala.shared.enums.Status;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.owasp.html.PolicyFactory;
 import org.owasp.html.Sanitizers;
 import org.slf4j.Logger;
@@ -29,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -240,11 +240,11 @@ public class DenunciaService {
 
     // Passo 3: Ordenar a lista na mesma ordem dos IDs retornados
     List<Long> idsOrder = idsPage.getContent();
-    denuncias.sort((d1, d2) -> {
-      int index1 = idsOrder.indexOf(d1.getId());
-      int index2 = idsOrder.indexOf(d2.getId());
-      return Integer.compare(index1, index2);
-    });
+    Map<Long, Integer> orderMap = IntStream.range(0, idsOrder.size())
+        .boxed()
+        .collect(Collectors.toMap(idsOrder::get, i -> i));
+
+    denuncias.sort(Comparator.comparingInt(d -> orderMap.getOrDefault(d.getId(), Integer.MAX_VALUE)));
 
     // Passo 4: Converter para DTO
     List<DenunciaAdminResponseDto> dtos = denuncias.stream()
