@@ -375,7 +375,18 @@ export function Acompanhamento() {
       const error = err as { message?: string; status?: number };
       const errorMessage = error?.message || '';
 
+      // Verificar se é erro de denúncia finalizada
       if (
+        errorMessage.includes('Resolvido') ||
+        errorMessage.includes('Rejeitado') ||
+        (error?.status === 403 &&
+          (errorMessage.includes('status') ||
+            errorMessage.includes('finalizada')))
+      ) {
+        // Recarregar detalhes para atualizar o status
+        await carregarDetalhesDenuncia();
+        setError('Esta denúncia está finalizada e não aceita mais mensagens.');
+      } else if (
         (errorMessage.includes('aguardar') ||
           errorMessage.includes('administrador') ||
           error?.status === 403) &&
@@ -393,20 +404,20 @@ export function Acompanhamento() {
   };
 
   const podeEnviarMensagem = (): boolean => {
-    // Admin sempre pode enviar mensagens no modo admin
-    if (modoAdmin && isAdmin) return true;
-
-    // No modo token, admin também pode enviar
-    if (modoToken && isAdmin) return true;
-
     // Verificar se a denúncia está finalizada (Resolvida ou Rejeitada)
+    // Ninguém (nem admin) pode enviar mensagens em denúncias finalizadas
     if (detalhes) {
       const statusFinal = detalhes.status.toUpperCase();
       if (statusFinal === 'RESOLVIDO' || statusFinal === 'REJEITADO') {
-        // Usuário comum não pode enviar mensagens em denúncias finalizadas
         return false;
       }
     }
+
+    // Admin pode enviar mensagens no modo admin (se não estiver finalizada)
+    if (modoAdmin && isAdmin) return true;
+
+    // No modo token, admin também pode enviar (se não estiver finalizada)
+    if (modoToken && isAdmin) return true;
 
     // Se não há mensagens ainda, usuário comum pode enviar a primeira
     if (mensagens.length === 0 && modoToken) return true;
@@ -919,8 +930,8 @@ export function Acompanhamento() {
                 </Alert>
               )}
 
-              {/* Aviso de denúncia finalizada (apenas para usuário comum no modo token) */}
-              {denunciaFinalizada && modoToken && !isAdmin && (
+              {/* Aviso de denúncia finalizada (para todos os usuários) */}
+              {denunciaFinalizada && (
                 <Alert severity='info' sx={{ mb: 2 }}>
                   <Typography variant='body2' sx={{ fontWeight: 600 }}>
                     Esta denúncia foi{' '}
@@ -930,8 +941,9 @@ export function Acompanhamento() {
                     .
                   </Typography>
                   <Typography variant='body2' sx={{ mt: 0.5 }}>
-                    Você pode visualizar o histórico de mensagens, mas não pode
-                    mais enviar novas mensagens.
+                    {isAdmin
+                      ? 'Não é mais possível enviar mensagens para denúncias com status Resolvido ou Rejeitado.'
+                      : 'Você pode visualizar o histórico de mensagens, mas não pode mais enviar novas mensagens.'}
                   </Typography>
                 </Alert>
               )}

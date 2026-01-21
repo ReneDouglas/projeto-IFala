@@ -36,7 +36,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Classe de serviço responsável por manipular operações relacionadas a denúncias.
+ * Classe de serviço responsável por manipular operações relacionadas a
+ * denúncias.
  *
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
@@ -87,8 +88,7 @@ public class DenunciaService {
 
     log.info("Iniciando validação do reCAPTCHA para nova denúncia.");
 
-    boolean isRecaptchaValid =
-        recaptchaService.validarToken(dto.recaptchaToken(), "denuncia", score);
+    boolean isRecaptchaValid = recaptchaService.validarToken(dto.recaptchaToken(), "denuncia", score);
 
     if (!isRecaptchaValid) {
       log.warn("Falha na validação do reCAPTCHA para nova denúncia.");
@@ -178,9 +178,12 @@ public class DenunciaService {
   }
 
   /*
-   * tipo Page é uma interface do Spring Data que encapsula uma página de dados Pageable é uma
-   * interface que define a paginação e ordenação Specification é uma interface do Spring Data JPA
-   * que permite construir consultas dinamicamente predicate é uma condição usada em consultas para
+   * tipo Page é uma interface do Spring Data que encapsula uma página de dados
+   * Pageable é uma
+   * interface que define a paginação e ordenação Specification é uma interface do
+   * Spring Data JPA
+   * que permite construir consultas dinamicamente predicate é uma condição usada
+   * em consultas para
    * filtrar resultados
    */
 
@@ -273,9 +276,8 @@ public class DenunciaService {
   @Transactional(readOnly = true)
   public List<AcompanhamentoDto> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
     log.info("Listando acompanhamentos (público) para o token: {}", maskToken(tokenAcompanhamento));
-    Denuncia denuncia =
-        denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
-            () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
+    Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
+        () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
 
     return denuncia.getAcompanhamentos().stream().map(this::mapToAcompanhamentoResponseDto)
         .collect(Collectors.toList());
@@ -349,6 +351,12 @@ public class DenunciaService {
     log.info("Adicionando acompanhamento (admin) para a denúncia ID: {}", id);
     Denuncia denuncia = denunciaRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada."));
+
+    if (denuncia.getStatus() == Status.RESOLVIDO || denuncia.getStatus() == Status.REJEITADO) {
+      log.warn("Tentativa de adicionar acompanhamento a denúncia finalizada (ID: {})", id);
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+          "Não é possível adicionar mensagens a denúncias com status Resolvido ou Rejeitado.");
+    }
 
     Acompanhamento novoAcompanhamento = new Acompanhamento();
     novoAcompanhamento.setMensagem(policy.sanitize(dto.mensagem()));
@@ -439,7 +447,8 @@ public class DenunciaService {
   }
 
   /**
-   * Mascara um token UUID mostrando apenas os primeiros 8 caracteres seguidos de "...***". Previne
+   * Mascara um token UUID mostrando apenas os primeiros 8 caracteres seguidos de
+   * "...***". Previne
    * exposição completa de tokens sensíveis nos logs.
    * 
    * @param token o token UUID a ser mascarado
