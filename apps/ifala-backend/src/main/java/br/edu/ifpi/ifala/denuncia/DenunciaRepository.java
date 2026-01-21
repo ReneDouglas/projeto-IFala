@@ -1,5 +1,6 @@
 package br.edu.ifpi.ifala.denuncia;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
@@ -28,6 +29,7 @@ public interface DenunciaRepository
   @EntityGraph(attributePaths = {"acompanhamentos", "provas", "denunciante"})
   Optional<Denuncia> findByTokenAcompanhamento(UUID tokenAcompanhamento);
 
+<<<<<<< HEAD
   @EntityGraph(attributePaths = {"acompanhamentos", "provas", "denunciante"})
   Optional<Denuncia> findById(Long id);
 
@@ -101,6 +103,15 @@ public interface DenunciaRepository
       @Param("tokenSearch") String tokenSearch,
       Pageable pageable);
 
+  /**
+   * Busca IDs de denúncias usando a função SQL otimizada com índices GIN/trigram.
+   * A função buscar_denuncias_por_texto busca em descrição e mensagens de acompanhamento.
+   * 
+   * @param termo Termo de busca (mínimo 3 caracteres)
+   * @return Lista de IDs das denúncias que correspondem à busca
+   */
+  @Query(value = "SELECT * FROM buscar_denuncias_por_texto(:termo)", nativeQuery = true)
+  List<Long> buscarIdsPorTexto(@Param("termo") String termo);
 
   // Os demais métodos de crud são herdados de JpaRepository
   /*

@@ -1,9 +1,18 @@
+export interface DenuncianteInfo {
+  nomeCompleto: string;
+  grau: string;
+  curso: string;
+  ano: string | null;
+  turma: string;
+}
+
 export interface AcompanhamentoDetalhes {
   id: number;
   tokenAcompanhamento: string;
   status: string;
   categoria: string;
   criadoEm: string;
+  denunciante?: DenuncianteInfo | null;
 }
 
 export interface MensagemAcompanhamento {

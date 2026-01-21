@@ -10,6 +10,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import { Acompanhamento } from './pages/Acompanhamento/Acompanhamento';
 import { GerenciamentoUsuarios } from './pages/GerenciamentoUsuarios/GerenciamentoUsuarios';
+import { Sobre } from './pages/Sobre/Sobre';
 
 export function App() {
   return (
@@ -25,6 +26,7 @@ export function App() {
             <Route path='/' element={<Home />} />
             <Route path='/denuncia' element={<Denuncia />} />
             <Route path='/denuncia/sucesso' element={<DenunciaSucesso />} />
+            <Route path='/sobre' element={<Sobre />} />
 
             {/* Acompanhamento público */}
             <Route path='/acompanhamento/:token' element={<Acompanhamento />} />

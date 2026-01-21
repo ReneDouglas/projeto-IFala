@@ -67,15 +67,34 @@ export async function alterarStatusDenuncia(
 }
 
 // ENDPOINT ADMIN PARA CONSULTAR DENÚNCIA POR ID
-export async function consultarDenunciaPorId(denunciaId: number): Promise<any> {
+export async function consultarDenunciaPorId(denunciaId: number): Promise<{
+  id: number;
+  categoria: string;
+  status: string;
+  descricao: string;
+  criadoEm: string;
+  atualizadoEm?: string;
+  denunciante?: {
+    nome: string;
+    email: string;
+    grau?: string;
+    curso?: string;
+    turma?: string;
+  };
+}> {
   const response = await axiosClient.get(`/admin/denuncias/${denunciaId}`);
   return response.data;
 }
 
 // ENDPOINT ADMIN PARA LISTAR ACOMPANHAMENTOS POR ID
-export async function listarAcompanhamentosPorId(
-  denunciaId: number,
-): Promise<any[]> {
+export async function listarAcompanhamentosPorId(denunciaId: number): Promise<
+  Array<{
+    id: number;
+    mensagem: string;
+    autor: string;
+    dataEnvio: string;
+  }>
+> {
   const response = await axiosClient.get(
     `/admin/denuncias/${denunciaId}/acompanhamentos`,
   );

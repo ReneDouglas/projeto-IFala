@@ -8,6 +8,7 @@ import br.edu.ifpi.ifala.denuncia.denunciaDTO.CriarDenunciaDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DadosDeIdentificacaoDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaAdminResponseDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
+import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenuncianteResponseDto;
 import br.edu.ifpi.ifala.notificacao.NotificacaoExternaService;
 import br.edu.ifpi.ifala.prova.ProvaService;
 import br.edu.ifpi.ifala.security.recaptcha.RecaptchaService;
@@ -56,7 +57,7 @@ public class DenunciaService {
   private final NotificacaoExternaService notificacaoExternaService;
   private final ProvaService provaService;
   private final PolicyFactory policy;
-  private final Double score = 0.1;
+  private final Double score = 0.2;
 
   // A SER USADO DEPOIS QUE O RECAPTCHA ESTIVER FUNCIONANDO EM PRODUÇÃO
   // private final RecaptchaService recaptchaService;
@@ -205,20 +206,54 @@ public class DenunciaService {
     Page<Long> idsPage;
 
     if (search != null && !search.trim().isEmpty()) {
-      // Se tem busca por token, tenta converter
-      String tokenSearch = null;
+      String termo = search.trim();
+      
+      // Tenta primeiro como UUID (busca exata por token)
       try {
-        UUID token = UUID.fromString(search.trim());
-        tokenSearch = token.toString();
-        log.debug("Busca por token UUID: {}", tokenSearch);
+        UUID token = UUID.fromString(termo);
+        String tokenSearch = token.toString();
+        log.debug("Busca por token UUID: {}", maskToken(token));
+        
+        idsPage = denunciaRepository.findAllIdsWithFiltersOrderedByNewMessages(
+            status, categoria, tokenSearch, pageable);
+            
       } catch (IllegalArgumentException e) {
-        log.warn("Busca inválida (não é UUID): {}", search);
-        // Retorna página vazia se não for um UUID válido
-        return Page.empty(pageable);
+        // Não é UUID - verifica se tem pelo menos 3 caracteres para busca textual
+        if (termo.length() >= 3) {
+          log.info("Busca textual por termo: '{}' (caracteres: {})", termo, termo.length());
+          
+          // Usa a função SQL otimizada para buscar IDs das denúncias
+          List<Long> idsEncontrados = denunciaRepository.buscarIdsPorTexto(termo);
+          
+          if (idsEncontrados.isEmpty()) {
+            // Nenhum resultado encontrado - retorna página vazia
+            log.info("Nenhuma denúncia encontrada com o termo de busca: '{}'", termo);
+            return Page.empty(pageable);
+          }
+          
+          // Busca paginada apenas nos IDs encontrados pela busca textual
+          // Aqui precisaríamos filtrar os IDs, mas como não temos método específico,
+          // vamos buscar todos e filtrar manualmente depois
+          idsPage = denunciaRepository.findAllIdsWithFiltersOrderedByNewMessages(
+              status, categoria, null, pageable);
+              
+          // Filtra apenas os IDs que foram encontrados pela busca textual
+          List<Long> idsFiltrados = idsPage.getContent().stream()
+              .filter(idsEncontrados::contains)
+              .collect(Collectors.toList());
+              
+          if (idsFiltrados.isEmpty()) {
+            log.info("Nenhuma denúncia encontrada após aplicar filtros de busca textual");
+            return Page.empty(pageable);
+          }
+          
+          idsPage = new PageImpl<>(idsFiltrados, pageable, idsFiltrados.size());
+          
+        } else {
+          log.warn("Termo de busca muito curto (< 3 caracteres): '{}' - retornando vazio", termo);
+          return Page.empty(pageable);
+        }
       }
-
-      idsPage = denunciaRepository.findAllIdsWithFiltersOrderedByNewMessages(
-          status, categoria, tokenSearch, pageable);
     } else {
       // Sem busca por token
       idsPage = denunciaRepository.findAllIdsWithFiltersOrderedByNewMessages(
@@ -457,9 +492,18 @@ public class DenunciaService {
     boolean temMensagemNaoLida = acompanhamentoRepository
         .existsByDenunciaIdAndAutorAndVisualizadoFalse(denuncia.getId(), Perfis.ADMIN);
 
+    // Mapear dados do denunciante, se existir e se deseja se identificar
+    DenuncianteResponseDto denuncianteDto = null;
+    if (denuncia.isDesejaSeIdentificar() && denuncia.getDenunciante() != null) {
+      Denunciante denunciante = denuncia.getDenunciante();
+      denuncianteDto =
+          new DenuncianteResponseDto(denunciante.getNomeCompleto(), denunciante.getGrau(),
+              denunciante.getCurso(), denunciante.getAno(), denunciante.getTurma());
+    }
+
     return new DenunciaResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
         denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(),
-        denuncia.getAlteradoEm(), temMensagemNaoLida);
+        denuncia.getAlteradoEm(), temMensagemNaoLida, denuncianteDto);
   }
 
   /**
@@ -473,6 +517,15 @@ public class DenunciaService {
     boolean temMensagemNaoLida = denuncia.getAcompanhamentos().stream()
         .anyMatch(a -> a.getAutor() == Perfis.ANONIMO && !a.getVisualizado());
 
+    // Mapear dados do denunciante, se existir e se deseja se identificar
+    DenuncianteResponseDto denuncianteDto = null;
+    if (denuncia.isDesejaSeIdentificar() && denuncia.getDenunciante() != null) {
+      Denunciante denunciante = denuncia.getDenunciante();
+      denuncianteDto =
+          new DenuncianteResponseDto(denunciante.getNomeCompleto(), denunciante.getGrau(),
+              denunciante.getCurso(), denunciante.getAno(), denunciante.getTurma());
+    }
+
     return new DenunciaAdminResponseDto(
         denuncia.getId(),
         denuncia.getTokenAcompanhamento(),
@@ -480,7 +533,8 @@ public class DenunciaService {
         denuncia.getCategoria(),
         denuncia.getCriadoEm(),
         denuncia.getAlteradoEm(),
-        temMensagemNaoLida
+        temMensagemNaoLida,
+        denuncianteDto
     );
   }
 
