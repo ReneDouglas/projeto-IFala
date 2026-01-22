@@ -69,6 +69,7 @@ export async function alterarStatusDenuncia(
 // ENDPOINT ADMIN PARA CONSULTAR DENÚNCIA POR ID
 export async function consultarDenunciaPorId(denunciaId: number): Promise<{
   id: number;
+  tokenAcompanhamento?: string;
   categoria: string;
   status: string;
   descricao: string;

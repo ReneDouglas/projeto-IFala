@@ -8,7 +8,7 @@ export interface DenuncianteInfo {
 
 export interface AcompanhamentoDetalhes {
   id: number;
-  tokenAcompanhamento: string;
+  tokenAcompanhamento?: string;
   status: string;
   categoria: string;
   criadoEm: string;
