@@ -1,95 +1,175 @@
 -- ============================================================================
--- Migration V12: Otimização dos índices GIN e função de busca
+-- Migration V12: Migração para Full Text Search (FTS) com tsvector
 -- ============================================================================
--- Esta migração resolve problemas de instabilidade na busca textual causados por:
--- 1. "Pending List" do índice GIN (dados ficam em lista temporária)
--- 2. Estatísticas desatualizadas do planejador de consultas
--- 3. Performance subótima da função com DISTINCT + OR + LEFT JOIN
--- ============================================================================
-
--- ============================================================================
--- 1. DESABILITAR FASTUPDATE NOS ÍNDICES GIN
--- ============================================================================
--- O índice GIN usa uma "lista de pendências" (fastupdate) para acelerar inserções.
--- Isso pode causar inconsistência: dados recém-inseridos não são encontrados
--- até que a lista seja processada.
--- 
--- Ao desabilitar fastupdate:
--- - Inserções ficam um pouco mais lentas
--- - Buscas sempre retornam dados consistentes e atualizados
+-- Esta migração substitui a estratégia de busca com pg_trgm por Full Text Search
+-- nativo do PostgreSQL, que oferece:
+-- 1. Busca semântica com suporte ao idioma português
+-- 2. Stemming (normalização de palavras: "correndo" -> "correr")
+-- 3. Remoção automática de stop words ("de", "o", "a", etc.)
+-- 4. Melhor performance em textos longos
+-- 5. Suporte a ranking de relevância
 -- ============================================================================
 
-ALTER INDEX idx_denuncias_descricao_trgm SET (fastupdate = off);
-ALTER INDEX idx_acompanhamentos_mensagem_trgm SET (fastupdate = off);
+-- ============================================================================
+-- 1. REMOVER ÍNDICES TRIGRAM (NÃO MAIS NECESSÁRIOS COM FTS)
+-- ============================================================================
+-- Os índices trigram foram criados no V11, mas não são necessários com FTS.
+-- Full Text Search usa seus próprios índices GIN baseados em tsvector.
+-- ============================================================================
+
+DROP INDEX IF EXISTS idx_denuncias_descricao_trgm;
+DROP INDEX IF EXISTS idx_acompanhamentos_mensagem_trgm;
 
 -- ============================================================================
--- 2. ATUALIZAR ESTATÍSTICAS DAS TABELAS
+-- 2. ADICIONAR COLUNAS TSVECTOR PARA BUSCA FULL TEXT
 -- ============================================================================
--- O otimizador do PostgreSQL decide se usa índice ou Sequential Scan baseado
--- nas estatísticas. Estatísticas desatualizadas podem fazer o planejador
--- ignorar os índices mesmo quando seria mais eficiente usá-los.
+-- Colunas tsvector armazenam os tokens pré-processados do texto,
+-- permitindo buscas muito mais rápidas que ILIKE.
+-- ============================================================================
+
+ALTER TABLE denuncias 
+ADD COLUMN IF NOT EXISTS busca_texto tsvector;
+
+ALTER TABLE acompanhamentos 
+ADD COLUMN IF NOT EXISTS busca_texto tsvector;
+
+-- ============================================================================
+-- 3. POPULAR COLUNAS TSVECTOR COM DADOS EXISTENTES
+-- ============================================================================
+-- Usar configuração 'portuguese' para stemming e stop words em português.
+-- ============================================================================
+
+UPDATE denuncias 
+SET busca_texto = to_tsvector('portuguese', COALESCE(descricao, ''));
+
+UPDATE acompanhamentos 
+SET busca_texto = to_tsvector('portuguese', COALESCE(mensagem, ''));
+
+-- ============================================================================
+-- 4. CRIAR ÍNDICES GIN NAS COLUNAS TSVECTOR
+-- ============================================================================
+-- Índices GIN em tsvector são extremamente eficientes para Full Text Search.
+-- ============================================================================
+
+CREATE INDEX IF NOT EXISTS idx_denuncias_busca_fts 
+ON denuncias USING GIN (busca_texto);
+
+CREATE INDEX IF NOT EXISTS idx_acompanhamentos_busca_fts 
+ON acompanhamentos USING GIN (busca_texto);
+
+-- Comentários para documentação
+COMMENT ON COLUMN denuncias.busca_texto IS 'Coluna tsvector para Full Text Search na descrição';
+COMMENT ON COLUMN acompanhamentos.busca_texto IS 'Coluna tsvector para Full Text Search nas mensagens';
+COMMENT ON INDEX idx_denuncias_busca_fts IS 'Índice GIN para Full Text Search em denúncias';
+COMMENT ON INDEX idx_acompanhamentos_busca_fts IS 'Índice GIN para Full Text Search em acompanhamentos';
+
+-- ============================================================================
+-- 5. CRIAR TRIGGERS PARA MANTER TSVECTOR ATUALIZADO
+-- ============================================================================
+-- Triggers garantem que a coluna tsvector seja atualizada automaticamente
+-- sempre que o texto original for inserido ou modificado.
+-- ============================================================================
+
+-- Função trigger para denuncias
+CREATE OR REPLACE FUNCTION atualizar_busca_texto_denuncias()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.busca_texto := to_tsvector('portuguese', COALESCE(NEW.descricao, ''));
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Função trigger para acompanhamentos
+CREATE OR REPLACE FUNCTION atualizar_busca_texto_acompanhamentos()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.busca_texto := to_tsvector('portuguese', COALESCE(NEW.mensagem, ''));
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger na tabela denuncias
+DROP TRIGGER IF EXISTS trg_denuncias_busca_texto ON denuncias;
+CREATE TRIGGER trg_denuncias_busca_texto
+    BEFORE INSERT OR UPDATE OF descricao ON denuncias
+    FOR EACH ROW
+    EXECUTE FUNCTION atualizar_busca_texto_denuncias();
+
+-- Trigger na tabela acompanhamentos
+DROP TRIGGER IF EXISTS trg_acompanhamentos_busca_texto ON acompanhamentos;
+CREATE TRIGGER trg_acompanhamentos_busca_texto
+    BEFORE INSERT OR UPDATE OF mensagem ON acompanhamentos
+    FOR EACH ROW
+    EXECUTE FUNCTION atualizar_busca_texto_acompanhamentos();
+
+-- ============================================================================
+-- 6. RECRIAR FUNÇÃO DE BUSCA COM FULL TEXT SEARCH
+-- ============================================================================
+-- A nova função usa:
+-- - plainto_tsquery: converte texto do usuário em query de busca
+-- - Operador @@: verifica match entre tsvector e tsquery
+-- - UNION: combina resultados de denúncias e acompanhamentos
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION buscar_denuncias_por_texto(termo_busca TEXT)
+RETURNS TABLE(denuncia_id BIGINT) AS $$
+BEGIN
+    -- Retorna vazio se termo de busca for nulo ou vazio
+    IF termo_busca IS NULL OR TRIM(termo_busca) = '' THEN
+        RETURN;
+    END IF;
+
+    RETURN QUERY
+    -- Busca na descrição da denúncia usando Full Text Search
+    -- Utiliza o índice: idx_denuncias_busca_fts
+    SELECT d.id 
+    FROM denuncias d
+    WHERE d.busca_texto @@ plainto_tsquery('portuguese', termo_busca)
+    
+    UNION -- UNION já elimina duplicatas automaticamente
+    
+    -- Busca nas mensagens de acompanhamento usando Full Text Search
+    -- Utiliza o índice: idx_acompanhamentos_busca_fts
+    SELECT a.denuncia_id 
+    FROM acompanhamentos a
+    WHERE a.busca_texto @@ plainto_tsquery('portuguese', termo_busca);
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- Atualizar comentário da função
+COMMENT ON FUNCTION buscar_denuncias_por_texto(TEXT) IS 
+'Função otimizada para busca textual em denúncias (V12 - Full Text Search).
+Busca o termo na descrição da denúncia e nas mensagens de acompanhamento.
+Utiliza Full Text Search do PostgreSQL com configuração portuguesa:
+- Stemming: "correndo" encontra "correr", "corrida", etc.
+- Stop words: ignora palavras comuns como "de", "o", "a"
+- Índices GIN em tsvector para máxima performance
+Uso: SELECT * FROM buscar_denuncias_por_texto(''termo'');';
+
+-- ============================================================================
+-- 7. ATUALIZAR ESTATÍSTICAS
 -- ============================================================================
 
 ANALYZE denuncias;
 ANALYZE acompanhamentos;
 
 -- ============================================================================
--- 3. RECRIAR FUNÇÃO DE BUSCA COM UNION (MAIS PERFORMÁTICA)
--- ============================================================================
--- Problemas da versão anterior:
--- - DISTINCT é custoso computacionalmente
--- - OR com LEFT JOIN pode confundir o planejador de consultas
--- - O planejador pode não usar os índices de forma otimizada
---
--- Vantagens da nova versão com UNION:
--- - UNION já elimina duplicatas automaticamente (sem custo extra do DISTINCT)
--- - Cada SELECT pode usar seu respectivo índice de forma independente
--- - O planejador tem mais facilidade para otimizar consultas separadas
--- - Melhor uso dos índices GIN trigram
--- ============================================================================
-
-CREATE OR REPLACE FUNCTION buscar_denuncias_por_texto(termo_busca TEXT)
-RETURNS TABLE(denuncia_id BIGINT) AS $$
-BEGIN
-    RETURN QUERY
-    -- Busca direta na descrição da denúncia
-    -- Utiliza o índice: idx_denuncias_descricao_trgm
-    SELECT d.id 
-    FROM denuncias d
-    WHERE d.descricao ILIKE '%' || termo_busca || '%'
-    
-    UNION -- UNION já elimina duplicatas automaticamente
-    
-    -- Busca nas mensagens de acompanhamento
-    -- Utiliza o índice: idx_acompanhamentos_mensagem_trgm
-    SELECT a.denuncia_id 
-    FROM acompanhamentos a
-    WHERE a.mensagem ILIKE '%' || termo_busca || '%';
-END;
-$$ LANGUAGE plpgsql STABLE;
-
--- Atualizar comentário da função
-COMMENT ON FUNCTION buscar_denuncias_por_texto(TEXT) IS 
-'Função otimizada para busca textual em denúncias (V12 - Otimizada).
-Busca o termo na descrição da denúncia e nas mensagens de acompanhamento.
-Utiliza UNION para melhor performance e uso garantido dos índices GIN trigram.
-Configuração fastupdate=off garante consistência imediata dos resultados.
-Uso: SELECT * FROM buscar_denuncias_por_texto(''termo'');';
-
--- ============================================================================
 -- NOTAS DE MANUTENÇÃO
 -- ============================================================================
--- Se houver problemas de performance no futuro, considerar:
+-- 1. A extensão pg_trgm ainda pode ser útil para buscas LIKE fuzzy no futuro,
+--    então não foi removida. Se quiser remover:
+--    DROP EXTENSION IF EXISTS pg_trgm;
 --
--- 1. Executar VACUUM ANALYZE periodicamente:
---    VACUUM ANALYZE denuncias;
---    VACUUM ANALYZE acompanhamentos;
---
--- 2. Verificar se os índices estão sendo usados:
+-- 2. Para verificar se os índices FTS estão sendo usados:
 --    EXPLAIN ANALYZE SELECT * FROM buscar_denuncias_por_texto('termo');
 --
--- 3. Para busca ainda mais rápida em textos grandes, considerar Full Text Search:
---    - Criar coluna tsvector com to_tsvector('portuguese', descricao)
---    - Criar índice GIN na coluna tsvector
---    - Usar operador @@ com to_tsquery()
+-- 3. Para busca com ranking de relevância, usar ts_rank():
+--    SELECT d.*, ts_rank(d.busca_texto, query) AS rank
+--    FROM denuncias d, plainto_tsquery('portuguese', 'termo') query
+--    WHERE d.busca_texto @@ query
+--    ORDER BY rank DESC;
+--
+-- 4. Para busca com operadores avançados (AND, OR, NOT), usar to_tsquery():
+--    to_tsquery('portuguese', 'assedio & moral')  -- assedio E moral
+--    to_tsquery('portuguese', 'assedio | bullying')  -- assedio OU bullying
 -- ============================================================================
