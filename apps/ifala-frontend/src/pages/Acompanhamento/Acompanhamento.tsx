@@ -341,7 +341,12 @@ export function Acompanhamento() {
   const carregarProvas = async (denunciaIdNumerico: number) => {
     try {
       const provasData = await listarProvasDenuncia(denunciaIdNumerico);
-      setProvas(provasData);
+      const provasFormatadas = provasData.map((prova) => ({
+        id: prova.id,
+        nomeArquivo: prova.nomeArquivo,
+        tipoMime: prova.tipo,
+      }));
+      setProvas(provasFormatadas);
     } catch (err) {
       console.error('Erro ao carregar provas:', err);
       // Não bloquear o carregamento se as provas falharem
