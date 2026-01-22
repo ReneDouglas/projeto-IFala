@@ -67,24 +67,26 @@ export async function alterarStatusDenuncia(
 }
 
 // ENDPOINT ADMIN PARA CONSULTAR DENÚNCIA POR ID
-export async function consultarDenunciaPorId(denunciaId: number): Promise<{
-  id: number;
-  tokenAcompanhamento?: string;
-  categoria: string;
-  status: string;
-  descricao: string;
-  criadoEm: string;
-  atualizadoEm?: string;
-  denunciante?: {
-    nome: string;
-    email: string;
-    grau?: string;
-    curso?: string;
-    turma?: string;
-  };
-}> {
+export async function consultarDenunciaPorId(
+  denunciaId: number,
+): Promise<AcompanhamentoDetalhes> {
   const response = await axiosClient.get(`/admin/denuncias/${denunciaId}`);
-  return response.data;
+  const data = response.data;
+
+  // Mapear dados para o formato da interface se necessário
+  // Backend pode retornar 'nome' ao invés de 'nomeCompleto'
+  const denuncia: AcompanhamentoDetalhes = {
+    ...data,
+    denunciante: data.denunciante
+      ? {
+          ...data.denunciante,
+          nomeCompleto: data.denunciante.nomeCompleto || data.denunciante.nome,
+          ano: data.denunciante.ano || null,
+        }
+      : null,
+  };
+
+  return denuncia;
 }
 
 // ENDPOINT ADMIN PARA LISTAR ACOMPANHAMENTOS POR ID
