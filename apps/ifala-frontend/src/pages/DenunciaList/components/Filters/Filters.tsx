@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
-import type { SearchParams, FieldErrors, AdminSimples } from '../../types/denunciaTypes';
+import type {
+  SearchParams,
+  FieldErrors,
+  AdminSimples,
+} from '../../types/denunciaTypes';
 import { listarAdminsSimples } from '../../../../services/admin-denuncias-api';
 import { Input } from '../ui/Input/Input';
 import { Select } from '../ui/Select/Select';

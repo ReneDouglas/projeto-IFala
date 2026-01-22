@@ -130,14 +130,18 @@ export const DenunciaCard = ({
           </div>
 
           {/* Tag do admin acompanhando - abaixo de "Atualizado em" */}
-          {denuncia.adminAcompanhandoEmail && denuncia.adminAcompanhandoNome && (
-            <div className='metadata-item admin-tag-wrapper'>
-              <span className='material-symbols-outlined icon'>person</span>
-              <span className='admin-tag' title={`${denuncia.adminAcompanhandoNome} está acompanhando esta denúncia`}>
-                {denuncia.adminAcompanhandoNome}
-              </span>
-            </div>
-          )}
+          {denuncia.adminAcompanhandoEmail &&
+            denuncia.adminAcompanhandoNome && (
+              <div className='metadata-item admin-tag-wrapper'>
+                <span className='material-symbols-outlined icon'>person</span>
+                <span
+                  className='admin-tag'
+                  title={`${denuncia.adminAcompanhandoNome} está acompanhando esta denúncia`}
+                >
+                  {denuncia.adminAcompanhandoNome}
+                </span>
+              </div>
+            )}
 
           {denuncia.temMensagemNaoLida && (
             <div className='metadata-item nova-mensagem-wrapper'>
