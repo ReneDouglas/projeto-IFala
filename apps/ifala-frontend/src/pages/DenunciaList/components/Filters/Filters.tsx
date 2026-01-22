@@ -74,7 +74,7 @@ export const Filters = ({
             label='Buscar por Token, Descrição ou Mensagens'
             value={searchParams.search}
             onChange={(value) => onFilterChange('search', value)}
-            placeholder='Digite pelo menos 3 caracteres para buscar...'
+            placeholder='Digite ao menos 4 caracteres para buscar...'
             error={fieldErrors.search}
             icon='search'
           />

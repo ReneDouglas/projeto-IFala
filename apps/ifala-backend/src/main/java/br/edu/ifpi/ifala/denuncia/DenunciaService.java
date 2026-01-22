@@ -234,23 +234,61 @@ public class DenunciaService {
             return Page.empty(pageable);
           }
           
-          // Busca paginada apenas nos IDs encontrados pela busca textual
-          // Aqui precisaríamos filtrar os IDs, mas como não temos método específico,
-          // vamos buscar todos e filtrar manualmente depois
-          idsPage = denunciaRepository.findAllIdsWithFiltersOrderedByNewMessages(
-              status, categoria, null, pageable);
-              
-          // Filtra apenas os IDs que foram encontrados pela busca textual
-          List<Long> idsFiltrados = idsPage.getContent().stream()
-              .filter(idsEncontrados::contains)
-              .collect(Collectors.toList());
-              
-          if (idsFiltrados.isEmpty()) {
-            log.info("Nenhuma denúncia encontrada após aplicar filtros de busca textual");
+          log.info("Busca textual encontrou {} denúncias com o termo '{}'", idsEncontrados.size(), termo);
+          
+          // Buscar denúncias completas com filtros de status e categoria
+          // Este método já aplica os filtros e ordenação (mensagens não lidas + data)
+          List<Denuncia> denunciasFiltradas = denunciaRepository.findByIdsWithFiltersOrdered(
+              idsEncontrados, status, categoria);
+          
+          if (denunciasFiltradas.isEmpty()) {
+            log.info("Nenhuma denúncia encontrada após aplicar filtros (status={}, categoria={})", 
+                status, categoria);
             return Page.empty(pageable);
           }
           
-          idsPage = new PageImpl<>(idsFiltrados, pageable, idsFiltrados.size());
+          log.info("Após filtros: {} denúncias (de {} encontradas pela busca)", 
+              denunciasFiltradas.size(), idsEncontrados.size());
+          
+          // Extrair apenas os IDs ordenados
+          List<Long> idsOrdenados = denunciasFiltradas.stream()
+              .map(Denuncia::getId)
+              .collect(Collectors.toList());
+          
+          // Aplicar paginação MANUALMENTE sobre os IDs ordenados e filtrados
+          int pageSize = pageable.getPageSize();
+          int currentPage = pageable.getPageNumber();
+          int startItem = currentPage * pageSize;
+          int totalElements = idsOrdenados.size();
+          
+          // Verificar se a página solicitada está dentro dos limites
+          if (startItem >= totalElements) {
+            log.info("Página {} está fora dos limites (total: {} elementos)", currentPage, totalElements);
+            return Page.empty(pageable);
+          }
+          
+          // Calcular índice final (não pode ultrapassar o tamanho da lista)
+          int endItem = Math.min(startItem + pageSize, totalElements);
+          
+          // Extrair apenas os IDs da página atual
+          List<Long> idsPaginados = idsOrdenados.subList(startItem, endItem);
+          
+          log.info("Página {}: retornando {} IDs (de {} até {}) de um total de {} após filtros", 
+              currentPage, idsPaginados.size(), startItem, endItem - 1, totalElements);
+          
+          // Buscar as denúncias da página (já estão na lista, só precisamos filtrar)
+          List<Denuncia> denunciasPagina = denunciasFiltradas.stream()
+              .filter(d -> idsPaginados.contains(d.getId()))
+              .sorted(Comparator.comparingInt(d -> idsPaginados.indexOf(d.getId())))
+              .collect(Collectors.toList());
+          
+          // Converter para DTO
+          List<DenunciaAdminResponseDto> dtos = denunciasPagina.stream()
+              .map(this::mapToDenunciaAdminResponseDto)
+              .collect(Collectors.toList());
+          
+          // Retornar Page com o total correto de elementos
+          return new PageImpl<>(dtos, pageable, totalElements);
           
         } else {
           log.warn("Termo de busca muito curto (< 3 caracteres): '{}' - retornando vazio", termo);
