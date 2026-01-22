@@ -14,7 +14,15 @@ import java.util.UUID;
  * 
  * @author Jhonatas G Ribeiro
  */
-public record DenunciaAdminResponseDto(Long id, UUID tokenAcompanhamento, Status status,
-    Categorias categoria, LocalDateTime criadoEm, LocalDateTime alteradoEm,
-    Boolean temMensagemNaoLida, DenuncianteResponseDto denunciante) {
+public record DenunciaAdminResponseDto(
+    Long id, 
+    UUID tokenAcompanhamento, 
+    Status status,
+    Categorias categoria, 
+    LocalDateTime criadoEm, 
+    LocalDateTime alteradoEm,
+    Boolean temMensagemNaoLida, 
+    DenuncianteResponseDto denunciante,
+    String adminAcompanhandoEmail,
+    String adminAcompanhandoNome) {
 }
