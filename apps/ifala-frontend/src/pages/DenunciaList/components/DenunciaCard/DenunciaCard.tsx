@@ -1,18 +1,26 @@
 import type { Denuncia } from '../../types/denunciaTypes';
 import { StatusBadge } from '../StatusBadge/StatusBadge';
+import { useAuth } from '../../../../hooks/useAuth';
 import './DenunciaCard.css';
 
 interface DenunciaCardProps {
   denuncia: Denuncia;
   contador: number;
   onViewDetails: (denunciaId: number) => void;
+  onAcompanhar?: (denunciaId: number) => void;
+  onDesacompanhar?: (denunciaId: number) => void;
 }
 
 export const DenunciaCard = ({
   denuncia,
   contador,
   onViewDetails,
+  onAcompanhar,
+  onDesacompanhar,
 }: DenunciaCardProps) => {
+  const { user } = useAuth();
+  const currentUserEmail = user?.email;
+
   const formatDate = (dateString: string) => {
     if (!dateString) return '---';
 
@@ -121,9 +129,51 @@ export const DenunciaCard = ({
             </span>
           </div>
 
+          {/* Tag do admin acompanhando */}
+          <div className='metadata-item admin-acompanhando'>
+            <span className='material-symbols-outlined icon'>person</span>
+            {denuncia.adminAcompanhandoEmail ? (
+              currentUserEmail === denuncia.adminAcompanhandoEmail ? (
+                // O próprio admin está acompanhando - mostrar botão de sair
+                <button
+                  className='btn-sair-denuncia'
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDesacompanhar?.(denuncia.id);
+                  }}
+                  title='Clique para deixar de acompanhar esta denúncia'
+                >
+                  <span className='material-symbols-outlined'>logout</span>
+                  Sair da Denúncia
+                </button>
+              ) : (
+                // Outro admin está acompanhando - mostrar tag com nome
+                <span
+                  className='admin-tag'
+                  title={`${denuncia.adminAcompanhandoNome} está acompanhando esta denúncia`}
+                >
+                  {denuncia.adminAcompanhandoNome || 'Admin'}
+                </span>
+              )
+            ) : (
+              // Nenhum admin acompanhando - mostrar botão de acompanhar
+              <button
+                className='btn-acompanhar-denuncia'
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAcompanhar?.(denuncia.id);
+                }}
+                title='Clique para acompanhar esta denúncia'
+              >
+                <span className='material-symbols-outlined'>person_add</span>
+                Acompanhar Denúncia
+              </button>
+            )}
+          </div>
+
           {denuncia.temMensagemNaoLida && (
             <div className='metadata-item nova-mensagem-wrapper'>
-              <span className='badge nova-mensagem'>Nova mensagem</span>
+              <span className='badge nova-mensagem'>Nova Mensagem</span>
             </div>
           )}
         </div>

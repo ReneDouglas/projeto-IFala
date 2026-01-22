@@ -90,7 +90,8 @@ public interface DenunciaRepository
       WHERE 
         (:status IS NULL OR d.status = :status) AND
         (:categoria IS NULL OR d.categoria = :categoria) AND
-        (:tokenSearch IS NULL OR CAST(d.tokenAcompanhamento AS string) = :tokenSearch)
+        (:tokenSearch IS NULL OR CAST(d.tokenAcompanhamento AS string) = :tokenSearch) AND
+        (:adminEmail IS NULL OR d.adminAcompanhandoEmail = :adminEmail)
       GROUP BY d.id, d.criadoEm
       ORDER BY 
         MAX(CASE WHEN a.autor = 'ANONIMO' AND a.visualizado = false THEN 1 ELSE 0 END) DESC,
@@ -100,6 +101,7 @@ public interface DenunciaRepository
       @Param("status") br.edu.ifpi.ifala.shared.enums.Status status,
       @Param("categoria") br.edu.ifpi.ifala.shared.enums.Categorias categoria,
       @Param("tokenSearch") String tokenSearch,
+      @Param("adminEmail") String adminEmail,
       Pageable pageable);
 
   /**

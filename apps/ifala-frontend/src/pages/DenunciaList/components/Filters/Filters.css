@@ -73,6 +73,31 @@
   gap: 1.5rem;
 }
 
+/* Grid 2x2 para filtros */
+.filters-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.filters-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Chip para admin */
+.filter-chip.admin-chip {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+}
+
 /* Botões melhorados */
 .filters-actions {
   display: flex;

@@ -566,4 +566,14 @@ public class AuthServiceImpl implements AuthService {
         usuario.getEmail(), usuario.getRoles(), usuario.isMustChangePassword(),
         usuario.isReceberNotificacoes());
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<br.edu.ifpi.ifala.autenticacao.dto.AdminSimplesDTO> listarAdminsSimples() {
+    logger.info("Listando todos os administradores (nome e email).");
+    return userRepository.findAll().stream()
+        .filter(u -> u.getRoles() != null && u.getRoles().contains(Perfis.ADMIN))
+        .map(u -> new br.edu.ifpi.ifala.autenticacao.dto.AdminSimplesDTO(u.getNome(), u.getEmail()))
+        .collect(Collectors.toList());
+  }
 }

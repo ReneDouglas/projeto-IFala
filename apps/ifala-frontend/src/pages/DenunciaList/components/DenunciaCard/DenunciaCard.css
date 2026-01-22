@@ -131,13 +131,13 @@
 .badge.nova-mensagem {
   background: linear-gradient(135deg, var(--azul-confianca) 0%, #123456 100%);
   color: white;
-  padding: 0.35rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(26, 78, 138, 0.3);
+  letter-spacing: 0.3px;
+  box-shadow: 0 1px 4px rgba(26, 78, 138, 0.3);
   animation: pulse-badge 2s infinite;
 }
 
@@ -251,12 +251,82 @@
 }
 
 .nova-mensagem-wrapper {
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .nova-mensagem-wrapper .badge.nova-mensagem {
   display: inline-block;
   width: fit-content;
+}
+
+/* Estilos para Admin Acompanhando */
+.metadata-item.admin-acompanhando {
+  margin-top: 0.25rem;
+}
+
+.admin-tag {
+  background: #e2e8f0;
+  color: #475569;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: default;
+  transition: all 0.2s ease;
+}
+
+.admin-tag:hover {
+  background: #cbd5e1;
+}
+
+.btn-acompanhar-denuncia {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--verde-if, #006838);
+  color: var(--white, #ffffff);
+  border: none;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-acompanhar-denuncia:hover {
+  background: #005530;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 104, 56, 0.3);
+}
+
+.btn-acompanhar-denuncia .material-symbols-outlined {
+  font-size: 0.9rem !important;
+}
+
+.btn-sair-denuncia {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--erro-vermelho, #e94f37);
+  color: var(--white, #ffffff);
+  border: none;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-sair-denuncia:hover {
+  background: #d43d26;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(233, 79, 55, 0.3);
+}
+
+.btn-sair-denuncia .material-symbols-outlined {
+  font-size: 0.9rem !important;
 }
 
 .metadata-item {

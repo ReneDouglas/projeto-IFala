@@ -1,6 +1,8 @@
-import type { SearchParams, FieldErrors } from '../../types/denunciaTypes';
+import { useEffect, useState } from 'react';
+import type { SearchParams, FieldErrors, AdminSimples } from '../../types/denunciaTypes';
 import { Input } from '../ui/Input/Input';
 import { Select } from '../ui/Select/Select';
+import { listarAdminsSimples } from '../../../../services/admin-denuncias-api';
 import './Filters.css';
 
 interface FiltersProps {
@@ -20,6 +22,20 @@ export const Filters = ({
   onClearFilters,
   onRefresh,
 }: FiltersProps) => {
+  const [admins, setAdmins] = useState<AdminSimples[]>([]);
+
+  useEffect(() => {
+    const fetchAdmins = async () => {
+      try {
+        const data = await listarAdminsSimples();
+        setAdmins(data);
+      } catch (error) {
+        console.error('Erro ao carregar lista de admins:', error);
+      }
+    };
+    fetchAdmins();
+  }, []);
+
   const categoriaOptions = [
     { value: '', label: 'Todas as categorias' },
     { value: 'VANDALISMO', label: 'Vandalismo' },
@@ -42,10 +58,20 @@ export const Filters = ({
 
   // Mapeamento visual para algo como "campo,direção"
   const ordenacaoOptions = [
+    { value: '', label: 'Selecione uma opção' },
     { value: 'criadoEm,desc', label: 'Mais recentes' },
     { value: 'criadoEm,asc', label: 'Mais antigas' },
     { value: 'categoria,asc', label: 'Categoria (A-Z)' },
     { value: 'categoria,desc', label: 'Categoria (Z-A)' },
+  ];
+
+  // Opções de admin - exibe nome, mas valor é email
+  const adminOptions = [
+    { value: '', label: 'Todos os administradores' },
+    ...admins.map((admin) => ({
+      value: admin.email,
+      label: admin.nome,
+    })),
   ];
 
   return (
@@ -79,51 +105,66 @@ export const Filters = ({
             icon='search'
           />
 
-          <div className='filters-row'>
-            {/* CATEGORIA */}
-            <Select
-              label='Categoria'
-              value={searchParams.categoria}
-              onChange={(value) => onFilterChange('categoria', value)}
-              options={categoriaOptions}
-              error={fieldErrors.categoria}
-              icon='category'
-            />
+          {/* GRID 2x2 DE FILTROS */}
+          <div className='filters-grid'>
+            {/* Coluna Esquerda */}
+            <div className='filters-column'>
+              {/* CATEGORIA */}
+              <Select
+                label='Categoria'
+                value={searchParams.categoria}
+                onChange={(value) => onFilterChange('categoria', value)}
+                options={categoriaOptions}
+                error={fieldErrors.categoria}
+                icon='category'
+              />
 
-            {/* STATUS */}
-            <Select
-              label='Status'
-              value={searchParams.status}
-              onChange={(value) => onFilterChange('status', value)}
-              options={statusOptions}
-              error={fieldErrors.status}
-              icon='pending'
-            />
+              {/* STATUS */}
+              <Select
+                label='Status'
+                value={searchParams.status}
+                onChange={(value) => onFilterChange('status', value)}
+                options={statusOptions}
+                error={fieldErrors.status}
+                icon='pending'
+              />
+            </div>
 
-            {/* ORDENAR POR*/}
-            <Select
-              label='Ordenar por'
-              // Pegamos sortProperty + sortDirection e montamos o value visual
-              value={
-                searchParams.sortProperty && searchParams.sortDirection
-                  ? `${searchParams.sortProperty},${searchParams.sortDirection.toLowerCase()}`
-                  : ''
-              }
-              onChange={(value) => {
-                if (!value) {
-                  onFilterChange('sortProperty', '');
-                  onFilterChange('sortDirection', '');
-                  return;
+            {/* Coluna Direita */}
+            <div className='filters-column'>
+              {/* ADMINISTRADOR */}
+              <Select
+                label='Administrador'
+                value={searchParams.adminEmail}
+                onChange={(value) => onFilterChange('adminEmail', value)}
+                options={adminOptions}
+                error={fieldErrors.adminEmail}
+                icon='person'
+              />
+
+              {/* ORDENAR POR*/}
+              <Select
+                label='Ordenar por'
+                value={
+                  searchParams.sortProperty && searchParams.sortDirection
+                    ? `${searchParams.sortProperty},${searchParams.sortDirection.toLowerCase()}`
+                    : ''
                 }
+                onChange={(value) => {
+                  if (!value) {
+                    onFilterChange('sortProperty', '');
+                    onFilterChange('sortDirection', '');
+                    return;
+                  }
 
-                const [property, direction] = value.split(',');
-                onFilterChange('sortProperty', property);
-                onFilterChange('sortDirection', direction.toUpperCase());
-              }}
-              options={ordenacaoOptions}
-              // remove fieldErrors.ordenacao (não existe mais no tipo)
-              icon='sort'
-            />
+                  const [property, direction] = value.split(',');
+                  onFilterChange('sortProperty', property);
+                  onFilterChange('sortDirection', direction.toUpperCase());
+                }}
+                options={ordenacaoOptions}
+                icon='sort'
+              />
+            </div>
           </div>
 
           {/* BOTÕES */}
@@ -160,6 +201,7 @@ export const Filters = ({
           {(searchParams.search ||
             searchParams.categoria ||
             searchParams.status ||
+            searchParams.adminEmail ||
             (searchParams.sortProperty && searchParams.sortDirection)) && (
             <div className='active-filters-summary'>
               <div className='summary-header'>
@@ -207,6 +249,23 @@ export const Filters = ({
                     }
                     <button
                       onClick={() => onFilterChange('status', '')}
+                      className='chip-close'
+                    >
+                      <span className='material-symbols-outlined'>close</span>
+                    </button>
+                  </span>
+                )}
+
+                {searchParams.adminEmail && (
+                  <span className='filter-chip admin-chip'>
+                    Admin:{' '}
+                    {
+                      adminOptions.find(
+                        (opt) => opt.value === searchParams.adminEmail,
+                      )?.label
+                    }
+                    <button
+                      onClick={() => onFilterChange('adminEmail', '')}
                       className='chip-close'
                     >
                       <span className='material-symbols-outlined'>close</span>
