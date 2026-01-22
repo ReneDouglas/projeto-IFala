@@ -4,7 +4,6 @@ import { Denuncia } from './pages/Denuncia/Denuncia';
 import { DenunciaSucesso } from './pages/DenunciaSucesso/DenunciaSucesso';
 import { DenunciasList } from './pages/DenunciaList/DenunciaList';
 import { Login } from './pages/Login/Login';
-import { RedefinirSenha } from './pages/ResetPassword/ResetPassword';
 import { MainLayout } from './components/MainLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
@@ -19,7 +18,6 @@ export function App() {
         <Routes>
           {/* Rotas sem layout */}
           <Route path='/login' element={<Login />} />
-          <Route path='/redefinir-senha/:token' element={<RedefinirSenha />} />
 
           {/* Layout principal */}
           <Route element={<MainLayout />}>
