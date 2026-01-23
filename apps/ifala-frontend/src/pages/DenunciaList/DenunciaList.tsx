@@ -6,6 +6,10 @@ import { Filters } from './components/Filters/Filters';
 import { DenunciaCard } from './components/DenunciaCard/DenunciaCard';
 import { Pagination } from './components/Pagination/Pagination';
 import { marcarComoLidaPorDenuncia } from '../../services/notificacao-api';
+import {
+  fixarDenuncia,
+  desfixarDenuncia,
+} from '../../services/admin-denuncias-api';
 import './DenunciaList.css';
 
 export function DenunciasList() {
@@ -96,6 +100,21 @@ export function DenunciasList() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleToggleFixar = async (denunciaId: number, fixar: boolean) => {
+    try {
+      if (fixar) {
+        await fixarDenuncia(denunciaId);
+      } else {
+        await desfixarDenuncia(denunciaId);
+      }
+      // Recarregar a lista para atualizar o estado
+      refetch();
+    } catch (error) {
+      console.error('Erro ao fixar/desfixar denúncia:', error);
+      // Você pode adicionar uma notificação de erro aqui se tiver um sistema de toast/snackbar
+    }
   };
 
   useEffect(() => {
@@ -205,6 +224,7 @@ export function DenunciasList() {
                         denuncia={denuncia}
                         contador={currentPage * 10 + (index + 1)}
                         onViewDetails={handleViewDetails}
+                        onToggleFixar={handleToggleFixar}
                       />
                     ))
                   ) : (

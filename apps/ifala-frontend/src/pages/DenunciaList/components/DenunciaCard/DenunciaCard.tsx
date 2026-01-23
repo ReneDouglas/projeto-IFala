@@ -6,12 +6,14 @@ interface DenunciaCardProps {
   denuncia: Denuncia;
   contador: number;
   onViewDetails: (denunciaId: number) => void;
+  onToggleFixar?: (denunciaId: number, fixada: boolean) => void;
 }
 
 export const DenunciaCard = ({
   denuncia,
   contador,
   onViewDetails,
+  onToggleFixar,
 }: DenunciaCardProps) => {
   const formatDate = (dateString: string) => {
     if (!dateString) return '---';
@@ -73,6 +75,23 @@ export const DenunciaCard = ({
 
   return (
     <div className={`denuncia-card ${getPriorityColor(denuncia.status)}`}>
+      {/* Botão de fixar no canto superior direito */}
+      {onToggleFixar && (
+        <button
+          className={`btn-fixar ${denuncia.fixada ? 'fixada' : ''}`}
+          title={denuncia.fixada ? 'Desfixar denúncia' : 'Fixar denúncia'}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFixar(denuncia.id, !denuncia.fixada);
+          }}
+          aria-label={denuncia.fixada ? 'Desfixar denúncia' : 'Fixar denúncia'}
+        >
+          <span className='material-symbols-outlined'>
+            {denuncia.fixada ? 'push_pin' : 'push_pin'}
+          </span>
+        </button>
+      )}
+
       <div className='denuncia-header'>
         <div className='header-left'>
           <div className='denuncia-token'>
