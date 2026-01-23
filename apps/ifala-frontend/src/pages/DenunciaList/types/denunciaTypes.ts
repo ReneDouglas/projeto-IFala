@@ -8,6 +8,7 @@ export interface Denuncia {
   descricao?: string;
   titulo?: string;
   temMensagemNaoLida?: boolean;
+  fixada?: boolean;
 }
 
 export interface SearchParams {
