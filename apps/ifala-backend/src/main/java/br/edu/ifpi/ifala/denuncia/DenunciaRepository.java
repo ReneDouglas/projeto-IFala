@@ -112,6 +112,28 @@ public interface DenunciaRepository
   @Query(value = "SELECT * FROM buscar_denuncias_por_texto(:termo)", nativeQuery = true)
   List<Long> buscarIdsPorTexto(@Param("termo") String termo);
 
+  /**
+   * Busca denúncias por lista de IDs com filtros opcionais de status e categoria.
+   * Retorna as denúncias ordenadas por: mensagens não lidas do ANONIMO e data de criação.
+   * 
+   * @param ids Lista de IDs para filtrar
+   * @param status Filtro de status (opcional)
+   * @param categoria Filtro de categoria (opcional)
+   * @return Lista de denúncias que atendem aos critérios
+   */
+  @EntityGraph(attributePaths = {"acompanhamentos", "provas", "denunciante"})
+  @Query("""
+      SELECT d FROM Denuncia d 
+      WHERE d.id IN :ids
+        AND (:status IS NULL OR d.status = :status)
+        AND (:categoria IS NULL OR d.categoria = :categoria)
+      ORDER BY d.criadoEm DESC
+      """)
+  List<Denuncia> findByIdsWithFiltersOrdered(
+      @Param("ids") List<Long> ids,
+      @Param("status") br.edu.ifpi.ifala.shared.enums.Status status,
+      @Param("categoria") br.edu.ifpi.ifala.shared.enums.Categorias categoria);
+
   // Os demais métodos de crud são herdados de JpaRepository
   /*
    * Os métodos de busca avançada são herdados de JpaSpecificationExecutor e
