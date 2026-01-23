@@ -94,7 +94,8 @@ public class DenunciaAdminController {
       @Parameter(description = "Campo para ordenação",
           example = "id") @RequestParam(defaultValue = "id") String sortProperty,
       @Parameter(description = "Direção da ordenação (ASC ou DESC)",
-          example = "DESC") @RequestParam(defaultValue = "DESC") String sortDirection) {
+          example = "DESC") @RequestParam(defaultValue = "DESC") String sortDirection,
+      Authentication authentication) {
 
     Sort.Direction direction =
         sortDirection.equalsIgnoreCase("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC;
@@ -104,17 +105,20 @@ public class DenunciaAdminController {
         "Admin requisitou listagem de denúncias: page={}, size={}, sort={}, filtros(status={}, categoria={})",
         pageNumber, size, sortDirection, status, categoria);
 
+    String username = authentication.getName();
     Page<DenunciaAdminResponseDto> page =
-        denunciaService.listarTodas(search, status, categoria, pageable);
+        denunciaService.listarTodas(search, status, categoria, pageable, username);
     log.info("Retornadas {} denúncias para a página {}.", page.getNumberOfElements(), pageNumber);
     return ResponseEntity.ok(page);
   }
 
   @GetMapping("/{id}")
   @Operation(summary = "Obtém detalhes de uma denúncia pelo ID")
-  public ResponseEntity<DenunciaAdminResponseDto> buscarPorId(@PathVariable Long id) {
+  public ResponseEntity<DenunciaAdminResponseDto> buscarPorId(@PathVariable Long id,
+      Authentication authentication) {
     log.info("Admin solicitou detalhes da denúncia ID: {}", id);
-    return ResponseEntity.ok(denunciaService.buscarPorId(id));
+    String username = authentication.getName();
+    return ResponseEntity.ok(denunciaService.buscarPorId(id, username));
   }
 
   /**
@@ -274,6 +278,73 @@ public class DenunciaAdminController {
       log.warn("Tentativa de alterar status de denúncia ID {} em estado final pelo admin {}.", id,
           adminName);
       return ResponseEntity.badRequest().build();
+    }
+  }
+
+  /**
+   * Fixa uma denúncia para o usuário atual.
+   *
+   * @param id ID da denúncia
+   * @param authentication contexto de autenticação
+   * @return resposta de sucesso
+   */
+  @PostMapping("/{id}/fixar")
+  @Operation(summary = "Fixa uma denúncia",
+      description = "Marca uma denúncia como fixada para acesso rápido pelo usuário atual.")
+  @ApiResponses(
+      value = {@ApiResponse(responseCode = "200", description = "Denúncia fixada com sucesso"),
+          @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
+              content = @Content),
+          @ApiResponse(responseCode = "400", description = "Denúncia já está fixada",
+              content = @Content),
+          @ApiResponse(responseCode = "401", description = "Não autorizado", content = @Content)})
+  public ResponseEntity<Void> fixarDenuncia(@PathVariable Long id, Authentication authentication) {
+    String username = authentication.getName();
+    log.info("Admin {} requisitou fixar denúncia ID {}", username, id);
+
+    try {
+      denunciaService.fixarDenuncia(id, username);
+      log.info("Denúncia ID {} fixada com sucesso pelo admin {}", id, username);
+      return ResponseEntity.ok().build();
+    } catch (EntityNotFoundException e) {
+      log.warn("Denúncia ID {} não encontrada para fixar pelo admin {}", id, username);
+      return ResponseEntity.notFound().build();
+    } catch (IllegalStateException e) {
+      log.warn("Denúncia ID {} já está fixada pelo admin {}", id, username);
+      return ResponseEntity.badRequest().build();
+    }
+  }
+
+  /**
+   * Desfixa uma denúncia para o usuário atual.
+   *
+   * @param id ID da denúncia
+   * @param authentication contexto de autenticação
+   * @return resposta de sucesso
+   */
+  @DeleteMapping("/{id}/fixar")
+  @Operation(summary = "Desfixa uma denúncia",
+      description = "Remove a marcação de denúncia fixada para o usuário atual.")
+  @ApiResponses(
+      value = {@ApiResponse(responseCode = "204", description = "Denúncia desfixada com sucesso"),
+          @ApiResponse(responseCode = "404",
+              description = "Denúncia não encontrada ou não está fixada", content = @Content),
+          @ApiResponse(responseCode = "401", description = "Não autorizado", content = @Content)})
+  public ResponseEntity<Void> desfixarDenuncia(@PathVariable Long id,
+      Authentication authentication) {
+    String username = authentication.getName();
+    log.info("Admin {} requisitou desafixar denúncia ID {}", username, id);
+
+    try {
+      denunciaService.desfixarDenuncia(id, username);
+      log.info("Denúncia ID {} desfixada com sucesso pelo admin {}", id, username);
+      return ResponseEntity.noContent().build();
+    } catch (EntityNotFoundException e) {
+      log.warn("Denúncia ID {} não encontrada para desfixar pelo admin {}", id, username);
+      return ResponseEntity.notFound().build();
+    } catch (IllegalStateException e) {
+      log.warn("Denúncia ID {} não está fixada pelo admin {}", id, username);
+      return ResponseEntity.notFound().build();
     }
   }
 }
