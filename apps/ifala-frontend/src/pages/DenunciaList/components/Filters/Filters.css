@@ -73,6 +73,19 @@
   gap: 1.5rem;
 }
 
+/* Layout grid 2x2 para os filtros */
+.filters-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.filters-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 /* Botões melhorados */
 .filters-actions {
   display: flex;
@@ -256,6 +269,12 @@
   border: 1px solid #86efac;
 }
 
+.admin-chip {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+  border: 1px solid #4f46e5;
+}
+
 .chip-close {
   display: flex;
   align-items: center;
@@ -334,6 +353,10 @@
   .filters-row {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
   }
 
   .filters-actions {

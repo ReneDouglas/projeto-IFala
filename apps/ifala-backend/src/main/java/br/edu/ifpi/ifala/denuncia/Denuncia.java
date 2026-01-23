@@ -89,6 +89,9 @@ public class Denuncia implements Serializable {
   @JoinColumn(name = "denunciante_id", referencedColumnName = "id", unique = true)
   private Denunciante denunciante;
 
+  @Column(name = "admin_acompanhando_email")
+  private String adminAcompanhandoEmail;
+
   /**
    * Construtor padrão que inicializa uma nova denúncia. Define um token de acompanhamento único,
    * status inicial como RECEBIDO e a data/hora de criação.
@@ -210,6 +213,14 @@ public class Denuncia implements Serializable {
 
   public void setDenunciante(Denunciante denunciante) {
     this.denunciante = denunciante;
+  }
+
+  public String getAdminAcompanhandoEmail() {
+    return adminAcompanhandoEmail;
+  }
+
+  public void setAdminAcompanhandoEmail(String adminAcompanhandoEmail) {
+    this.adminAcompanhandoEmail = adminAcompanhandoEmail;
   }
 
   @Override

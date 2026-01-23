@@ -1,18 +1,26 @@
 import type { Denuncia } from '../../types/denunciaTypes';
 import { StatusBadge } from '../StatusBadge/StatusBadge';
+import { useAuth } from '../../../../hooks/useAuth';
 import './DenunciaCard.css';
 
 interface DenunciaCardProps {
   denuncia: Denuncia;
   contador: number;
   onViewDetails: (denunciaId: number) => void;
+  onAcompanhar?: (denunciaId: number) => void;
+  onDesacompanhar?: (denunciaId: number) => void;
 }
 
 export const DenunciaCard = ({
   denuncia,
   contador,
   onViewDetails,
+  onAcompanhar,
+  onDesacompanhar,
 }: DenunciaCardProps) => {
+  const { user } = useAuth();
+  const currentUserEmail = user?.email;
+
   const formatDate = (dateString: string) => {
     if (!dateString) return '---';
 
@@ -121,6 +129,20 @@ export const DenunciaCard = ({
             </span>
           </div>
 
+          {/* Tag do admin acompanhando - abaixo de "Atualizado em" */}
+          {denuncia.adminAcompanhandoEmail &&
+            denuncia.adminAcompanhandoNome && (
+              <div className='metadata-item admin-tag-wrapper'>
+                <span className='material-symbols-outlined icon'>person</span>
+                <span
+                  className='admin-tag'
+                  title={`${denuncia.adminAcompanhandoNome} está acompanhando esta denúncia`}
+                >
+                  {denuncia.adminAcompanhandoNome}
+                </span>
+              </div>
+            )}
+
           {denuncia.temMensagemNaoLida && (
             <div className='metadata-item nova-mensagem-wrapper'>
               <span className='badge nova-mensagem'>Nova mensagem</span>
@@ -133,11 +155,42 @@ export const DenunciaCard = ({
         <button
           className='btn-details'
           title='Ver Detalhes da Denúncia'
-          onClick={() => onViewDetails(denuncia.id)} // passar id
+          onClick={() => onViewDetails(denuncia.id)}
         >
           <span className='material-symbols-outlined'>visibility</span>
           <span>Ver Detalhes</span>
         </button>
+
+        {/* Botões de acompanhar/desacompanhar - embaixo de "Ver Detalhes" */}
+        {denuncia.adminAcompanhandoEmail ? (
+          currentUserEmail === denuncia.adminAcompanhandoEmail ? (
+            // O próprio admin está acompanhando - mostrar botão de sair
+            <button
+              className='btn-sair-denuncia'
+              onClick={(e) => {
+                e.stopPropagation();
+                onDesacompanhar?.(denuncia.id);
+              }}
+              title='Clique para deixar de acompanhar esta denúncia'
+            >
+              <span className='material-symbols-outlined'>logout</span>
+              <span>Sair da Denúncia</span>
+            </button>
+          ) : null
+        ) : (
+          // Nenhum admin acompanhando - mostrar botão de acompanhar
+          <button
+            className='btn-acompanhar-denuncia'
+            onClick={(e) => {
+              e.stopPropagation();
+              onAcompanhar?.(denuncia.id);
+            }}
+            title='Clique para acompanhar esta denúncia'
+          >
+            <span className='material-symbols-outlined'>person_add</span>
+            <span>Acompanhar Denúncia</span>
+          </button>
+        )}
       </div>
 
       <div className='card-hover-effect'></div>

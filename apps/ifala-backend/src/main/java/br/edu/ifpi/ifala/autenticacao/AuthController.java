@@ -178,6 +178,16 @@ public class AuthController {
   }
 
   /**
+   * Endpoint para listar todos os administradores (nome e email).
+   * Usado para filtro de denúncias por admin responsável.
+   */
+  @GetMapping("/admin/lista-simples")
+  public ResponseEntity<?> listarAdminsSimples() {
+    logger.info("Requisição para listar administradores (nome e email).");
+    return ResponseEntity.ok(authService.listarAdminsSimples());
+  }
+
+  /**
    * Endpoint para invalidar o Access Token (logout)
    */
   @PostMapping("/sair")

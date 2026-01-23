@@ -87,6 +87,8 @@ public class DenunciaAdminController {
       @Parameter(description = "Filtrar por status") @RequestParam(required = false) Status status,
       @Parameter(description = "Filtrar por categoria") @RequestParam(
           required = false) Categorias categoria,
+      @Parameter(description = "Filtrar por email do admin acompanhando") @RequestParam(
+          required = false) String adminEmail,
       @Parameter(description = "Número da página (base 0)",
           example = "0") @RequestParam(defaultValue = "0") int pageNumber,
       @Parameter(description = "Tamanho da página",
@@ -101,11 +103,11 @@ public class DenunciaAdminController {
     Pageable pageable = PageRequest.of(pageNumber, size, Sort.by(direction, sortProperty));
 
     log.info(
-        "Admin requisitou listagem de denúncias: page={}, size={}, sort={}, filtros(status={}, categoria={})",
-        pageNumber, size, sortDirection, status, categoria);
+        "Admin requisitou listagem de denúncias: page={}, size={}, sort={}, filtros(status={}, categoria={}, adminEmail={})",
+        pageNumber, size, sortDirection, status, categoria, adminEmail);
 
     Page<DenunciaAdminResponseDto> page =
-        denunciaService.listarTodas(search, status, categoria, pageable);
+        denunciaService.listarTodas(search, status, categoria, adminEmail, pageable);
     log.info("Retornadas {} denúncias para a página {}.", page.getNumberOfElements(), pageNumber);
     return ResponseEntity.ok(page);
   }
@@ -275,5 +277,65 @@ public class DenunciaAdminController {
           adminName);
       return ResponseEntity.badRequest().build();
     }
+  }
+
+  /**
+   * Permite que um admin comece a acompanhar uma denúncia.
+   *
+   * @param id ID da denúncia
+   * @param authentication contexto de autenticação
+   * @return denúncia atualizada
+   */
+  @PostMapping("/{id}/acompanhar")
+  @Operation(summary = "Inicia acompanhamento de uma denúncia",
+      description = "Permite que um administrador assuma o acompanhamento de uma denúncia. "
+          + "Apenas um admin pode acompanhar cada denúncia por vez.")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Acompanhamento iniciado com sucesso",
+          content = @Content(schema = @Schema(implementation = DenunciaAdminResponseDto.class))),
+      @ApiResponse(responseCode = "401", description = "Não autorizado", content = @Content),
+      @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
+          content = @Content),
+      @ApiResponse(responseCode = "409",
+          description = "Denúncia já está sendo acompanhada por outro admin", content = @Content)})
+  public ResponseEntity<DenunciaAdminResponseDto> acompanharDenuncia(
+      @Parameter(description = "ID da denúncia") @PathVariable Long id,
+      Authentication authentication) {
+    String adminEmail = authentication.getName();
+    log.info("Admin {} solicitou acompanhar a denúncia ID {}", adminEmail, id);
+
+    DenunciaAdminResponseDto denunciaAtualizada =
+        denunciaService.acompanharDenuncia(id, adminEmail);
+    return ResponseEntity.ok(denunciaAtualizada);
+  }
+
+  /**
+   * Permite que um admin deixe de acompanhar uma denúncia.
+   *
+   * @param id ID da denúncia
+   * @param authentication contexto de autenticação
+   * @return denúncia atualizada
+   */
+  @DeleteMapping("/{id}/acompanhar")
+  @Operation(summary = "Remove acompanhamento de uma denúncia",
+      description = "Permite que um administrador deixe de acompanhar uma denúncia. "
+          + "Apenas o próprio admin que está acompanhando pode remover o acompanhamento.")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Acompanhamento removido com sucesso",
+          content = @Content(schema = @Schema(implementation = DenunciaAdminResponseDto.class))),
+      @ApiResponse(responseCode = "401", description = "Não autorizado", content = @Content),
+      @ApiResponse(responseCode = "403",
+          description = "Não pode remover acompanhamento de outro admin", content = @Content),
+      @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
+          content = @Content)})
+  public ResponseEntity<DenunciaAdminResponseDto> desacompanharDenuncia(
+      @Parameter(description = "ID da denúncia") @PathVariable Long id,
+      Authentication authentication) {
+    String adminEmail = authentication.getName();
+    log.info("Admin {} solicitou deixar de acompanhar a denúncia ID {}", adminEmail, id);
+
+    DenunciaAdminResponseDto denunciaAtualizada =
+        denunciaService.desacompanharDenuncia(id, adminEmail);
+    return ResponseEntity.ok(denunciaAtualizada);
   }
 }
