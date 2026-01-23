@@ -9,12 +9,16 @@ import br.edu.ifpi.ifala.denuncia.denunciaDTO.DadosDeIdentificacaoDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaAdminResponseDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenunciaResponseDto;
 import br.edu.ifpi.ifala.denuncia.denunciaDTO.DenuncianteResponseDto;
+import br.edu.ifpi.ifala.denunciaFixada.DenunciaFixada;
+import br.edu.ifpi.ifala.denunciaFixada.DenunciaFixadaRepository;
 import br.edu.ifpi.ifala.notificacao.NotificacaoExternaService;
 import br.edu.ifpi.ifala.prova.ProvaService;
 import br.edu.ifpi.ifala.security.recaptcha.RecaptchaService;
 import br.edu.ifpi.ifala.shared.enums.Categorias;
 import br.edu.ifpi.ifala.shared.enums.Perfis;
 import br.edu.ifpi.ifala.shared.enums.Status;
+import br.edu.ifpi.ifala.autenticacao.Usuario;
+import br.edu.ifpi.ifala.autenticacao.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -57,6 +61,8 @@ public class DenunciaService {
   private final RecaptchaService recaptchaService;
   private final NotificacaoExternaService notificacaoExternaService;
   private final ProvaService provaService;
+  private final DenunciaFixadaRepository denunciaFixadaRepository;
+  private final UsuarioRepository usuarioRepository;
   private final PolicyFactory policy;
   private final Double score = 0.2;
 
@@ -73,12 +79,15 @@ public class DenunciaService {
 
   public DenunciaService(DenunciaRepository denunciaRepository,
       AcompanhamentoRepository acompanhamentoRepository, RecaptchaService recaptchaService,
-      NotificacaoExternaService notificacaoExternaService, ProvaService provaService) {
+      NotificacaoExternaService notificacaoExternaService, ProvaService provaService,
+      DenunciaFixadaRepository denunciaFixadaRepository, UsuarioRepository usuarioRepository) {
     this.denunciaRepository = denunciaRepository;
     this.acompanhamentoRepository = acompanhamentoRepository;
     this.recaptchaService = recaptchaService;
     this.notificacaoExternaService = notificacaoExternaService;
     this.provaService = provaService;
+    this.denunciaFixadaRepository = denunciaFixadaRepository;
+    this.usuarioRepository = usuarioRepository;
     this.policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
   }
 
@@ -192,104 +201,114 @@ public class DenunciaService {
   /**
    * Lista todas as denúncias com filtros e paginação.
    *
-   * @param search filtro de busca por token
-   * @param status filtro de status
+   * @param search    filtro de busca por token
+   * @param status    filtro de status
    * @param categoria filtro de categoria
-   * @param pageable informações de paginação
+   * @param pageable  informações de paginação
+   * @param username  nome do usuário logado para verificar denúncias fixadas
    * @return página de denúncias
    */
   @Transactional(readOnly = true)
   public Page<DenunciaAdminResponseDto> listarTodas(String search, Status status,
-      Categorias categoria, Pageable pageable) {
+      Categorias categoria, Pageable pageable, String username) {
 
     log.info("Iniciando listagem de denúncias com filtros: status={}, categoria={}, search={}",
         status, categoria, search);
 
+    // Buscar o usuário pelo username para obter o ID
+    Usuario usuario = usuarioRepository.findByEmail(username)
+        .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado: " + username));
+
+    Long usuarioId = usuario.getId();
+
     // Passo 1: Buscar apenas os IDs com paginação e ordenação personalizada
+    // (fixadas primeiro)
     Page<Long> idsPage;
 
     if (search != null && !search.trim().isEmpty()) {
       String termo = search.trim();
-      
+
       // Tenta primeiro como UUID (busca exata por token)
       try {
         UUID token = UUID.fromString(termo);
         String tokenSearch = token.toString();
         log.debug("Busca por token UUID: {}", maskToken(token));
-        
-        idsPage = denunciaRepository.findAllIdsWithFiltersOrderedByNewMessages(
-            status, categoria, tokenSearch, pageable);
-            
+
+        idsPage = denunciaRepository.findAllIdsWithFiltersOrderedByFixedFirst(usuarioId, status,
+            categoria, tokenSearch, pageable);
+
       } catch (IllegalArgumentException e) {
         // Não é UUID - verifica se tem pelo menos 3 caracteres para busca textual
         if (termo.length() >= 3) {
           log.info("Busca textual por termo: '{}' (caracteres: {})", termo, termo.length());
-          
+
           // Usa a função SQL otimizada para buscar IDs das denúncias
           List<Long> idsEncontrados = denunciaRepository.buscarIdsPorTexto(termo);
-          
+
           if (idsEncontrados.isEmpty()) {
             // Nenhum resultado encontrado - retorna página vazia
             log.info("Nenhuma denúncia encontrada com o termo de busca: '{}'", termo);
             return Page.empty(pageable);
           }
-          
+
           log.info("Busca textual encontrou {} denúncias com o termo '{}'", idsEncontrados.size(), termo);
-          
+
           // Buscar denúncias completas com filtros de status e categoria
-          // Este método já aplica os filtros e ordenação (mensagens não lidas + data)
-          List<Denuncia> denunciasFiltradas = denunciaRepository.findByIdsWithFiltersOrdered(
-              idsEncontrados, status, categoria);
-          
+          // Este método já aplica os filtros e ordenação (fixadas primeiro + data)
+          List<Denuncia> denunciasFiltradas = denunciaRepository.findByIdsWithFiltersOrderedByFixed(
+              idsEncontrados, usuarioId, status, categoria);
+
           if (denunciasFiltradas.isEmpty()) {
-            log.info("Nenhuma denúncia encontrada após aplicar filtros (status={}, categoria={})", 
+            log.info("Nenhuma denúncia encontrada após aplicar filtros (status={}, categoria={})",
                 status, categoria);
             return Page.empty(pageable);
           }
-          
-          log.info("Após filtros: {} denúncias (de {} encontradas pela busca)", 
+
+          log.info("Após filtros: {} denúncias (de {} encontradas pela busca)",
               denunciasFiltradas.size(), idsEncontrados.size());
-          
+
           // Extrair apenas os IDs ordenados
           List<Long> idsOrdenados = denunciasFiltradas.stream()
               .map(Denuncia::getId)
               .collect(Collectors.toList());
-          
+
           // Aplicar paginação MANUALMENTE sobre os IDs ordenados e filtrados
           int pageSize = pageable.getPageSize();
           int currentPage = pageable.getPageNumber();
           int startItem = currentPage * pageSize;
           int totalElements = idsOrdenados.size();
-          
+
           // Verificar se a página solicitada está dentro dos limites
           if (startItem >= totalElements) {
             log.info("Página {} está fora dos limites (total: {} elementos)", currentPage, totalElements);
             return Page.empty(pageable);
           }
-          
+
           // Calcular índice final (não pode ultrapassar o tamanho da lista)
           int endItem = Math.min(startItem + pageSize, totalElements);
-          
+
           // Extrair apenas os IDs da página atual
           List<Long> idsPaginados = idsOrdenados.subList(startItem, endItem);
-          
-          log.info("Página {}: retornando {} IDs (de {} até {}) de um total de {} após filtros", 
+
+          log.info("Página {}: retornando {} IDs (de {} até {}) de um total de {} após filtros",
               currentPage, idsPaginados.size(), startItem, endItem - 1, totalElements);
-          
+
           // Buscar as denúncias da página (já estão na lista, só precisamos filtrar)
           List<Denuncia> denunciasPagina = denunciasFiltradas.stream()
               .filter(d -> idsPaginados.contains(d.getId()))
               .sorted(Comparator.comparingInt(d -> idsPaginados.indexOf(d.getId())))
               .collect(Collectors.toList());
-          
+
+          // Buscar IDs das denúncias fixadas pelo usuário
+          List<Long> denunciasFixadasIds = buscarDenunciasFixadas(username);
+
           // Converter para DTO
           List<DenunciaAdminResponseDto> dtos = denunciasPagina.stream()
-              .map(this::mapToDenunciaAdminResponseDto)
+              .map(d -> mapToDenunciaAdminResponseDto(d, denunciasFixadasIds.contains(d.getId())))
               .collect(Collectors.toList());
-          
+
           // Retornar Page com o total correto de elementos
           return new PageImpl<>(dtos, pageable, totalElements);
-          
         } else {
           log.warn("Termo de busca muito curto (< 3 caracteres): '{}' - retornando vazio", termo);
           return Page.empty(pageable);
@@ -297,8 +316,8 @@ public class DenunciaService {
       }
     } else {
       // Sem busca por token
-      idsPage = denunciaRepository.findAllIdsWithFiltersOrderedByNewMessages(
-          status, categoria, null, pageable);
+      idsPage = denunciaRepository.findAllIdsWithFiltersOrderedByFixedFirst(usuarioId, status,
+          categoria, null, pageable);
     }
 
     // Se não encontrou nada, retorna página vazia
@@ -309,22 +328,27 @@ public class DenunciaService {
 
     log.debug("Encontrados {} IDs de denúncias", idsPage.getContent().size());
 
-    // Passo 2: Buscar as entidades completas com relacionamentos (1 query com JOINs)
+    // Passo 2: Buscar as entidades completas com relacionamentos (1 query com
+    // JOINs)
     List<Denuncia> denuncias = denunciaRepository.findAllByIdWithRelations(idsPage.getContent());
 
     log.debug("Carregadas {} denúncias com relacionamentos", denuncias.size());
 
-    // Passo 3: Ordenar a lista na mesma ordem dos IDs retornados
+    // Buscar IDs das denúncias fixadas pelo usuário para marcar nos DTOs
+    List<Long> denunciasFixadasIds = buscarDenunciasFixadas(username);
+
+    // Passo 3: Manter a ordem retornada pelo banco (já ordenada com fixadas
+    // primeiro)
     List<Long> idsOrder = idsPage.getContent();
-    Map<Long, Integer> orderMap = IntStream.range(0, idsOrder.size())
-        .boxed()
+    Map<Long, Integer> orderMap = IntStream.range(0, idsOrder.size()).boxed()
         .collect(Collectors.toMap(idsOrder::get, i -> i));
 
-    denuncias.sort(Comparator.comparingInt(d -> orderMap.getOrDefault(d.getId(), Integer.MAX_VALUE)));
+    denuncias.sort(Comparator.comparingInt(
+        d -> orderMap.getOrDefault(d.getId(), Integer.MAX_VALUE)));
 
     // Passo 4: Converter para DTO
     List<DenunciaAdminResponseDto> dtos = denuncias.stream()
-        .map(this::mapToDenunciaAdminResponseDto)
+        .map(d -> mapToDenunciaAdminResponseDto(d, denunciasFixadasIds.contains(d.getId())))
         .collect(Collectors.toList());
 
     log.info("Retornando {} denúncias para a página {}", dtos.size(), pageable.getPageNumber());
@@ -335,14 +359,15 @@ public class DenunciaService {
 
   // buscar denúncia por ID
   @Transactional
-  public DenunciaAdminResponseDto buscarPorId(Long id) {
+  public DenunciaAdminResponseDto buscarPorId(Long id, String username) {
     Denuncia denuncia = denunciaRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada com o ID: " + id));
 
     // Marcar mensagens do ANONIMO (usuário) como visualizadas quando admin acessa
     acompanhamentoRepository.marcarComoVisualizadoPorDenunciaEAutor(id, Perfis.ANONIMO);
 
-    return mapToDenunciaAdminResponseDto(denuncia);
+    boolean fixada = isDenunciaFixada(id, username);
+    return mapToDenunciaAdminResponseDto(denuncia, fixada);
   }
 
   public Optional<DenunciaAdminResponseDto> atualizarDenuncia(Long id, AtualizarDenunciaDto dto,
@@ -369,7 +394,7 @@ public class DenunciaService {
 
       Denuncia denunciaAtualizada = denunciaRepository.save(denuncia);
       log.info("Denúncia id {} atualizada com sucesso para o status {}.", id, dto.status());
-      return mapToDenunciaAdminResponseDto(denunciaAtualizada);
+      return mapToDenunciaAdminResponseDto(denunciaAtualizada, false);
     });
   }
 
@@ -511,7 +536,7 @@ public class DenunciaService {
         "Status da denúncia ID {} alterado de {} para {} com mensagem automática de acompanhamento.",
         id, statusAnterior, novoStatus);
 
-    return mapToDenunciaAdminResponseDto(denunciaAtualizada);
+    return mapToDenunciaAdminResponseDto(denunciaAtualizada, false);
   }
 
   private String gerarMensagemMudancaStatus(Status statusAnterior, Status novoStatus) {
@@ -542,9 +567,8 @@ public class DenunciaService {
     DenuncianteResponseDto denuncianteDto = null;
     if (denuncia.isDesejaSeIdentificar() && denuncia.getDenunciante() != null) {
       Denunciante denunciante = denuncia.getDenunciante();
-      denuncianteDto =
-          new DenuncianteResponseDto(denunciante.getNomeCompleto(), denunciante.getGrau(),
-              denunciante.getCurso(), denunciante.getAno(), denunciante.getTurma());
+      denuncianteDto = new DenuncianteResponseDto(denunciante.getNomeCompleto(), denunciante.getGrau(),
+          denunciante.getCurso(), denunciante.getAno(), denunciante.getTurma());
     }
 
     return new DenunciaResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
@@ -556,9 +580,11 @@ public class DenunciaService {
    * Mapeia uma entidade Denuncia para DenunciaAdminResponseDto.
    *
    * @param denuncia entidade a ser mapeada
+   * @param fixada   indica se a denúncia está fixada pelo usuário
    * @return DTO mapeado
    */
-  private DenunciaAdminResponseDto mapToDenunciaAdminResponseDto(Denuncia denuncia) {
+  private DenunciaAdminResponseDto mapToDenunciaAdminResponseDto(Denuncia denuncia,
+      boolean fixada) {
     // Verificar se tem mensagens não lidas do ANONIMO (usuário/denunciante)
     boolean temMensagemNaoLida = denuncia.getAcompanhamentos().stream()
         .anyMatch(a -> a.getAutor() == Perfis.ANONIMO && !a.getVisualizado());
@@ -567,21 +593,13 @@ public class DenunciaService {
     DenuncianteResponseDto denuncianteDto = null;
     if (denuncia.isDesejaSeIdentificar() && denuncia.getDenunciante() != null) {
       Denunciante denunciante = denuncia.getDenunciante();
-      denuncianteDto =
-          new DenuncianteResponseDto(denunciante.getNomeCompleto(), denunciante.getGrau(),
-              denunciante.getCurso(), denunciante.getAno(), denunciante.getTurma());
+      denuncianteDto = new DenuncianteResponseDto(denunciante.getNomeCompleto(), denunciante.getGrau(),
+          denunciante.getCurso(), denunciante.getAno(), denunciante.getTurma());
     }
 
-    return new DenunciaAdminResponseDto(
-        denuncia.getId(),
-        denuncia.getTokenAcompanhamento(),
-        denuncia.getStatus(),
-        denuncia.getCategoria(),
-        denuncia.getCriadoEm(),
-        denuncia.getAlteradoEm(),
-        temMensagemNaoLida,
-        denuncianteDto
-    );
+    return new DenunciaAdminResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
+        denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(),
+        denuncia.getAlteradoEm(), temMensagemNaoLida, denuncianteDto, fixada);
   }
 
   private AcompanhamentoDto mapToAcompanhamentoResponseDto(Acompanhamento acompanhamento) {
@@ -606,6 +624,97 @@ public class DenunciaService {
       return "***";
     }
     return tokenStr.substring(0, 8) + "...***";
+  }
+
+  /**
+   * Fixa uma denúncia para um usuário específico.
+   * 
+   * @param denunciaId ID da denúncia a ser fixada
+   * @param username   Nome do usuário que está fixando
+   */
+  @Transactional
+  public void fixarDenuncia(Long denunciaId, String username) {
+    log.info("Usuário {} fixando denúncia ID {}", username, denunciaId);
+
+    // Buscar usuário
+    Usuario usuario = usuarioRepository.findByEmail(username)
+        .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado: " + username));
+
+    // Buscar denúncia
+    Denuncia denuncia = denunciaRepository.findById(denunciaId).orElseThrow(
+        () -> new EntityNotFoundException("Denúncia não encontrada com ID: " + denunciaId));
+
+    // Verificar se já está fixada
+    boolean jaFixada = denunciaFixadaRepository.existsByUsuarioIdAndDenunciaId(usuario.getId(), denunciaId);
+
+    if (jaFixada) {
+      log.warn("Denúncia ID {} já está fixada pelo usuário {}", denunciaId, username);
+      throw new IllegalStateException("Esta denúncia já está fixada.");
+    }
+
+    // Criar e salvar a associação
+    DenunciaFixada denunciaFixada = new DenunciaFixada(usuario, denuncia);
+    denunciaFixadaRepository.save(denunciaFixada);
+
+    log.info("Denúncia ID {} fixada com sucesso pelo usuário {}", denunciaId, username);
+  }
+
+  /**
+   * Desfixa uma denúncia para um usuário específico.
+   * 
+   * @param denunciaId ID da denúncia a ser desfixada
+   * @param username   Nome do usuário que está desfixando
+   */
+  @Transactional
+  public void desfixarDenuncia(Long denunciaId, String username) {
+    log.info("Usuário {} desfixando denúncia ID {}", username, denunciaId);
+
+    // Buscar usuário
+    Usuario usuario = usuarioRepository.findByEmail(username)
+        .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado: " + username));
+
+    // Verificar se está fixada
+    Optional<DenunciaFixada> denunciaFixada = denunciaFixadaRepository.findByUsuarioIdAndDenunciaId(usuario.getId(),
+        denunciaId);
+
+    if (denunciaFixada.isEmpty()) {
+      log.warn("Denúncia ID {} não está fixada pelo usuário {}", denunciaId, username);
+      throw new IllegalStateException("Esta denúncia não está fixada.");
+    }
+
+    // Remover a associação
+    denunciaFixadaRepository.delete(denunciaFixada.get());
+
+    log.info("Denúncia ID {} desfixada com sucesso pelo usuário {}", denunciaId, username);
+  }
+
+  /**
+   * Verifica se uma denúncia está fixada por um usuário.
+   * 
+   * @param denunciaId ID da denúncia
+   * @param username   Nome do usuário
+   * @return true se estiver fixada, false caso contrário
+   */
+  @Transactional(readOnly = true)
+  public boolean isDenunciaFixada(Long denunciaId, String username) {
+    Usuario usuario = usuarioRepository.findByEmail(username)
+        .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado: " + username));
+
+    return denunciaFixadaRepository.existsByUsuarioIdAndDenunciaId(usuario.getId(), denunciaId);
+  }
+
+  /**
+   * Busca os IDs de todas as denúncias fixadas por um usuário.
+   * 
+   * @param username Nome do usuário
+   * @return Lista de IDs de denúncias fixadas
+   */
+  @Transactional(readOnly = true)
+  public List<Long> buscarDenunciasFixadas(String username) {
+    Usuario usuario = usuarioRepository.findByEmail(username)
+        .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado: " + username));
+
+    return denunciaFixadaRepository.findDenunciaIdsByUsuarioId(usuario.getId());
   }
 
 }
