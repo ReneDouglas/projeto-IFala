@@ -2,6 +2,7 @@ import axiosClient from './axios-client';
 import type {
   DenunciasResponse,
   SearchParams,
+  AdminSimples,
 } from '../pages/DenunciaList/types/denunciaTypes';
 
 // Regex para validar formato UUID
@@ -40,7 +41,34 @@ export async function listarDenunciasAdmin(
     params.search = searchParams.search;
   }
 
+  // Adiciona filtro de admin se preenchido
+  if (searchParams.adminEmail) {
+    params.adminEmail = searchParams.adminEmail;
+  }
+
   const response = await axiosClient.get('/admin/denuncias', { params });
 
   return response.data;
+}
+
+/**
+ * Lista todos os administradores de forma simplificada (nome e email)
+ */
+export async function listarAdminsSimples(): Promise<AdminSimples[]> {
+  const response = await axiosClient.get('/auth/admin/lista-simples');
+  return response.data;
+}
+
+/**
+ * Marca o admin logado como acompanhando a denúncia
+ */
+export async function acompanharDenuncia(id: number): Promise<void> {
+  await axiosClient.post(`/admin/denuncias/${id}/acompanhar`);
+}
+
+/**
+ * Remove o admin logado do acompanhamento da denúncia
+ */
+export async function desacompanharDenuncia(id: number): Promise<void> {
+  await axiosClient.delete(`/admin/denuncias/${id}/acompanhar`);
 }

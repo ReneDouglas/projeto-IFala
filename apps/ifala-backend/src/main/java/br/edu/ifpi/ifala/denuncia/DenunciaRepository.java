@@ -80,6 +80,7 @@ public interface DenunciaRepository
    * @param status filtro de status (opcional)
    * @param categoria filtro de categoria (opcional)
    * @param tokenSearch busca por token (opcional)
+   * @param adminEmail filtro por email do admin acompanhando (opcional)
    * @param pageable configuração de paginação
    * @return Page com os IDs filtrados e ordenados
    */
@@ -90,7 +91,8 @@ public interface DenunciaRepository
       WHERE 
         (:status IS NULL OR d.status = :status) AND
         (:categoria IS NULL OR d.categoria = :categoria) AND
-        (:tokenSearch IS NULL OR CAST(d.tokenAcompanhamento AS string) = :tokenSearch)
+        (:tokenSearch IS NULL OR CAST(d.tokenAcompanhamento AS string) = :tokenSearch) AND
+        (:adminEmail IS NULL OR d.adminAcompanhandoEmail = :adminEmail)
       GROUP BY d.id, d.criadoEm
       ORDER BY 
         MAX(CASE WHEN a.autor = 'ANONIMO' AND a.visualizado = false THEN 1 ELSE 0 END) DESC,
@@ -100,6 +102,7 @@ public interface DenunciaRepository
       @Param("status") br.edu.ifpi.ifala.shared.enums.Status status,
       @Param("categoria") br.edu.ifpi.ifala.shared.enums.Categorias categoria,
       @Param("tokenSearch") String tokenSearch,
+      @Param("adminEmail") String adminEmail,
       Pageable pageable);
 
   /**
@@ -127,12 +130,14 @@ public interface DenunciaRepository
       WHERE d.id IN :ids
         AND (:status IS NULL OR d.status = :status)
         AND (:categoria IS NULL OR d.categoria = :categoria)
+        AND (:adminEmail IS NULL OR d.adminAcompanhandoEmail = :adminEmail)
       ORDER BY d.criadoEm DESC
       """)
   List<Denuncia> findByIdsWithFiltersOrdered(
       @Param("ids") List<Long> ids,
       @Param("status") br.edu.ifpi.ifala.shared.enums.Status status,
-      @Param("categoria") br.edu.ifpi.ifala.shared.enums.Categorias categoria);
+      @Param("categoria") br.edu.ifpi.ifala.shared.enums.Categorias categoria,
+      @Param("adminEmail") String adminEmail);
 
   // Os demais métodos de crud são herdados de JpaRepository
   /*
