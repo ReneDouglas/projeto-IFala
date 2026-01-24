@@ -1,5 +1,6 @@
 package br.edu.ifpi.ifala.autenticacao;
 
+import br.edu.ifpi.ifala.autenticacao.dto.AdminSimplesDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.AtualizarUsuarioRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.LoginRequestDTO;
 import br.edu.ifpi.ifala.autenticacao.dto.LoginResponseDTO;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import br.edu.ifpi.ifala.autenticacao.dto.UsuarioDetalheResponseDTO;
+import java.util.List;
 
 public interface AuthService {
 
@@ -99,4 +101,12 @@ public interface AuthService {
    * para extrair o token do header.
    */
   void logout(HttpServletRequest request);
+
+  /**
+   * Lista todos os administradores de forma simplificada (nome e email).
+   * Usado para filtro de denúncias por admin responsável.
+   * 
+   * @return Lista de AdminSimplesDTO com nome e email dos admins.
+   */
+  List<AdminSimplesDTO> listarAdminsSimples();
 }

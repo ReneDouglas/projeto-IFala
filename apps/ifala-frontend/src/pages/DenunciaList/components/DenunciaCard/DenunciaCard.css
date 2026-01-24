@@ -3,7 +3,7 @@
   border-radius: 16px;
   border: 1px solid var(--cinza-claro);
   padding: 1.5rem;
-  height: 320px;
+  height: 380px; /* Aumentado de 320px para 380px para comportar melhor os elementos */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -428,7 +428,8 @@
 /* Ações */
 .denuncia-actions {
   display: flex;
-  gap: 0.75rem;
+  flex-direction: column; /* Mudado para coluna para empilhar os botões */
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
   flex-shrink: 0;
 }
@@ -962,4 +963,80 @@
     order: 2 !important;
     align-self: center !important;
   }
+}
+
+/* Estilos para Tag do Admin Acompanhando */
+.admin-tag-wrapper {
+  margin-top: 0.25rem;
+}
+
+.admin-tag {
+  background: #e2e8f0;
+  color: #475569;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: default;
+  transition: all 0.2s ease;
+}
+
+.admin-tag:hover {
+  background: #cbd5e1;
+}
+
+/* Estilos para Botão Acompanhar Denúncia */
+.btn-acompanhar-denuncia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: var(--verde-if, #006838);
+  color: var(--white, #ffffff);
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-acompanhar-denuncia:hover {
+  background: #005530;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 104, 56, 0.3);
+}
+
+.btn-acompanhar-denuncia .material-symbols-outlined {
+  font-size: 1.1rem !important;
+}
+
+/* Estilos para Botão Sair da Denúncia */
+.btn-sair-denuncia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: var(--erro-vermelho, #e94f37);
+  color: var(--white, #ffffff);
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-sair-denuncia:hover {
+  background: #d43d26;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(233, 79, 55, 0.3);
+}
+
+.btn-sair-denuncia .material-symbols-outlined {
+  font-size: 1.1rem !important;
 }

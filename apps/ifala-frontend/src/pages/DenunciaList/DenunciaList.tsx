@@ -9,6 +9,8 @@ import { marcarComoLidaPorDenuncia } from '../../services/notificacao-api';
 import {
   fixarDenuncia,
   desfixarDenuncia,
+  acompanharDenuncia,
+  desacompanharDenuncia,
 } from '../../services/admin-denuncias-api';
 import './DenunciaList.css';
 
@@ -29,6 +31,7 @@ export function DenunciasList() {
     sortProperty: urlSearchParams.get('sortProperty') || '',
     sortDirection:
       (urlSearchParams.get('sortDirection') as 'ASC' | 'DESC') || '',
+    adminEmail: urlSearchParams.get('adminEmail') || '',
   });
 
   const normalizedParams: SearchParams = useMemo(
@@ -63,8 +66,29 @@ export function DenunciasList() {
       status: '',
       sortProperty: '',
       sortDirection: '',
+      adminEmail: '',
     });
     setCurrentPage(0);
+  };
+
+  // Handler para acompanhar denúncia
+  const handleAcompanhar = async (denunciaId: number) => {
+    try {
+      await acompanharDenuncia(denunciaId);
+      refetch();
+    } catch (error) {
+      console.error('Erro ao acompanhar denúncia:', error);
+    }
+  };
+
+  // Handler para desacompanhar denúncia
+  const handleDesacompanhar = async (denunciaId: number) => {
+    try {
+      await desacompanharDenuncia(denunciaId);
+      refetch();
+    } catch (error) {
+      console.error('Erro ao sair da denúncia:', error);
+    }
   };
 
   // Sincronizar estado com URL sempre que mudar
@@ -81,6 +105,7 @@ export function DenunciasList() {
       params.sortProperty = searchParams.sortProperty;
     if (searchParams.sortDirection)
       params.sortDirection = searchParams.sortDirection;
+    if (searchParams.adminEmail) params.adminEmail = searchParams.adminEmail;
 
     setUrlSearchParams(params, { replace: true });
   }, [currentPage, searchParams, setUrlSearchParams]);
@@ -173,6 +198,7 @@ export function DenunciasList() {
               status: '',
               sortProperty: '',
               sortDirection: '',
+              adminEmail: '',
             }}
             onFilterChange={handleFilterChange}
             onClearFilters={handleClearFilters}
@@ -225,6 +251,8 @@ export function DenunciasList() {
                         contador={currentPage * 10 + (index + 1)}
                         onViewDetails={handleViewDetails}
                         onToggleFixar={handleToggleFixar}
+                        onAcompanhar={handleAcompanhar}
+                        onDesacompanhar={handleDesacompanhar}
                       />
                     ))
                   ) : (
