@@ -114,6 +114,7 @@ public interface DenunciaRepository
    * @param status      filtro de status (opcional)
    * @param categoria   filtro de categoria (opcional)
    * @param tokenSearch busca por token (opcional)
+   * @param adminEmail  filtro por email do admin acompanhando (opcional)
    * @param pageable    configuração de paginação
    * @return Page com os IDs filtrados e ordenados (fixadas primeiro)
    */
@@ -125,7 +126,8 @@ public interface DenunciaRepository
       WHERE
         (:status IS NULL OR d.status = :status) AND
         (:categoria IS NULL OR d.categoria = :categoria) AND
-        (:tokenSearch IS NULL OR CAST(d.tokenAcompanhamento AS string) = :tokenSearch)
+        (:tokenSearch IS NULL OR CAST(d.tokenAcompanhamento AS string) = :tokenSearch) AND
+        (:adminEmail IS NULL OR d.adminAcompanhandoEmail = :adminEmail)
       GROUP BY d.id, d.criadoEm, df.fixadaEm
       ORDER BY
         CASE WHEN df.fixadaEm IS NOT NULL THEN 0 ELSE 1 END,
@@ -138,6 +140,7 @@ public interface DenunciaRepository
       @Param("status") br.edu.ifpi.ifala.shared.enums.Status status,
       @Param("categoria") br.edu.ifpi.ifala.shared.enums.Categorias categoria,
       @Param("tokenSearch") String tokenSearch,
+      @Param("adminEmail") String adminEmail,
       Pageable pageable);
 
   /**
@@ -182,10 +185,11 @@ public interface DenunciaRepository
    * Ordena por: fixadas primeiro, depois por data de fixação, depois por data de
    * criação.
    * 
-   * @param ids       Lista de IDs para filtrar
-   * @param usuarioId ID do usuário para verificar fixadas
-   * @param status    Filtro de status (opcional)
-   * @param categoria Filtro de categoria (opcional)
+   * @param ids        Lista de IDs para filtrar
+   * @param usuarioId  ID do usuário para verificar fixadas
+   * @param status     Filtro de status (opcional)
+   * @param categoria  Filtro de categoria (opcional)
+   * @param adminEmail Filtro por email do admin acompanhando (opcional)
    * @return Lista de denúncias ordenadas
    */
   @EntityGraph(attributePaths = { "acompanhamentos", "provas", "denunciante" })
@@ -195,6 +199,7 @@ public interface DenunciaRepository
       WHERE d.id IN :ids
         AND (:status IS NULL OR d.status = :status)
         AND (:categoria IS NULL OR d.categoria = :categoria)
+        AND (:adminEmail IS NULL OR d.adminAcompanhandoEmail = :adminEmail)
       ORDER BY
         CASE WHEN df.fixadaEm IS NOT NULL THEN 0 ELSE 1 END,
         df.fixadaEm DESC NULLS LAST,
@@ -204,6 +209,7 @@ public interface DenunciaRepository
       @Param("ids") List<Long> ids,
       @Param("usuarioId") Long usuarioId,
       @Param("status") br.edu.ifpi.ifala.shared.enums.Status status,
-      @Param("categoria") br.edu.ifpi.ifala.shared.enums.Categorias categoria);
+      @Param("categoria") br.edu.ifpi.ifala.shared.enums.Categorias categoria,
+      @Param("adminEmail") String adminEmail);
 
 }

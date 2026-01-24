@@ -349,31 +349,25 @@ public class DenunciaAdminController {
   /**
    * Permite que um admin deixe de acompanhar uma denúncia.
    *
-   * @param id ID da denúncia
+   * @param id             ID da denúncia
    * @param authentication contexto de autenticação
    * @return denúncia atualizada
    */
   @DeleteMapping("/{id}/acompanhar")
-  @Operation(summary = "Remove acompanhamento de uma denúncia",
-      description = "Permite que um administrador deixe de acompanhar uma denúncia. "
-          + "Apenas o próprio admin que está acompanhando pode remover o acompanhamento.")
+  @Operation(summary = "Remove acompanhamento de uma denúncia", description = "Permite que um administrador deixe de acompanhar uma denúncia. "
+      + "Apenas o próprio admin que está acompanhando pode remover o acompanhamento.")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Acompanhamento removido com sucesso",
-          content = @Content(schema = @Schema(implementation = DenunciaAdminResponseDto.class))),
+      @ApiResponse(responseCode = "200", description = "Acompanhamento removido com sucesso", content = @Content(schema = @Schema(implementation = DenunciaAdminResponseDto.class))),
       @ApiResponse(responseCode = "401", description = "Não autorizado", content = @Content),
-      @ApiResponse(responseCode = "403",
-          description = "Não pode remover acompanhamento de outro admin", content = @Content),
-      @ApiResponse(responseCode = "404", description = "Denúncia não encontrada",
-          content = @Content)})
+      @ApiResponse(responseCode = "403", description = "Não pode remover acompanhamento de outro admin", content = @Content),
+      @ApiResponse(responseCode = "404", description = "Denúncia não encontrada", content = @Content) })
   public ResponseEntity<DenunciaAdminResponseDto> desacompanharDenuncia(
       @Parameter(description = "ID da denúncia") @PathVariable Long id,
       Authentication authentication) {
     String adminEmail = authentication.getName();
     log.info("Admin {} solicitou deixar de acompanhar a denúncia ID {}", adminEmail, id);
 
-    DenunciaAdminResponseDto denunciaAtualizada =
-        denunciaService.desacompanharDenuncia(id, adminEmail);
+    DenunciaAdminResponseDto denunciaAtualizada = denunciaService.desacompanharDenuncia(id, adminEmail);
     return ResponseEntity.ok(denunciaAtualizada);
->>>>>>> development
   }
 }

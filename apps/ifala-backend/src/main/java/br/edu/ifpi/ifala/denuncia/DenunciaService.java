@@ -236,7 +236,7 @@ public class DenunciaService {
         log.debug("Busca por token UUID: {}", maskToken(token));
 
         idsPage = denunciaRepository.findAllIdsWithFiltersOrderedByFixedFirst(usuarioId, status,
-            categoria, tokenSearch, pageable);
+            categoria, tokenSearch, adminEmail, pageable);
       } catch (IllegalArgumentException e) {
         // Não é UUID - verifica se tem pelo menos 3 caracteres para busca textual
         if (termo.length() >= 3) {
@@ -256,7 +256,7 @@ public class DenunciaService {
           // Buscar denúncias completas com filtros de status e categoria
           // Este método já aplica os filtros e ordenação (fixadas primeiro + data)
           List<Denuncia> denunciasFiltradas = denunciaRepository.findByIdsWithFiltersOrderedByFixed(
-              idsEncontrados, usuarioId, status, categoria);
+              idsEncontrados, usuarioId, status, categoria, adminEmail);
           if (denunciasFiltradas.isEmpty()) {
             log.info("Nenhuma denúncia encontrada após aplicar filtros (status={}, categoria={})",
                 status, categoria);
@@ -316,7 +316,7 @@ public class DenunciaService {
     } else {
       // Sem busca por token
       idsPage = denunciaRepository.findAllIdsWithFiltersOrderedByFixedFirst(usuarioId, status,
-          categoria, null, pageable);
+          categoria, null, adminEmail, pageable);
     }
 
     // Se não encontrou nada, retorna página vazia
