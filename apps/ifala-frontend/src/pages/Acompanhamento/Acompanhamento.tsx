@@ -178,7 +178,7 @@ const BotaoExportarPDF = memo(
         fileName={`relatorio_${dados.protocolo}.pdf`}
         style={{ textDecoration: 'none' }}
       >
-        {({ loading }) => (
+        {({ loading }: { loading: boolean }) => (
           <Button
             variant='outlined'
             fullWidth

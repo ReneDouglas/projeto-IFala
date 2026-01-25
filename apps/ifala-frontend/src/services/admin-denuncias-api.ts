@@ -52,6 +52,22 @@ export async function listarDenunciasAdmin(
 }
 
 /**
+ * Fixa uma denúncia para o usuário atual.
+ * @param denunciaId ID da denúncia a ser fixada
+ */
+export async function fixarDenuncia(denunciaId: number): Promise<void> {
+  await axiosClient.post(`/admin/denuncias/${denunciaId}/fixar`);
+}
+
+/**
+ * Desfixa uma denúncia para o usuário atual.
+ * @param denunciaId ID da denúncia a ser desfixada
+ */
+export async function desfixarDenuncia(denunciaId: number): Promise<void> {
+  await axiosClient.delete(`/admin/denuncias/${denunciaId}/fixar`);
+}
+
+/**
  * Lista todos os administradores de forma simplificada (nome e email)
  */
 export async function listarAdminsSimples(): Promise<AdminSimples[]> {

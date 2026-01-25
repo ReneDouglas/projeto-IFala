@@ -15,6 +15,54 @@
   overflow: hidden;
 }
 
+/* Botão de fixar */
+.btn-fixar {
+  position: absolute;
+  top: 57px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10;
+  color: var(--cinza-escuro);
+  opacity: 0.5;
+}
+
+.btn-fixar:hover {
+  background: rgba(0, 0, 0, 0.05);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.btn-fixar.fixada {
+  color: #eae304;
+  opacity: 1;
+}
+
+.btn-fixar.fixada:hover {
+  background: rgba(234, 227, 4, 0.1);
+}
+
+.btn-fixar .material-symbols-outlined {
+  font-size: 24px;
+  transition: transform 0.3s ease;
+}
+
+.btn-fixar.fixada .material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 500,
+    'GRAD' 0,
+    'opsz' 24;
+  transform: rotate(45deg);
+}
+
 .denuncia-card::before {
   content: '';
   position: absolute;

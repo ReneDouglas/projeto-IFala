@@ -25,18 +25,18 @@ import org.springframework.data.repository.query.Param;
 public interface DenunciaRepository
     extends JpaRepository<Denuncia, Long>, JpaSpecificationExecutor<Denuncia> {
 
-  
-  @EntityGraph(attributePaths = {"acompanhamentos", "provas", "denunciante"})
+  @EntityGraph(attributePaths = { "acompanhamentos", "provas", "denunciante" })
   Optional<Denuncia> findByTokenAcompanhamento(UUID tokenAcompanhamento);
 
-  @EntityGraph(attributePaths = {"acompanhamentos", "provas", "denunciante"})
+  @EntityGraph(attributePaths = { "acompanhamentos", "provas", "denunciante" })
   Optional<Denuncia> findById(Long id);
 
   /**
    * busca IDs de denúncias com paginação (primeiro passo da estratégia anti-N+1).
-   * retorna apenas os IDs para depois buscar as entidades completas com relacionamentos.
+   * retorna apenas os IDs para depois buscar as entidades completas com
+   * relacionamentos.
    *
-   * @param spec especificação para filtros
+   * @param spec     especificação para filtros
    * @param pageable configuração de paginação e ordenação
    * @return Page contendo apenas os IDs das denúncias
    */
@@ -50,12 +50,12 @@ public interface DenunciaRepository
    * @param ids lista de IDs das denúncias
    * @return lista de denúncias com todos os relacionamentos carregados
    */
-  @EntityGraph(attributePaths = {"acompanhamentos", "provas", "denunciante"})
+  @EntityGraph(attributePaths = { "acompanhamentos", "provas", "denunciante" })
   @Query("SELECT DISTINCT d FROM Denuncia d WHERE d.id IN :ids")
   List<Denuncia> findAllByIdWithRelations(@Param("ids") List<Long> ids);
 
   /**
-   * busca IDs de denúncias ordenados por:  
+   * busca IDs de denúncias ordenados por:
    * 1. Se possui mensagens não lidas do ANONIMO (denunciante)
    * 2. Data de criação (mais recente primeiro)
    * 
@@ -63,12 +63,12 @@ public interface DenunciaRepository
    * @return Page com os IDs ordenados
    */
   @Query("""
-      SELECT d.id 
-      FROM Denuncia d 
-      LEFT JOIN d.acompanhamentos a 
+      SELECT d.id
+      FROM Denuncia d
+      LEFT JOIN d.acompanhamentos a
       WHERE 1=1
       GROUP BY d.id, d.criadoEm
-      ORDER BY 
+      ORDER BY
         MAX(CASE WHEN a.autor = 'ANONIMO' AND a.visualizado = false THEN 1 ELSE 0 END) DESC,
         d.criadoEm DESC
       """)
@@ -76,25 +76,25 @@ public interface DenunciaRepository
 
   /**
    * busca IDs de denúncias com filtros e ordenação personalizada.
-   * 
-   * @param status filtro de status (opcional)
-   * @param categoria filtro de categoria (opcional)
+   *
+   * @param status      filtro de status (opcional)
+   * @param categoria   filtro de categoria (opcional)
    * @param tokenSearch busca por token (opcional)
-   * @param adminEmail filtro por email do admin acompanhando (opcional)
-   * @param pageable configuração de paginação
+   * @param adminEmail  filtro por email do admin acompanhando (opcional)
+   * @param pageable    configuração de paginação
    * @return Page com os IDs filtrados e ordenados
    */
   @Query("""
-      SELECT d.id 
-      FROM Denuncia d 
-      LEFT JOIN d.acompanhamentos a 
-      WHERE 
+      SELECT d.id
+      FROM Denuncia d
+      LEFT JOIN d.acompanhamentos a
+      WHERE
         (:status IS NULL OR d.status = :status) AND
         (:categoria IS NULL OR d.categoria = :categoria) AND
         (:tokenSearch IS NULL OR CAST(d.tokenAcompanhamento AS string) = :tokenSearch) AND
         (:adminEmail IS NULL OR d.adminAcompanhandoEmail = :adminEmail)
       GROUP BY d.id, d.criadoEm
-      ORDER BY 
+      ORDER BY
         MAX(CASE WHEN a.autor = 'ANONIMO' AND a.visualizado = false THEN 1 ELSE 0 END) DESC,
         d.criadoEm DESC
       """)
@@ -106,8 +106,47 @@ public interface DenunciaRepository
       Pageable pageable);
 
   /**
+   * Busca IDs de denúncias com filtros, ordenando PRIMEIRO por denúncias fixadas
+   * do usuário.
+   * Denúncias fixadas aparecem sempre no topo, independente da página.
+   * 
+   * @param usuarioId   ID do usuário logado
+   * @param status      filtro de status (opcional)
+   * @param categoria   filtro de categoria (opcional)
+   * @param tokenSearch busca por token (opcional)
+   * @param adminEmail  filtro por email do admin acompanhando (opcional)
+   * @param pageable    configuração de paginação
+   * @return Page com os IDs filtrados e ordenados (fixadas primeiro)
+   */
+  @Query("""
+      SELECT d.id
+      FROM Denuncia d
+      LEFT JOIN d.acompanhamentos a
+      LEFT JOIN DenunciaFixada df ON df.denuncia.id = d.id AND df.usuario.id = :usuarioId
+      WHERE
+        (:status IS NULL OR d.status = :status) AND
+        (:categoria IS NULL OR d.categoria = :categoria) AND
+        (:tokenSearch IS NULL OR CAST(d.tokenAcompanhamento AS string) = :tokenSearch) AND
+        (:adminEmail IS NULL OR d.adminAcompanhandoEmail = :adminEmail)
+      GROUP BY d.id, d.criadoEm, df.fixadaEm
+      ORDER BY
+        CASE WHEN df.fixadaEm IS NOT NULL THEN 0 ELSE 1 END,
+        df.fixadaEm DESC NULLS LAST,
+        MAX(CASE WHEN a.autor = 'ANONIMO' AND a.visualizado = false THEN 1 ELSE 0 END) DESC,
+        d.criadoEm DESC
+      """)
+  Page<Long> findAllIdsWithFiltersOrderedByFixedFirst(
+      @Param("usuarioId") Long usuarioId,
+      @Param("status") br.edu.ifpi.ifala.shared.enums.Status status,
+      @Param("categoria") br.edu.ifpi.ifala.shared.enums.Categorias categoria,
+      @Param("tokenSearch") String tokenSearch,
+      @Param("adminEmail") String adminEmail,
+      Pageable pageable);
+
+  /**
    * Busca IDs de denúncias usando a função SQL otimizada com índices GIN/trigram.
-   * A função buscar_denuncias_por_texto busca em descrição e mensagens de acompanhamento.
+   * A função buscar_denuncias_por_texto busca em descrição e mensagens de
+   * acompanhamento.
    * 
    * @param termo Termo de busca (mínimo 3 caracteres)
    * @return Lista de IDs das denúncias que correspondem à busca
@@ -117,16 +156,17 @@ public interface DenunciaRepository
 
   /**
    * Busca denúncias por lista de IDs com filtros opcionais de status e categoria.
-   * Retorna as denúncias ordenadas por: mensagens não lidas do ANONIMO e data de criação.
+   * Retorna as denúncias ordenadas por: mensagens não lidas do ANONIMO e data de
+   * criação.
    * 
-   * @param ids Lista de IDs para filtrar
-   * @param status Filtro de status (opcional)
+   * @param ids       Lista de IDs para filtrar
+   * @param status    Filtro de status (opcional)
    * @param categoria Filtro de categoria (opcional)
    * @return Lista de denúncias que atendem aos critérios
    */
-  @EntityGraph(attributePaths = {"acompanhamentos", "provas", "denunciante"})
+  @EntityGraph(attributePaths = { "acompanhamentos", "provas", "denunciante" })
   @Query("""
-      SELECT d FROM Denuncia d 
+      SELECT d FROM Denuncia d
       WHERE d.id IN :ids
         AND (:status IS NULL OR d.status = :status)
         AND (:categoria IS NULL OR d.categoria = :categoria)
@@ -139,10 +179,37 @@ public interface DenunciaRepository
       @Param("categoria") br.edu.ifpi.ifala.shared.enums.Categorias categoria,
       @Param("adminEmail") String adminEmail);
 
-  // Os demais métodos de crud são herdados de JpaRepository
-  /*
-   * Os métodos de busca avançada são herdados de JpaSpecificationExecutor e
-   * gerados automaticamente
-   * pelo Spring Data JPA com base nas especificações fornecidas no service.
+  /**
+   * Busca denúncias por lista de IDs com filtros e ordenação por fixadas
+   * primeiro.
+   * Ordena por: fixadas primeiro, depois por data de fixação, depois por data de
+   * criação.
+   * 
+   * @param ids        Lista de IDs para filtrar
+   * @param usuarioId  ID do usuário para verificar fixadas
+   * @param status     Filtro de status (opcional)
+   * @param categoria  Filtro de categoria (opcional)
+   * @param adminEmail Filtro por email do admin acompanhando (opcional)
+   * @return Lista de denúncias ordenadas
    */
+  @EntityGraph(attributePaths = { "acompanhamentos", "provas", "denunciante" })
+  @Query("""
+      SELECT d FROM Denuncia d
+      LEFT JOIN DenunciaFixada df ON df.denuncia.id = d.id AND df.usuario.id = :usuarioId
+      WHERE d.id IN :ids
+        AND (:status IS NULL OR d.status = :status)
+        AND (:categoria IS NULL OR d.categoria = :categoria)
+        AND (:adminEmail IS NULL OR d.adminAcompanhandoEmail = :adminEmail)
+      ORDER BY
+        CASE WHEN df.fixadaEm IS NOT NULL THEN 0 ELSE 1 END,
+        df.fixadaEm DESC NULLS LAST,
+        d.criadoEm DESC
+      """)
+  List<Denuncia> findByIdsWithFiltersOrderedByFixed(
+      @Param("ids") List<Long> ids,
+      @Param("usuarioId") Long usuarioId,
+      @Param("status") br.edu.ifpi.ifala.shared.enums.Status status,
+      @Param("categoria") br.edu.ifpi.ifala.shared.enums.Categorias categoria,
+      @Param("adminEmail") String adminEmail);
+
 }
