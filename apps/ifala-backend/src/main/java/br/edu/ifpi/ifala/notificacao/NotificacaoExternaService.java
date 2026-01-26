@@ -26,4 +26,14 @@ public interface NotificacaoExternaService {
    * @param resetLink Link de redefinição de senha
    */
   void enviarEmailRedefinicaoSenha(String email, String resetLink);
+
+  /**
+   * Notifica o denunciante sobre o registro da sua denúncia com o link de acompanhamento.
+   */
+  void notificarRegistroDenuncia(Denuncia denuncia);
+
+  /**
+   * Notifica o denunciante sobre uma alteração no status da sua denúncia.
+   */
+  void notificarAtualizacaoStatus(Denuncia denuncia);
 }
