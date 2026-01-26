@@ -9,12 +9,22 @@ import java.util.UUID;
 // diferente do DenunciaResponseDto que é usado para usuários comuns
 
 /**
- * Data Transfer Object (DTO) para representar a resposta de uma denúncia com informações adicionais
+ * Data Transfer Object (DTO) para representar a resposta de uma denúncia com
+ * informações adicionais
  * para administradores.
- * 
+ *
  * @author Jhonatas G Ribeiro
  */
-public record DenunciaAdminResponseDto(Long id, UUID tokenAcompanhamento, Status status,
-    Categorias categoria, LocalDateTime criadoEm, LocalDateTime alteradoEm,
-    Boolean temMensagemNaoLida, DenuncianteResponseDto denunciante) {
+public record DenunciaAdminResponseDto(
+    Long id,
+    UUID tokenAcompanhamento,
+    Status status,
+    Categorias categoria,
+    LocalDateTime criadoEm,
+    LocalDateTime alteradoEm,
+    Boolean temMensagemNaoLida,
+    DenuncianteResponseDto denunciante,
+    String adminAcompanhandoEmail,
+    String adminAcompanhandoNome,
+    Boolean fixada) {
 }

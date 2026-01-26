@@ -1,4 +1,10 @@
-import type { SearchParams, FieldErrors } from '../../types/denunciaTypes';
+import { useEffect, useState } from 'react';
+import type {
+  SearchParams,
+  FieldErrors,
+  AdminSimples,
+} from '../../types/denunciaTypes';
+import { listarAdminsSimples } from '../../../../services/admin-denuncias-api';
 import { Input } from '../ui/Input/Input';
 import { Select } from '../ui/Select/Select';
 import './Filters.css';
@@ -20,6 +26,21 @@ export const Filters = ({
   onClearFilters,
   onRefresh,
 }: FiltersProps) => {
+  const [admins, setAdmins] = useState<AdminSimples[]>([]);
+
+  useEffect(() => {
+    const fetchAdmins = async () => {
+      try {
+        const adminList = await listarAdminsSimples();
+        setAdmins(adminList);
+      } catch (error) {
+        console.error('Erro ao buscar lista de administradores:', error);
+      }
+    };
+
+    fetchAdmins();
+  }, []);
+
   const categoriaOptions = [
     { value: '', label: 'Todas as categorias' },
     { value: 'VANDALISMO', label: 'Vandalismo' },
@@ -38,6 +59,14 @@ export const Filters = ({
     { value: 'AGUARDANDO', label: 'Aguardando Informações' },
     { value: 'RESOLVIDO', label: 'Resolvido' },
     { value: 'REJEITADO', label: 'Rejeitado' },
+  ];
+
+  const adminOptions = [
+    { value: '', label: 'Todos os administradores' },
+    ...admins.map((admin) => ({
+      value: admin.email,
+      label: admin.nome,
+    })),
   ];
 
   // Mapeamento visual para algo como "campo,direção"
@@ -74,56 +103,72 @@ export const Filters = ({
             label='Buscar por Token, Descrição ou Mensagens'
             value={searchParams.search}
             onChange={(value) => onFilterChange('search', value)}
-            placeholder='Digite pelo menos 3 caracteres para buscar...'
+            placeholder='Digite ao menos 4 caracteres para buscar...'
             error={fieldErrors.search}
             icon='search'
           />
 
-          <div className='filters-row'>
-            {/* CATEGORIA */}
-            <Select
-              label='Categoria'
-              value={searchParams.categoria}
-              onChange={(value) => onFilterChange('categoria', value)}
-              options={categoriaOptions}
-              error={fieldErrors.categoria}
-              icon='category'
-            />
+          <div className='filters-row filters-grid'>
+            {/* Coluna Esquerda */}
+            <div className='filters-column'>
+              {/* CATEGORIA */}
+              <Select
+                label='Categoria'
+                value={searchParams.categoria}
+                onChange={(value) => onFilterChange('categoria', value)}
+                options={categoriaOptions}
+                error={fieldErrors.categoria}
+                icon='category'
+              />
 
-            {/* STATUS */}
-            <Select
-              label='Status'
-              value={searchParams.status}
-              onChange={(value) => onFilterChange('status', value)}
-              options={statusOptions}
-              error={fieldErrors.status}
-              icon='pending'
-            />
+              {/* STATUS */}
+              <Select
+                label='Status'
+                value={searchParams.status}
+                onChange={(value) => onFilterChange('status', value)}
+                options={statusOptions}
+                error={fieldErrors.status}
+                icon='pending'
+              />
+            </div>
 
-            {/* ORDENAR POR*/}
-            <Select
-              label='Ordenar por'
-              // Pegamos sortProperty + sortDirection e montamos o value visual
-              value={
-                searchParams.sortProperty && searchParams.sortDirection
-                  ? `${searchParams.sortProperty},${searchParams.sortDirection.toLowerCase()}`
-                  : ''
-              }
-              onChange={(value) => {
-                if (!value) {
-                  onFilterChange('sortProperty', '');
-                  onFilterChange('sortDirection', '');
-                  return;
+            {/* Coluna Direita */}
+            <div className='filters-column'>
+              {/* ADMINISTRADOR */}
+              <Select
+                label='Administrador Acompanhando'
+                value={searchParams.adminEmail || ''}
+                onChange={(value) => onFilterChange('adminEmail', value)}
+                options={adminOptions}
+                error={fieldErrors.adminEmail}
+                icon='person'
+              />
+
+              {/* ORDENAR POR*/}
+              <Select
+                label='Ordenar por'
+                // Pegamos sortProperty + sortDirection e montamos o value visual
+                value={
+                  searchParams.sortProperty && searchParams.sortDirection
+                    ? `${searchParams.sortProperty},${searchParams.sortDirection.toLowerCase()}`
+                    : ''
                 }
+                onChange={(value) => {
+                  if (!value) {
+                    onFilterChange('sortProperty', '');
+                    onFilterChange('sortDirection', '');
+                    return;
+                  }
 
-                const [property, direction] = value.split(',');
-                onFilterChange('sortProperty', property);
-                onFilterChange('sortDirection', direction.toUpperCase());
-              }}
-              options={ordenacaoOptions}
-              // remove fieldErrors.ordenacao (não existe mais no tipo)
-              icon='sort'
-            />
+                  const [property, direction] = value.split(',');
+                  onFilterChange('sortProperty', property);
+                  onFilterChange('sortDirection', direction.toUpperCase());
+                }}
+                options={ordenacaoOptions}
+                // remove fieldErrors.ordenacao (não existe mais no tipo)
+                icon='sort'
+              />
+            </div>
           </div>
 
           {/* BOTÕES */}
@@ -160,6 +205,7 @@ export const Filters = ({
           {(searchParams.search ||
             searchParams.categoria ||
             searchParams.status ||
+            searchParams.adminEmail ||
             (searchParams.sortProperty && searchParams.sortDirection)) && (
             <div className='active-filters-summary'>
               <div className='summary-header'>
@@ -207,6 +253,23 @@ export const Filters = ({
                     }
                     <button
                       onClick={() => onFilterChange('status', '')}
+                      className='chip-close'
+                    >
+                      <span className='material-symbols-outlined'>close</span>
+                    </button>
+                  </span>
+                )}
+
+                {searchParams.adminEmail && (
+                  <span className='filter-chip admin-chip'>
+                    Administrador:{' '}
+                    {
+                      adminOptions.find(
+                        (opt) => opt.value === searchParams.adminEmail,
+                      )?.label
+                    }
+                    <button
+                      onClick={() => onFilterChange('adminEmail', '')}
                       className='chip-close'
                     >
                       <span className='material-symbols-outlined'>close</span>
