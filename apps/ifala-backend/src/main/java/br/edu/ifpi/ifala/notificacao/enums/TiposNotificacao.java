@@ -9,8 +9,7 @@ package br.edu.ifpi.ifala.notificacao.enums;
  * @author luisthedevmagician
  */
 public enum TiposNotificacao {
-  NOVA_DENUNCIA("Nova Denúncia"), NOVA_MENSAGEM("Nova Mensagem"), NOTIFICACAO_RECEBIMENTO(
-      "Confirmação de Recebimento"), NOTIFICACAO_STATUS("Alteração de Situação");
+  NOVA_DENUNCIA("Nova Denúncia"), NOVA_MENSAGEM("Nova Mensagem");
 
   private final String displayName;
 

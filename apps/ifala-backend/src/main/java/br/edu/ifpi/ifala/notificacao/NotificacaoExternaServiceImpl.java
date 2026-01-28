@@ -346,10 +346,9 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
         .formatted(resetLink);
   }
 
-  // ---- MINHA ALTERAÇÃO AQUI -----
   @Override
   public void notificarRegistroDenuncia(Denuncia denuncia) {
-    // Segurança: Só envia se houver denunciante e e-mail
+    // só envia se houver denunciante e e-mail
     if (denuncia.getDenunciante() == null || denuncia.getDenunciante().getEmail() == null) {
       log.warn("Tentativa de notificar registro para denúncia ID {} sem e-mail informado.",
           denuncia.getId());
@@ -359,7 +358,7 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     String emailDestinatario = denuncia.getDenunciante().getEmail();
     final String subject = "[IFala] Registro de Denúncia";
 
-    // Rota pública definida no App.tsx
+    // Rota pública definida para acompanhamento
     String linkPublico = getFrontendUrl("/acompanhamento/" + denuncia.getTokenAcompanhamento());
 
     final String body = buildRegistroDenunciaBody(denuncia, linkPublico);
@@ -378,9 +377,10 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     }
   }
 
+  // Função para notificar atualização de status
   @Override
   public void notificarAtualizacaoStatus(Denuncia denuncia) {
-    // 1. Verifica se temos o e-mail do cidadão
+    
     if (denuncia.getDenunciante() == null || denuncia.getDenunciante().getEmail() == null) {
       log.warn("Cidadão sem e-mail na denúncia ID {}. Notificação de status cancelada.",
           denuncia.getId());
@@ -391,7 +391,6 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     final String subject = "[IFala] Atualização de Status da Denúncia";
     String linkPublico = getFrontendUrl("/acompanhamento/" + denuncia.getTokenAcompanhamento());
 
-    // 2. Monta o HTML (precisamos criar esse método build abaixo também)
     final String body = buildAtualizacaoStatusBody(denuncia, linkPublico);
 
     EmailRequest req = new EmailRequest(List.of(emailDestinatario), new ArrayList<>(),
@@ -406,7 +405,6 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
     }
   }
 
-  // Este é o método que gera o texto do e-mail de status
   private String buildAtualizacaoStatusBody(Denuncia denuncia, String link) {
     return """
         <!doctype html>
@@ -429,14 +427,6 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
         .formatted(denuncia.getStatus().name(), link);
   }
 
-  /*
-   * private void salvarNotificacaoNoBanco(Denuncia denuncia, TiposNotificacao tipo, String subject)
-   * { try { Notificacao n = new Notificacao(); n.setTipo(tipo); n.setConteudo(subject);
-   * n.setDenuncia(denuncia); n.setLida(false); n.setDataEnvio(LocalDateTime.now());
-   * notificacaoRepository.save(n); } catch (Exception e) {
-   * log.warn("Falha ao persistir log de notificação no banco: {}", e.getMessage()); } }
-   */
-
   private String buildRegistroDenunciaBody(Denuncia denuncia, String link) {
     return """
         <!doctype html>
@@ -458,5 +448,56 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
         </html>
         """
         .formatted(denuncia.getTokenAcompanhamento().toString(), link);
+  }
+
+  // função para notificar nova resposta do admin
+  @Override
+  public void notificarNovaRespostaAdmin(Denuncia denuncia) {
+    
+    if (denuncia.getDenunciante() == null || denuncia.getDenunciante().getEmail() == null) {
+      log.warn("Cidadão sem e-mail na denúncia ID {}. Notificação de resposta admin cancelada.",
+          denuncia.getId());
+      return;
+    }
+
+    String emailDestinatario = denuncia.getDenunciante().getEmail();
+    final String subject = "[IFala] Nova Mensagem do Administrador";
+    String linkPublico = getFrontendUrl("/acompanhamento/" + denuncia.getTokenAcompanhamento());
+
+    
+    final String body = buildNovaRespostaAdminBody(denuncia, linkPublico);
+
+    EmailRequest req = new EmailRequest(List.of(emailDestinatario), new ArrayList<>(),
+        new ArrayList<>(), subject, body, true);
+
+    try {
+      emailService.sendEmail(req);
+      log.info("Notificação de nova resposta admin enviada para: {}", emailDestinatario);
+    } catch (Exception e) {
+      log.error("Erro ao enviar e-mail de nova resposta admin: {}", e.getMessage());
+    }
+  }
+
+  private String buildNovaRespostaAdminBody(Denuncia denuncia, String link) {
+    return """
+        <!doctype html>
+        <html>
+        <body style="font-family:Arial,sans-serif; color:#333;">
+            <div style="max-width:600px; margin:20px auto; border:1px solid #ddd; border-radius:8px; padding:20px;">
+                <h2 style="color:#004d99;">Nova Mensagem Recebida</h2>
+                <p>Olá,</p>
+                <p>Um administrador enviou uma nova mensagem ou resposta referente à sua denúncia no sistema <strong>IFala</strong>.</p>
+                <p>Para ler o conteúdo e interagir, acesse a sua área de acompanhamento.</p>
+                <div style="margin:30px 0; text-align:center;">
+                    <a href="%s" style="background:#004d99; color:#fff; padding:12px 20px; text-decoration:none; border-radius:5px; font-weight:bold;">Ler Mensagem</a>
+                </div>
+                <p style="font-size:13px; color:#666;">Dica: Use seu token de acompanhamento para acessar caso necessário.</p>
+                <hr style="border:0; border-top:1px solid #eee;">
+                <p style="font-size:12px; color:#666; text-align:center;">Equipe IFala</p>
+            </div>
+        </body>
+        </html>
+        """
+        .formatted(link);
   }
 }

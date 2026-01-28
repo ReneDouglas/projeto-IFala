@@ -36,4 +36,9 @@ public interface NotificacaoExternaService {
    * Notifica o denunciante sobre uma alteração no status da sua denúncia.
    */
   void notificarAtualizacaoStatus(Denuncia denuncia);
+
+  /**
+   * Notifica o denunciante sobre uma nova resposta do administrador na sua denúncia.
+   */
+  void notificarNovaRespostaAdmin(Denuncia denuncia);
 }
