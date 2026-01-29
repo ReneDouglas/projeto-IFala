@@ -345,4 +345,159 @@ public class NotificacaoExternaServiceImpl implements NotificacaoExternaService 
         """
         .formatted(resetLink);
   }
+
+  @Override
+  public void notificarRegistroDenuncia(Denuncia denuncia) {
+    // só envia se houver denunciante e e-mail
+    if (denuncia.getDenunciante() == null || denuncia.getDenunciante().getEmail() == null) {
+      log.warn("Tentativa de notificar registro para denúncia ID {} sem e-mail informado.",
+          denuncia.getId());
+      return;
+    }
+
+    String emailDestinatario = denuncia.getDenunciante().getEmail();
+    final String subject = "[IFala] Registro de Denúncia";
+
+    // Rota pública definida para acompanhamento
+    String linkPublico = getFrontendUrl("/acompanhamento/" + denuncia.getTokenAcompanhamento());
+
+    final String body = buildRegistroDenunciaBody(denuncia, linkPublico);
+
+    EmailRequest req = new EmailRequest(List.of(emailDestinatario), new ArrayList<>(),
+        new ArrayList<>(), subject, body, true);
+
+    try {
+      emailService.sendEmail(req);
+      log.info("E-mail de registro enviado para: {}", emailDestinatario);
+
+
+    } catch (Exception e) {
+      log.error("Erro ao notificar registro da denúncia ID {}: {}", denuncia.getId(),
+          e.getMessage());
+    }
+  }
+
+  // Função para notificar atualização de status
+  @Override
+  public void notificarAtualizacaoStatus(Denuncia denuncia) {
+    
+    if (denuncia.getDenunciante() == null || denuncia.getDenunciante().getEmail() == null) {
+      log.warn("Cidadão sem e-mail na denúncia ID {}. Notificação de status cancelada.",
+          denuncia.getId());
+      return;
+    }
+
+    String emailDestinatario = denuncia.getDenunciante().getEmail();
+    final String subject = "[IFala] Atualização de Status da Denúncia";
+    String linkPublico = getFrontendUrl("/acompanhamento/" + denuncia.getTokenAcompanhamento());
+
+    final String body = buildAtualizacaoStatusBody(denuncia, linkPublico);
+
+    EmailRequest req = new EmailRequest(List.of(emailDestinatario), new ArrayList<>(),
+        new ArrayList<>(), subject, body, true);
+
+    try {
+      emailService.sendEmail(req);
+      log.info("Notificação de novo status enviada para: {}", emailDestinatario);
+
+    } catch (Exception e) {
+      log.error("Erro ao enviar e-mail de status: {}", e.getMessage());
+    }
+  }
+
+  private String buildAtualizacaoStatusBody(Denuncia denuncia, String link) {
+    return """
+        <!doctype html>
+        <html>
+        <body style="font-family:Arial,sans-serif; color:#333;">
+            <div style="max-width:600px; margin:20px auto; border:1px solid #ddd; border-radius:8px; padding:20px;">
+                <h2 style="color:#004d99;">Sua Denúncia foi Atualizada</h2>
+                <p>Olá,</p>
+                <p>Informamos que houve uma alteração na sua denúncia no sistema <strong>IFala</strong>.</p>
+                <p><strong>Nova Situação:</strong> <span style="font-weight:bold; color:#d9534f;">%s</span></p>
+                <div style="margin:30px 0; text-align:center;">
+                    <a href="%s" style="background:#004d99; color:#fff; padding:12px 20px; text-decoration:none; border-radius:5px; font-weight:bold;">Ver Detalhes</a>
+                </div>
+                <hr style="border:0; border-top:1px solid #eee;">
+                <p style="font-size:12px; color:#666; text-align:center;">Equipe IFala</p>
+            </div>
+        </body>
+        </html>
+        """
+        .formatted(denuncia.getStatus().name(), link);
+  }
+
+  private String buildRegistroDenunciaBody(Denuncia denuncia, String link) {
+    return """
+        <!doctype html>
+        <html>
+        <body style="font-family:Arial,sans-serif; color:#333;">
+            <div style="max-width:600px; margin:20px auto; border:1px solid #ddd; border-radius:8px; padding:20px;">
+                <h2 style="color:#004d99;">Denúncia Recebida com Sucesso!</h2>
+                <p>Olá,</p>
+                <p>Sua denúncia foi registrada no sistema <strong>IFala</strong>.</p>
+                <p><strong>Seu Token de Acompanhamento:</strong> <span style="background:#f4f4f4; padding:5px; font-family:monospace; border:1px solid #ccc;">%s</span></p>
+                <p>Guarde este token, ele é necessário para acompanhar o andamento da sua manifestação.</p>
+                <div style="margin:30px 0; text-align:center;">
+                    <a href="%s" style="background:#004d99; color:#fff; padding:12px 20px; text-decoration:none; border-radius:5px; font-weight:bold;">Acompanhar minha Denúncia</a>
+                </div>
+                <hr style="border:0; border-top:1px solid #eee;">
+                <p style="font-size:12px; color:#666; text-align:center;">Equipe IFala - Instituto Federal do Piauí</p>
+            </div>
+        </body>
+        </html>
+        """
+        .formatted(denuncia.getTokenAcompanhamento().toString(), link);
+  }
+
+  // função para notificar nova resposta do admin
+  @Override
+  public void notificarNovaRespostaAdmin(Denuncia denuncia) {
+    
+    if (denuncia.getDenunciante() == null || denuncia.getDenunciante().getEmail() == null) {
+      log.warn("Cidadão sem e-mail na denúncia ID {}. Notificação de resposta admin cancelada.",
+          denuncia.getId());
+      return;
+    }
+
+    String emailDestinatario = denuncia.getDenunciante().getEmail();
+    final String subject = "[IFala] Nova Mensagem do Administrador";
+    String linkPublico = getFrontendUrl("/acompanhamento/" + denuncia.getTokenAcompanhamento());
+
+    
+    final String body = buildNovaRespostaAdminBody(denuncia, linkPublico);
+
+    EmailRequest req = new EmailRequest(List.of(emailDestinatario), new ArrayList<>(),
+        new ArrayList<>(), subject, body, true);
+
+    try {
+      emailService.sendEmail(req);
+      log.info("Notificação de nova resposta admin enviada para: {}", emailDestinatario);
+    } catch (Exception e) {
+      log.error("Erro ao enviar e-mail de nova resposta admin: {}", e.getMessage());
+    }
+  }
+
+  private String buildNovaRespostaAdminBody(Denuncia denuncia, String link) {
+    return """
+        <!doctype html>
+        <html>
+        <body style="font-family:Arial,sans-serif; color:#333;">
+            <div style="max-width:600px; margin:20px auto; border:1px solid #ddd; border-radius:8px; padding:20px;">
+                <h2 style="color:#004d99;">Nova Mensagem Recebida</h2>
+                <p>Olá,</p>
+                <p>Um administrador enviou uma nova mensagem ou resposta referente à sua denúncia no sistema <strong>IFala</strong>.</p>
+                <p>Para ler o conteúdo e interagir, acesse a sua área de acompanhamento.</p>
+                <div style="margin:30px 0; text-align:center;">
+                    <a href="%s" style="background:#004d99; color:#fff; padding:12px 20px; text-decoration:none; border-radius:5px; font-weight:bold;">Ler Mensagem</a>
+                </div>
+                <p style="font-size:13px; color:#666;">Dica: Use seu token de acompanhamento para acessar caso necessário.</p>
+                <hr style="border:0; border-top:1px solid #eee;">
+                <p style="font-size:12px; color:#666; text-align:center;">Equipe IFala</p>
+            </div>
+        </body>
+        </html>
+        """
+        .formatted(link);
+  }
 }

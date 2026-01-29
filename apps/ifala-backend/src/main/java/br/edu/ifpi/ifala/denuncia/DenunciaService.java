@@ -42,8 +42,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Classe de serviço responsável por manipular operações relacionadas a
- * denúncias.
+ * Classe de serviço responsável por manipular operações relacionadas a denúncias.
  *
  * @author Renê Morais
  * @author Jhonatas G Ribeiro
@@ -99,7 +98,8 @@ public class DenunciaService {
 
     log.info("Iniciando validação do reCAPTCHA para nova denúncia.");
 
-    boolean isRecaptchaValid = recaptchaService.validarToken(dto.recaptchaToken(), "denuncia", score);
+    boolean isRecaptchaValid =
+        recaptchaService.validarToken(dto.recaptchaToken(), "denuncia", score);
 
     if (!isRecaptchaValid) {
       log.warn("Falha na validação do reCAPTCHA para nova denúncia.");
@@ -175,6 +175,14 @@ public class DenunciaService {
           denunciaSalva.getId(), e.getMessage(), e);
     }
 
+    // Notificar o denunciante se identificado que a denuncia foi recebida.
+    try {
+      notificacaoExternaService.notificarRegistroDenuncia(denunciaSalva);
+    } catch (Exception e) {
+      log.error("Erro ao notificar registro para o denunciante ID {}: {}", denunciaSalva.getId(),
+          e.getMessage());
+    }
+
     return mapToDenunciaResponseDto(denunciaSalva);
   }
 
@@ -189,31 +197,29 @@ public class DenunciaService {
   }
 
   /*
-   * tipo Page é uma interface do Spring Data que encapsula uma página de dados
-   * Pageable é uma
-   * interface que define a paginação e ordenação Specification é uma interface do
-   * Spring Data JPA
-   * que permite construir consultas dinamicamente predicate é uma condição usada
-   * em consultas para
+   * tipo Page é uma interface do Spring Data que encapsula uma página de dados Pageable é uma
+   * interface que define a paginação e ordenação Specification é uma interface do Spring Data JPA
+   * que permite construir consultas dinamicamente predicate é uma condição usada em consultas para
    * filtrar resultados
    */
 
   /**
    * Lista todas as denúncias com filtros e paginação.
    *
-   * @param search     filtro de busca por token
-   * @param status     filtro de status
-   * @param categoria  filtro de categoria
+   * @param search filtro de busca por token
+   * @param status filtro de status
+   * @param categoria filtro de categoria
    * @param adminEmail filtro por email do admin acompanhando
-   * @param pageable   informações de paginação
-   * @param username   nome do usuário logado para verificar denúncias fixadas
+   * @param pageable informações de paginação
+   * @param username nome do usuário logado para verificar denúncias fixadas
    * @return página de denúncias
    */
   @Transactional(readOnly = true)
   public Page<DenunciaAdminResponseDto> listarTodas(String search, Status status,
       Categorias categoria, String adminEmail, Pageable pageable, String username) {
 
-    log.info("Iniciando listagem de denúncias com filtros: status={}, categoria={}, search={}, adminEmail={}",
+    log.info(
+        "Iniciando listagem de denúncias com filtros: status={}, categoria={}, search={}, adminEmail={}",
         status, categoria, search, adminEmail);
 
     // Buscar o usuário pelo username para obter o ID
@@ -251,7 +257,8 @@ public class DenunciaService {
             return Page.empty(pageable);
           }
 
-          log.info("Busca textual encontrou {} denúncias com o termo '{}'", idsEncontrados.size(), termo);
+          log.info("Busca textual encontrou {} denúncias com o termo '{}'", idsEncontrados.size(),
+              termo);
 
           // Buscar denúncias completas com filtros de status e categoria
           // Este método já aplica os filtros e ordenação (fixadas primeiro + data)
@@ -267,9 +274,8 @@ public class DenunciaService {
               denunciasFiltradas.size(), idsEncontrados.size());
 
           // Extrair apenas os IDs ordenados
-          List<Long> idsOrdenados = denunciasFiltradas.stream()
-              .map(Denuncia::getId)
-              .collect(Collectors.toList());
+          List<Long> idsOrdenados =
+              denunciasFiltradas.stream().map(Denuncia::getId).collect(Collectors.toList());
 
           // Aplicar paginação MANUALMENTE sobre os IDs ordenados e filtrados
           int pageSize = pageable.getPageSize();
@@ -279,7 +285,8 @@ public class DenunciaService {
 
           // Verificar se a página solicitada está dentro dos limites
           if (startItem >= totalElements) {
-            log.info("Página {} está fora dos limites (total: {} elementos)", currentPage, totalElements);
+            log.info("Página {} está fora dos limites (total: {} elementos)", currentPage,
+                totalElements);
             return Page.empty(pageable);
           }
 
@@ -293,10 +300,10 @@ public class DenunciaService {
               currentPage, idsPaginados.size(), startItem, endItem - 1, totalElements);
 
           // Buscar as denúncias da página (já estão na lista, só precisamos filtrar)
-          List<Denuncia> denunciasPagina = denunciasFiltradas.stream()
-              .filter(d -> idsPaginados.contains(d.getId()))
-              .sorted(Comparator.comparingInt(d -> idsPaginados.indexOf(d.getId())))
-              .collect(Collectors.toList());
+          List<Denuncia> denunciasPagina =
+              denunciasFiltradas.stream().filter(d -> idsPaginados.contains(d.getId()))
+                  .sorted(Comparator.comparingInt(d -> idsPaginados.indexOf(d.getId())))
+                  .collect(Collectors.toList());
 
           // Buscar IDs das denúncias fixadas pelo usuário
           List<Long> denunciasFixadasIds = buscarDenunciasFixadas(username);
@@ -342,8 +349,8 @@ public class DenunciaService {
     Map<Long, Integer> orderMap = IntStream.range(0, idsOrder.size()).boxed()
         .collect(Collectors.toMap(idsOrder::get, i -> i));
 
-    denuncias.sort(Comparator.comparingInt(
-        d -> orderMap.getOrDefault(d.getId(), Integer.MAX_VALUE)));
+    denuncias
+        .sort(Comparator.comparingInt(d -> orderMap.getOrDefault(d.getId(), Integer.MAX_VALUE)));
 
     // Passo 4: Converter para DTO
     List<DenunciaAdminResponseDto> dtos = denuncias.stream()
@@ -412,8 +419,9 @@ public class DenunciaService {
   @Transactional(readOnly = true)
   public List<AcompanhamentoDto> listarAcompanhamentosPorToken(UUID tokenAcompanhamento) {
     log.info("Listando acompanhamentos (público) para o token: {}", maskToken(tokenAcompanhamento));
-    Denuncia denuncia = denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
-        () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
+    Denuncia denuncia =
+        denunciaRepository.findByTokenAcompanhamento(tokenAcompanhamento).orElseThrow(
+            () -> new EntityNotFoundException("Denúncia não encontrada com o token informado."));
 
     return denuncia.getAcompanhamentos().stream().map(this::mapToAcompanhamentoResponseDto)
         .collect(Collectors.toList());
@@ -500,6 +508,14 @@ public class DenunciaService {
     novoAcompanhamento.setAutor(Perfis.ADMIN);
 
     Acompanhamento salvo = acompanhamentoRepository.save(novoAcompanhamento);
+    // Notificar o denunciante sobre a nova mensagem do admin
+    try {
+      notificacaoExternaService.notificarNovaRespostaAdmin(denuncia);
+    } catch (Exception e) {
+      log.error("Erro ao notificar denunciante sobre nova mensagem admin na denúncia ID {}: {}", id,
+          e.getMessage());
+    }
+
     log.info("Acompanhamento adicionado com sucesso à denúncia ID: {}", id);
     return mapToAcompanhamentoResponseDto(salvo);
   }
@@ -530,6 +546,14 @@ public class DenunciaService {
     acompanhamentoStatus.setDenuncia(denunciaAtualizada);
     acompanhamentoStatus.setAutor(Perfis.ADMIN);
     acompanhamentoRepository.save(acompanhamentoStatus);
+
+    // Notificar o denunciante sobre a mudança de status
+    try {
+      notificacaoExternaService.notificarAtualizacaoStatus(denunciaAtualizada);
+    } catch (Exception e) {
+      log.error("Erro ao notificar atualização de status para denúncia ID {}: {}", id,
+          e.getMessage());
+    }
 
     log.info(
         "Status da denúncia ID {} alterado de {} para {} com mensagem automática de acompanhamento.",
@@ -566,8 +590,9 @@ public class DenunciaService {
     DenuncianteResponseDto denuncianteDto = null;
     if (denuncia.isDesejaSeIdentificar() && denuncia.getDenunciante() != null) {
       Denunciante denunciante = denuncia.getDenunciante();
-      denuncianteDto = new DenuncianteResponseDto(denunciante.getNomeCompleto(), denunciante.getGrau(),
-          denunciante.getCurso(), denunciante.getAno(), denunciante.getTurma());
+      denuncianteDto =
+          new DenuncianteResponseDto(denunciante.getNomeCompleto(), denunciante.getGrau(),
+              denunciante.getCurso(), denunciante.getAno(), denunciante.getTurma());
     }
 
     return new DenunciaResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
@@ -579,7 +604,7 @@ public class DenunciaService {
    * Mapeia uma entidade Denuncia para DenunciaAdminResponseDto.
    *
    * @param denuncia entidade a ser mapeada
-   * @param fixada   indica se a denúncia está fixada pelo usuário
+   * @param fixada indica se a denúncia está fixada pelo usuário
    * @return DTO mapeado
    */
   private DenunciaAdminResponseDto mapToDenunciaAdminResponseDto(Denuncia denuncia,
@@ -592,17 +617,17 @@ public class DenunciaService {
     DenuncianteResponseDto denuncianteDto = null;
     if (denuncia.isDesejaSeIdentificar() && denuncia.getDenunciante() != null) {
       Denunciante denunciante = denuncia.getDenunciante();
-      denuncianteDto = new DenuncianteResponseDto(denunciante.getNomeCompleto(), denunciante.getGrau(),
-          denunciante.getCurso(), denunciante.getAno(), denunciante.getTurma());
+      denuncianteDto =
+          new DenuncianteResponseDto(denunciante.getNomeCompleto(), denunciante.getGrau(),
+              denunciante.getCurso(), denunciante.getAno(), denunciante.getTurma());
     }
 
     // Buscar nome do admin acompanhando pelo email
     String adminAcompanhandoNome = null;
     String adminAcompanhandoEmail = denuncia.getAdminAcompanhandoEmail();
     if (adminAcompanhandoEmail != null && !adminAcompanhandoEmail.isEmpty()) {
-      adminAcompanhandoNome = usuarioRepository.findByEmail(adminAcompanhandoEmail)
-          .map(Usuario::getNome)
-          .orElse(null);
+      adminAcompanhandoNome =
+          usuarioRepository.findByEmail(adminAcompanhandoEmail).map(Usuario::getNome).orElse(null);
     }
 
     return new DenunciaAdminResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
@@ -617,8 +642,7 @@ public class DenunciaService {
   }
 
   /**
-   * Mascara um token UUID mostrando apenas os primeiros 8 caracteres seguidos de
-   * "...***". Previne
+   * Mascara um token UUID mostrando apenas os primeiros 8 caracteres seguidos de "...***". Previne
    * exposição completa de tokens sensíveis nos logs.
    * 
    * @param token o token UUID a ser mascarado
@@ -636,11 +660,10 @@ public class DenunciaService {
   }
 
   /**
-   * <<<<<<< HEAD
-   * Fixa uma denúncia para um usuário específico.
+   * <<<<<<< HEAD Fixa uma denúncia para um usuário específico.
    * 
    * @param denunciaId ID da denúncia a ser fixada
-   * @param username   Nome do usuário que está fixando
+   * @param username Nome do usuário que está fixando
    */
   @Transactional
   public void fixarDenuncia(Long denunciaId, String username) {
@@ -655,7 +678,8 @@ public class DenunciaService {
         () -> new EntityNotFoundException("Denúncia não encontrada com ID: " + denunciaId));
 
     // Verificar se já está fixada
-    boolean jaFixada = denunciaFixadaRepository.existsByUsuarioIdAndDenunciaId(usuario.getId(), denunciaId);
+    boolean jaFixada =
+        denunciaFixadaRepository.existsByUsuarioIdAndDenunciaId(usuario.getId(), denunciaId);
 
     if (jaFixada) {
       log.warn("Denúncia ID {} já está fixada pelo usuário {}", denunciaId, username);
@@ -673,7 +697,7 @@ public class DenunciaService {
    * Desfixa uma denúncia para um usuário específico.
    * 
    * @param denunciaId ID da denúncia a ser desfixada
-   * @param username   Nome do usuário que está desfixando
+   * @param username Nome do usuário que está desfixando
    */
   @Transactional
   public void desfixarDenuncia(Long denunciaId, String username) {
@@ -684,8 +708,8 @@ public class DenunciaService {
         .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado: " + username));
 
     // Verificar se está fixada
-    Optional<DenunciaFixada> denunciaFixada = denunciaFixadaRepository.findByUsuarioIdAndDenunciaId(usuario.getId(),
-        denunciaId);
+    Optional<DenunciaFixada> denunciaFixada =
+        denunciaFixadaRepository.findByUsuarioIdAndDenunciaId(usuario.getId(), denunciaId);
 
     if (denunciaFixada.isEmpty()) {
       log.warn("Denúncia ID {} não está fixada pelo usuário {}", denunciaId, username);
@@ -702,7 +726,7 @@ public class DenunciaService {
    * Verifica se uma denúncia está fixada por um usuário.
    * 
    * @param denunciaId ID da denúncia
-   * @param username   Nome do usuário
+   * @param username Nome do usuário
    * @return true se estiver fixada, false caso contrário
    */
   @Transactional(readOnly = true)
@@ -728,10 +752,10 @@ public class DenunciaService {
   }
 
   /**
-   * Permite que um admin comece a acompanhar uma denúncia.
-   * Apenas uma denúncia pode ser acompanhada por um admin por vez.
+   * Permite que um admin comece a acompanhar uma denúncia. Apenas uma denúncia pode ser acompanhada
+   * por um admin por vez.
    *
-   * @param id         ID da denúncia
+   * @param id ID da denúncia
    * @param adminEmail email do admin que vai acompanhar
    * @return DTO da denúncia atualizada
    */
@@ -744,7 +768,8 @@ public class DenunciaService {
         .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada com o ID: " + id));
 
     if (denuncia.getAdminAcompanhandoEmail() != null) {
-      log.warn("Denúncia ID {} já está sendo acompanhada por {}", id, denuncia.getAdminAcompanhandoEmail());
+      log.warn("Denúncia ID {} já está sendo acompanhada por {}", id,
+          denuncia.getAdminAcompanhandoEmail());
       throw new ResponseStatusException(HttpStatus.CONFLICT,
           "Esta denúncia já está sendo acompanhada por outro administrador.");
     }
@@ -757,10 +782,10 @@ public class DenunciaService {
   }
 
   /**
-   * Permite que um admin deixe de acompanhar uma denúncia.
-   * Apenas o próprio admin que está acompanhando pode remover o acompanhamento.
+   * Permite que um admin deixe de acompanhar uma denúncia. Apenas o próprio admin que está
+   * acompanhando pode remover o acompanhamento.
    *
-   * @param id         ID da denúncia
+   * @param id ID da denúncia
    * @param adminEmail email do admin que quer sair
    * @return DTO da denúncia atualizada
    */
@@ -772,7 +797,9 @@ public class DenunciaService {
         .orElseThrow(() -> new EntityNotFoundException("Denúncia não encontrada com o ID: " + id));
 
     if (denuncia.getAdminAcompanhandoEmail() == null) {
-      log.warn("Tentativa de remover acompanhamento de denúncia ID {} que não está sendo acompanhada", id);
+      log.warn(
+          "Tentativa de remover acompanhamento de denúncia ID {} que não está sendo acompanhada",
+          id);
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Esta denúncia não está sendo acompanhada por nenhum administrador.");
     }
