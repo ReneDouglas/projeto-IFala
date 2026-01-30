@@ -150,6 +150,11 @@ const formatarAno = (ano: string | null): string => {
   return anoMap[ano.toUpperCase()] || ano;
 };
 
+const ordenarPorDataEnvioAsc = (lista: MensagemAcompanhamento[]) =>
+  [...lista].sort(
+    (a, b) => new Date(a.dataEnvio).getTime() - new Date(b.dataEnvio).getTime(),
+  );
+
 // --- COMPONENTE ISOLADO (Evita piscar ao digitar) ---
 
 const BotaoExportarPDF = memo(
@@ -284,17 +289,16 @@ export function Acompanhamento() {
     try {
       if (modoToken && token) {
         const mensagensData = await listarMensagens(token);
-        setMensagens(mensagensData);
+        setMensagens(ordenarPorDataEnvioAsc(mensagensData));
       } else if (modoAdmin && denunciaId) {
-        const acompanhamentosData =
-          await listarAcompanhamentosPorId(denunciaId);
-        // Adaptar a resposta da API para o formato esperado
-        setMensagens(acompanhamentosData);
+        const acompanhamentosData = await listarAcompanhamentosPorId(denunciaId);
+        setMensagens(ordenarPorDataEnvioAsc(acompanhamentosData));
       }
     } catch (err) {
       console.error('Erro ao carregar mensagens:', err);
     }
   };
+
 
   // Verifica se a mensagem pertence ao usuário atual
   const ehMinhaMensagem = (mensagemId: number, autor: string): boolean => {
@@ -443,7 +447,7 @@ export function Acompanhamento() {
         throw new Error('Modo de envio inválido');
       }
 
-      setMensagens([...mensagens, novaMensagem]);
+      setMensagens((prev) => ordenarPorDataEnvioAsc([...prev, novaMensagem]));
       setNewMessage('');
       setError(null);
     } catch (err: unknown) {
@@ -929,7 +933,8 @@ export function Acompanhamento() {
                 p: 4,
                 overflowY: 'auto',
                 display: 'flex',
-                flexDirection: 'column',
+                flexDirection: 'column !important',
+                transform: 'none !important',
                 height: '400px',
                 backgroundColor: '#fafafa',
               }}
