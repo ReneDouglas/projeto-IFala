@@ -164,9 +164,14 @@ export const DenunciaCard = ({
 
           {denuncia.temMensagemNaoLida && (
             <div className='metadata-item nova-mensagem-wrapper'>
-              <span className='badge nova-mensagem'>Nova mensagem</span>
+              {denuncia.isRecemCriada ? (
+                <span className='badge recem-criado'>Recém criado</span>
+              ) : (
+                <span className='badge nova-mensagem'>Nova mensagem</span>
+              )}
             </div>
           )}
+
         </div>
       </div>
 

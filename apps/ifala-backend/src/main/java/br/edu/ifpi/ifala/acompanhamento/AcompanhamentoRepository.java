@@ -21,6 +21,10 @@ public interface AcompanhamentoRepository extends JpaRepository<Acompanhamento, 
   
   // verifica se existe alguma mensagem não visualizada de um autor específico para uma denúncia
   boolean existsByDenunciaIdAndAutorAndVisualizadoFalse(Long denunciaId, br.edu.ifpi.ifala.shared.enums.Perfis autor);
+
+  //verifica se existe qualquer mensagem de um autor (lida ou não)
+  boolean existsByDenunciaIdAndAutor(Long denunciaId, br.edu.ifpi.ifala.shared.enums.Perfis autor);
+
   
   // marca todas as mensagens de um autor como visualizadas para uma denúncia
   @Modifying

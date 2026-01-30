@@ -23,6 +23,7 @@ public record DenunciaAdminResponseDto(
     LocalDateTime criadoEm,
     LocalDateTime alteradoEm,
     Boolean temMensagemNaoLida,
+    Boolean isRecemCriada,
     DenuncianteResponseDto denunciante,
     String adminAcompanhandoEmail,
     String adminAcompanhandoNome,
