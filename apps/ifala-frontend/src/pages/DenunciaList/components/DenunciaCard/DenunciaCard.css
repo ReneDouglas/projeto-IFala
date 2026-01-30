@@ -202,17 +202,17 @@
 }
 
 .badge.recem-criado {
-  background: linear-gradient(135deg, #fde68a 0%, #facc15 100%);
-  color: #713f12;
+  background: linear-gradient(135deg, #00C6F7 0%, #0099CC 100%);
+  color: #0c0c0c;
   padding: 0.35rem 0.75rem;
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border: 1px solid #f59e0b;
+  border: 1px solid #0099CC;
 
-  box-shadow: 0 0 0 rgba(250, 204, 21, 0.6);
+  box-shadow: 0 0 0 rgba(0, 198, 247, 0.6);
   animation: glow-recem-criado 2.5s ease-in-out infinite;
 }
 
@@ -222,18 +222,20 @@
   width: fit-content;
 }
 
-/* ✨ animação de brilho suave */
+/* animação de brilho suave em azul */
 @keyframes glow-recem-criado {
   0% {
-    box-shadow: 0 0 0 rgba(250, 204, 21, 0.4);
+    box-shadow: 0 0 0 rgba(0, 198, 247, 0.4);
   }
   50% {
-    box-shadow: 0 0 12px rgba(250, 204, 21, 0.75);
+    box-shadow: 0 0 12px rgba(0, 198, 247, 0.85);
   }
   100% {
-    box-shadow: 0 0 0 rgba(250, 204, 21, 0.4);
+    box-shadow: 0 0 0 rgba(0, 198, 247, 0.4);
   }
 }
+
+
 
 
 .denuncia-token {

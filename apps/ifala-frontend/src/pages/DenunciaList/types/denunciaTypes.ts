@@ -8,7 +8,6 @@ export interface Denuncia {
   descricao?: string;
   titulo?: string;
   temMensagemNaoLida?: boolean;
-  isRecemCriada?: boolean;
   fixada?: boolean;
   adminAcompanhandoEmail?: string | null;
   adminAcompanhandoNome?: string | null;
