@@ -291,14 +291,14 @@ export function Acompanhamento() {
         const mensagensData = await listarMensagens(token);
         setMensagens(ordenarPorDataEnvioAsc(mensagensData));
       } else if (modoAdmin && denunciaId) {
-        const acompanhamentosData = await listarAcompanhamentosPorId(denunciaId);
+        const acompanhamentosData =
+          await listarAcompanhamentosPorId(denunciaId);
         setMensagens(ordenarPorDataEnvioAsc(acompanhamentosData));
       }
     } catch (err) {
       console.error('Erro ao carregar mensagens:', err);
     }
   };
-
 
   // Verifica se a mensagem pertence ao usuário atual
   const ehMinhaMensagem = (mensagemId: number, autor: string): boolean => {
