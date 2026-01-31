@@ -1,6 +1,6 @@
 # $\Large \textsf{\color{green}{IF}\color{white}{ala}}$
 
-![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
+![Status](https://img.shields.io/badge/status-consolidado-brightgreen)
 ![Licença](https://img.shields.io/badge/license-MIT-blue)
 ![Java](https://img.shields.io/badge/Java-25-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.5-brightgreen)
