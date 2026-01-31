@@ -81,6 +81,12 @@ export const DenunciaCard = ({
     return priorities[status] || 'default';
   };
 
+  const statusUpper = (denuncia.status || '').toUpperCase();
+
+  const isRecemCriada =
+    statusUpper === 'RECEBIDO' &&
+    (!denuncia.alteradoEm || denuncia.alteradoEm === denuncia.criadoEm);
+
   return (
     <div className={`denuncia-card ${getPriorityColor(denuncia.status)}`}>
       {/* Botão de fixar no canto superior direito */}
@@ -162,11 +168,13 @@ export const DenunciaCard = ({
               </div>
             )}
 
-          {denuncia.temMensagemNaoLida && (
-            <div className='metadata-item nova-mensagem-wrapper'>
+          <div className='metadata-item nova-mensagem-wrapper'>
+            {isRecemCriada ? (
+              <span className='badge recem-criado'>Recém criado</span>
+            ) : denuncia.temMensagemNaoLida ? (
               <span className='badge nova-mensagem'>Nova mensagem</span>
-            </div>
-          )}
+            ) : null}
+          </div>
         </div>
       </div>
 

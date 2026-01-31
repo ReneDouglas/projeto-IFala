@@ -613,6 +613,12 @@ public class DenunciaService {
     boolean temMensagemNaoLida = denuncia.getAcompanhamentos().stream()
         .anyMatch(a -> a.getAutor() == Perfis.ANONIMO && !a.getVisualizado());
 
+    boolean existeMensagemAdmin =
+        acompanhamentoRepository.existsByDenunciaIdAndAutor(denuncia.getId(), Perfis.ADMIN);
+
+    boolean isRecemCriada = temMensagemNaoLida && !existeMensagemAdmin;
+
+
     // Mapear dados do denunciante, se existir e se deseja se identificar
     DenuncianteResponseDto denuncianteDto = null;
     if (denuncia.isDesejaSeIdentificar() && denuncia.getDenunciante() != null) {
@@ -632,7 +638,7 @@ public class DenunciaService {
 
     return new DenunciaAdminResponseDto(denuncia.getId(), denuncia.getTokenAcompanhamento(),
         denuncia.getStatus(), denuncia.getCategoria(), denuncia.getCriadoEm(),
-        denuncia.getAlteradoEm(), temMensagemNaoLida, denuncianteDto, adminAcompanhandoEmail,
+        denuncia.getAlteradoEm(), temMensagemNaoLida, isRecemCriada, denuncianteDto, adminAcompanhandoEmail,
         adminAcompanhandoNome, fixada);
   }
 
