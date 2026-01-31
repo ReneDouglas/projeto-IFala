@@ -201,6 +201,40 @@
   }
 }
 
+.badge.recem-criado {
+  background: linear-gradient(135deg, #00c6f7 0%, #0099cc 100%);
+  color: #ffffff;
+  padding: 0.35rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid #0099cc;
+
+  box-shadow: 0 0 0 rgba(0, 198, 247, 0.6);
+  animation: glow-recem-criado 2.5s ease-in-out infinite;
+}
+
+/* manter o layout igual ao da nova mensagem */
+.nova-mensagem-wrapper .badge.recem-criado {
+  display: inline-block;
+  width: fit-content;
+}
+
+/* animação de brilho suave em azul */
+@keyframes glow-recem-criado {
+  0% {
+    box-shadow: 0 0 0 rgba(0, 198, 247, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(0, 198, 247, 0.85);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(0, 198, 247, 0.4);
+  }
+}
+
 .denuncia-token {
   display: flex;
   align-items: center;
