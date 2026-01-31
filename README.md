@@ -17,6 +17,8 @@
 - [Estrutura do Projeto](#-estrutura-do-projeto)
 - [Stack Tecnológica](#-stack-tecnológica)
 - [Configuração do Ambiente](#-configuração-do-ambiente-de-desenvolvimento)
+  - [Configurar o VS Code](#2-configurar-o-vs-code-recomendado)
+  - [Extensões e Configurações](#extensões-recomendadas)
 - [Executando com Docker](#-executando-com-docker)
 - [Guia de Desenvolvimento](#-guia-de-desenvolvimento)
 - [Documentação Adicional](#-documentação-adicional)
@@ -344,7 +346,67 @@ git clone git@github.com:ReneDouglas/projeto-IFala.git
 cd projeto-IFala
 ```
 
-## 2. Configurar Variáveis de Ambiente
+## 2. Configurar o VS Code (Recomendado)
+
+O projeto já vem com configurações pré-definidas do VS Code para facilitar o
+desenvolvimento.
+
+### Extensões Recomendadas
+
+Ao abrir o projeto no VS Code, você será notificado para instalar as extensões
+recomendadas. Clique em **"Install All"** ou instale manualmente:
+
+**Java & Spring Boot:**
+
+- Extension Pack for Java (vscjava.vscode-java-pack)
+- Spring Boot Extension Pack (vmware.vscode-spring-boot)
+- Spring Boot Dashboard (vscjava.vscode-spring-boot-dashboard)
+- Checkstyle for Java (shengchen.vscode-checkstyle)
+
+**JavaScript/TypeScript & React:**
+
+- ESLint (dbaeumer.vscode-eslint)
+- Prettier (esbenp.prettier-vscode)
+- ES7+ React/Redux/React-Native snippets (dsznajder.es7-react-js-snippets)
+
+**Docker:**
+
+- Docker (ms-azuretools.vscode-docker)
+
+**Git:**
+
+- GitLens (eamodio.gitlens)
+- Git Graph (mhutchie.git-graph)
+
+**Database:**
+
+- SQLTools (mtxr.sqltools)
+- SQLTools PostgreSQL Driver (mtxr.sqltools-driver-pg)
+
+**Outros:**
+
+- Markdown All in One (yzhang.markdown-all-in-one)
+- IntelliCode (visualstudioexptteam.vscodeintellicode)
+- Code Spell Checker (streetsidesoftware.code-spell-checker)
+- Brazilian Portuguese - Code Spell Checker
+
+### Configurações Automáticas
+
+O arquivo `.vscode/settings.json` já configura:
+
+- ✅ **Formatação automática** com Prettier ao salvar
+- ✅ **Checkstyle** para Java seguindo Google Style Guide
+- ✅ **Auto-save** ao trocar de arquivo
+- ✅ **Configurações específicas** por linguagem (Java, TypeScript, JSON, etc)
+
+### Debugging Pré-configurado
+
+O arquivo `.vscode/launch.json` inclui duas configurações de debug:
+
+1. **Spring Boot-IfalaApplication** - Debug local da aplicação Spring Boot
+2. **Attach to Docker Container** - Debug do container Docker na porta 5005
+
+## 3. Configurar Variáveis de Ambiente
 
 O arquivo `.env` contém todas as variáveis necessárias. Certifique-se de que ele
 existe na raiz do projeto.
@@ -357,14 +419,14 @@ existe na raiz do projeto.
 - `SPRING_MAIL_*` - Configurações do servidor de e-mail
 - `GRAFANA_*` - Credenciais das ferramentas
 
-## 3. Instalar Dependências do Frontend
+## 4. Instalar Dependências do Frontend
 
 ```bash
 cd apps/ifala-frontend
 npm ci  # Instala exatamente as versões do package-lock.json
 ```
 
-## 4. Dependências do Backend
+## 5. Dependências do Backend
 
 As dependências do Maven são gerenciadas automaticamente pelo Docker e pelo
 próprio Maven ao executar o build.

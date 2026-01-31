@@ -73,9 +73,6 @@ build/
 .eslintcache
 
 # Editor directories and files
-### VS Code ###
-.vscode/
-
 ### WebStorm ###
 .idea/
 
