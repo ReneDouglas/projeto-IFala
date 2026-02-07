@@ -97,6 +97,47 @@ confirm() {
     fi
 }
 
+cleanup_docker() {
+    print_separator
+    echo -e "${BOLD}LIMPEZA DO DOCKER${NC}"
+    print_separator
+    echo ""
+
+    # Remover imagens dangling (sem tag, orfas de rebuilds anteriores)
+    DANGLING=$(run_docker docker images -f "dangling=true" -q 2>/dev/null | wc -l)
+    if [ "$DANGLING" -gt 0 ]; then
+        print_info "Removendo $DANGLING imagens orfas..."
+        run_docker docker image prune -f > /dev/null 2>&1
+        print_success "Imagens orfas removidas!"
+    else
+        print_success "Nenhuma imagem orfa encontrada."
+    fi
+
+    # Remover build cache nao utilizado
+    print_info "Removendo build cache..."
+    run_docker docker builder prune --all -f > /dev/null 2>&1
+    print_success "Build cache limpo!"
+
+    # Remover containers parados
+    STOPPED=$(run_docker docker ps -a -f "status=exited" -q 2>/dev/null | wc -l)
+    if [ "$STOPPED" -gt 0 ]; then
+        print_info "Removendo $STOPPED containers parados..."
+        run_docker docker container prune -f > /dev/null 2>&1
+        print_success "Containers parados removidos!"
+    fi
+
+    # Remover networks orfas
+    run_docker docker network prune -f > /dev/null 2>&1
+
+    # Mostrar espaco recuperado
+    echo ""
+    print_info "Uso atual do Docker:"
+    run_docker docker system df
+    echo ""
+    print_success "Limpeza concluida!"
+    echo ""
+}
+
 show_menu() {
     print_header
     echo -e "${BOLD}MENU INICIAL${NC}"
@@ -117,6 +158,7 @@ show_detailed_menu() {
     echo -e "${CYAN}3)${NC} Backup do banco de dados"
     echo -e "${CYAN}4)${NC} Ver status dos servicos"
     echo -e "${CYAN}5)${NC} Ver logs em tempo real"
+    echo -e "${CYAN}6)${NC} Limpar Docker (liberar espaco)"
     echo -e "${CYAN}0)${NC} Voltar para o menu inicial"
     print_separator
     echo ""
@@ -199,7 +241,7 @@ build_images() {
     if confirm "Deseja fazer rebuild das imagens?" "y"; then
         print_info "Construindo imagens Docker..."
         run_docker docker compose -f "$COMPOSE_FILE" build --no-cache 2>&1 | while read line; do
-            echo -e "${GRAY}  $line${NC}"
+            echo -e "${YELLOW}  $line${NC}"
         done
         print_success "Build concluido!"
     else
@@ -296,7 +338,7 @@ wait_healthy() {
     
     while [ $attempt -lt $maxAttempts ]; do
         attempt=$((attempt + 1))
-        echo -ne "${GRAY}  Verificando... tentativa $attempt/$maxAttempts\r${NC}"
+        echo -ne "${YELLOW}  Verificando... tentativa $attempt/$maxAttempts\r${NC}"
         
         # Verificar containers em execucao
         running=$(run_docker docker compose -f "$COMPOSE_FILE" ps --filter "status=running" --format json 2>/dev/null | wc -l)
@@ -375,7 +417,7 @@ rebuild_services() {
         
         print_info "Reconstruindo imagens..."
         run_docker docker compose -f "$COMPOSE_FILE" build --no-cache 2>&1 | while read line; do
-            echo -e "${GRAY}  $line${NC}"
+            echo -e "${YELLOW}  $line${NC}"
         done
         print_success "Imagens reconstruidas!"
         echo ""
@@ -404,6 +446,9 @@ rebuild_services() {
         wait_healthy
         show_status
         show_access_info
+
+        # Limpeza automatica apos rebuild
+        cleanup_docker
         
         print_success "Reconstrucao concluida com sucesso!"
     else
@@ -464,6 +509,7 @@ update_system() {
     echo "  2. Criar backup de seguranca do banco de dados"
     echo "  3. Fazer rebuild das imagens Docker"
     echo "  4. Reiniciar servicos"
+    echo "  5. Limpar Docker (liberar espaco em disco)"
     echo ""
     print_info "Seus dados serao preservados (volumes externos protegidos)!"
     echo ""
@@ -485,7 +531,7 @@ update_system() {
     echo ""
     
     if git pull origin main 2>&1 | while read line; do
-        echo -e "${GRAY}  $line${NC}"
+        echo -e "${YELLOW}  $line${NC}"
     done; then
         print_success "Codigo atualizado!"
     else
@@ -538,7 +584,7 @@ update_system() {
     
     print_info "Construindo novas imagens Docker..."
     run_docker docker compose -f "$COMPOSE_FILE" build 2>&1 | while read line; do
-        echo -e "${GRAY}  $line${NC}"
+        echo -e "${YELLOW}  $line${NC}"
     done
     print_success "Imagens reconstruidas!"
     echo ""
@@ -574,6 +620,13 @@ update_system() {
     wait_healthy
     show_status
     show_access_info
+
+    # Limpeza automatica apos deploy
+    print_separator
+    echo -e "${BOLD}[5/5] Limpando Docker (liberando espaco)${NC}"
+    print_separator
+    echo ""
+    cleanup_docker
     
     print_success "Sistema atualizado com sucesso!"
     echo ""
@@ -645,6 +698,11 @@ detailed_menu() {
             5)
                 print_header
                 show_logs
+                ;;
+            6)
+                print_header
+                cleanup_docker
+                press_enter
                 ;;
             0)
                 return 0

@@ -10,6 +10,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { Acompanhamento } from './pages/Acompanhamento/Acompanhamento';
 import { GerenciamentoUsuarios } from './pages/GerenciamentoUsuarios/GerenciamentoUsuarios';
 import { Sobre } from './pages/Sobre/Sobre';
+import { RedefinirSenha } from './pages/RedefinirSenha/RedefinirSenha';
 
 export function App() {
   return (
@@ -18,6 +19,7 @@ export function App() {
         <Routes>
           {/* Rotas sem layout */}
           <Route path='/login' element={<Login />} />
+          <Route path='/redefinir-senha/:token' element={<RedefinirSenha />} />
 
           {/* Layout principal */}
           <Route element={<MainLayout />}>
