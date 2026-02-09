@@ -5,7 +5,7 @@
 # ========================================
 # Terminal interativo com menu, confirmacoes e avisos
 # Versao OTIMIZADA com protecao de volumes externos
-# atualizado linux
+# Melhorias: prune de orfaos, limpeza periodica, health checks aprimorados
 
 set -e
 
@@ -24,6 +24,8 @@ NC='\033[0m' # No Color
 BUILD=false
 LOGS=false
 COMPOSE_FILE="docker-compose-prd.yml"
+MAX_HEALTH_RETRIES=30
+HEALTH_CHECK_INTERVAL=5
 
 # Carregar senha sudo do .env (se existir)
 if [ -f ".env" ]; then
@@ -97,53 +99,13 @@ confirm() {
     fi
 }
 
-cleanup_docker() {
-    print_separator
-    echo -e "${BOLD}LIMPEZA DO DOCKER${NC}"
-    print_separator
-    echo ""
-
-    # Remover imagens dangling (sem tag, orfas de rebuilds anteriores)
-    DANGLING=$(run_docker docker images -f "dangling=true" -q 2>/dev/null | wc -l)
-    if [ "$DANGLING" -gt 0 ]; then
-        print_info "Removendo $DANGLING imagens orfas..."
-        run_docker docker image prune -f > /dev/null 2>&1
-        print_success "Imagens orfas removidas!"
-    else
-        print_success "Nenhuma imagem orfa encontrada."
-    fi
-
-    # Remover build cache nao utilizado
-    print_info "Removendo build cache..."
-    run_docker docker builder prune --all -f > /dev/null 2>&1
-    print_success "Build cache limpo!"
-
-    # Remover containers parados
-    STOPPED=$(run_docker docker ps -a -f "status=exited" -q 2>/dev/null | wc -l)
-    if [ "$STOPPED" -gt 0 ]; then
-        print_info "Removendo $STOPPED containers parados..."
-        run_docker docker container prune -f > /dev/null 2>&1
-        print_success "Containers parados removidos!"
-    fi
-
-    # Remover networks orfas
-    run_docker docker network prune -f > /dev/null 2>&1
-
-    # Mostrar espaco recuperado
-    echo ""
-    print_info "Uso atual do Docker:"
-    run_docker docker system df
-    echo ""
-    print_success "Limpeza concluida!"
-    echo ""
-}
-
 show_menu() {
     print_header
     echo -e "${BOLD}MENU INICIAL${NC}"
     print_separator
     echo -e "${CYAN}1)${NC} Realizar Deploy"
     echo -e "${CYAN}2)${NC} Acessar menu detalhado"
+    echo -e "${CYAN}3)${NC} Manutencao e limpeza"
     echo -e "${CYAN}0)${NC} Sair"
     print_separator
     echo ""
@@ -158,7 +120,21 @@ show_detailed_menu() {
     echo -e "${CYAN}3)${NC} Backup do banco de dados"
     echo -e "${CYAN}4)${NC} Ver status dos servicos"
     echo -e "${CYAN}5)${NC} Ver logs em tempo real"
-    echo -e "${CYAN}6)${NC} Limpar Docker (liberar espaco)"
+    echo -e "${CYAN}0)${NC} Voltar para o menu inicial"
+    print_separator
+    echo ""
+}
+
+show_maintenance_menu() {
+    print_header
+    echo -e "${BOLD}MENU DE MANUTENCAO${NC}"
+    print_separator
+    echo -e "${CYAN}1)${NC} Remover containers orfaos"
+    echo -e "${CYAN}2)${NC} Limpar imagens nao utilizadas"
+    echo -e "${CYAN}3)${NC} Limpar cache de build"
+    echo -e "${CYAN}4)${NC} Limpeza completa (cuidado!)"
+    echo -e "${CYAN}5)${NC} Mostrar uso de disco"
+    echo -e "${CYAN}6)${NC} Listar volumes"
     echo -e "${CYAN}0)${NC} Voltar para o menu inicial"
     print_separator
     echo ""
@@ -241,7 +217,7 @@ build_images() {
     if confirm "Deseja fazer rebuild das imagens?" "y"; then
         print_info "Construindo imagens Docker..."
         run_docker docker compose -f "$COMPOSE_FILE" build --no-cache 2>&1 | while read line; do
-            echo -e "${YELLOW}  $line${NC}"
+            echo -e "${GRAY}  $line${NC}"
         done
         print_success "Build concluido!"
     else
@@ -273,8 +249,9 @@ start_services() {
     fi
     
     echo ""
-    print_info "Subindo containers..."
-    run_docker docker compose -f "$COMPOSE_FILE" up -d
+    print_info "Subindo containers (com remocao de orfaos)..."
+    # MELHORIA: Adicionar --remove-orphans
+    run_docker docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
     print_success "Servicos iniciados!"
     echo ""
 }
@@ -307,8 +284,8 @@ restart_services() {
         fi
         
         echo ""
-        print_info "Iniciando servicos novamente..."
-        run_docker docker compose -f "$COMPOSE_FILE" up -d
+        print_info "Iniciando servicos novamente (com remocao de orfaos)..."
+        run_docker docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
         print_success "Servicos reiniciados!"
         echo ""
         
@@ -331,27 +308,30 @@ wait_healthy() {
     print_info "Aguardando servicos ficarem saudaveis..."
     echo ""
     
-    sleep 5
+    sleep $HEALTH_CHECK_INTERVAL
     
-    maxAttempts=30
-    attempt=0
+    local attempt=0
     
-    while [ $attempt -lt $maxAttempts ]; do
+    while [ $attempt -lt $MAX_HEALTH_RETRIES ]; do
         attempt=$((attempt + 1))
-        echo -ne "${YELLOW}  Verificando... tentativa $attempt/$maxAttempts\r${NC}"
+        echo -ne "${GRAY}  Verificando... tentativa $attempt/$MAX_HEALTH_RETRIES\r${NC}"
         
-        # Verificar containers em execucao
-        running=$(run_docker docker compose -f "$COMPOSE_FILE" ps --filter "status=running" --format json 2>/dev/null | wc -l)
+        # Verificar se todos os containers estao rodando
+        local total=$(run_docker docker compose -f "$COMPOSE_FILE" ps -q | wc -l)
+        local running=$(run_docker docker compose -f "$COMPOSE_FILE" ps -q --status running | wc -l)
         
-        if [ "$running" -gt 0 ]; then
+        if [ "$running" -eq "$total" ] && [ "$total" -gt 0 ]; then
             echo -e "\n"
-            print_success "Servicos estao em execucao!"
-            break
+            print_success "Todos os servicos estao saudaveis!"
+            echo ""
+            return 0
         fi
         
-        sleep 2
+        sleep $HEALTH_CHECK_INTERVAL
     done
     
+    echo -e "\n"
+    print_warning "Timeout ao aguardar servicos ficarem saudaveis"
     echo ""
 }
 
@@ -367,14 +347,15 @@ show_status() {
 
 show_access_info() {
     print_separator
-    echo -e "${BOLD}APLICACAO DISPONIVEL${NC}"
+    echo -e "${BOLD}INFORMACOES DE ACESSO${NC}"
     print_separator
     echo ""
-    echo -e "${GREEN}  Aplicacao principal:${NC} http://localhost"
-    echo -e "${GREEN}  API Backend:        ${NC} http://localhost/api"
-    echo -e "${GREEN}  Grafana Dashboard:  ${NC} http://localhost/grafana"
-    echo ""
-    print_separator
+    
+    # Buscar a porta do frontend
+    local frontend_port=$(run_docker docker compose -f "$COMPOSE_FILE" port frontend 80 2>/dev/null | cut -d':' -f2 || echo "3000")
+    
+    echo -e "${GREEN}Frontend:${NC} http://localhost:${frontend_port}"
+    echo -e "${GREEN}API:${NC} http://localhost:3001 (se exposta)"
     echo ""
 }
 
@@ -384,27 +365,22 @@ show_logs() {
     print_separator
     echo ""
     
-    print_info "Exibindo logs (Ctrl+C para sair)..."
+    print_info "Exibindo logs... (Ctrl+C para sair)"
     echo ""
-    sleep 2
     
-    run_docker docker compose -f "$COMPOSE_FILE" logs -f
+    run_docker docker compose -f "$COMPOSE_FILE" logs -f --tail=50
 }
 
 rebuild_services() {
     print_separator
-    echo -e "${BOLD}RECONSTRUIR SERVICOS (--no-cache)${NC}"
+    echo -e "${BOLD}RECONSTRUIR SERVICOS${NC}"
     print_separator
     echo ""
     
     print_warning "ATENCAO: Esta operacao vai:"
-    echo "  1. Parar todos os containers"
-    echo "  2. Reconstruir imagens Docker do ZERO (--no-cache)"
-    echo "  3. Baixar TODAS as dependencias novamente"
-    echo "  4. Reiniciar servicos"
-    echo ""
-    print_warning "AVISO: Todas as dependencias serao baixadas do zero!"
-    print_warning "Isso pode demorar bastante tempo (5-20 minutos)!"
+    echo "  1. Parar todos os servicos"
+    echo "  2. Reconstruir imagens do zero (--no-cache)"
+    echo "  3. Reiniciar servicos"
     echo ""
     print_info "Seus dados serao preservados (volumes externos protegidos)!"
     echo ""
@@ -415,9 +391,9 @@ rebuild_services() {
         print_success "Servicos parados!"
         echo ""
         
-        print_info "Reconstruindo imagens..."
+        print_info "Reconstruindo imagens (sem cache)..."
         run_docker docker compose -f "$COMPOSE_FILE" build --no-cache 2>&1 | while read line; do
-            echo -e "${YELLOW}  $line${NC}"
+            echo -e "${GRAY}  $line${NC}"
         done
         print_success "Imagens reconstruidas!"
         echo ""
@@ -438,17 +414,14 @@ rebuild_services() {
         fi
         
         echo ""
-        print_info "Iniciando servicos..."
-        run_docker docker compose -f "$COMPOSE_FILE" up -d
+        print_info "Iniciando servicos (com remocao de orfaos)..."
+        run_docker docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
         print_success "Servicos iniciados!"
         echo ""
         
         wait_healthy
         show_status
         show_access_info
-
-        # Limpeza automatica apos rebuild
-        cleanup_docker
         
         print_success "Reconstrucao concluida com sucesso!"
     else
@@ -489,12 +462,188 @@ backup_database() {
         echo -e "${GREEN}  Arquivo:${NC} $BACKUP_FILE"
         echo -e "${GREEN}  Tamanho:${NC} $(du -h "$BACKUP_FILE" | cut -f1)"
         echo ""
+        
+        # Limpar backups antigos (manter apenas os ultimos 7 dias)
+        print_info "Limpando backups com mais de 7 dias..."
+        find "$BACKUP_DIR" -name "backup_*.sql" -type f -mtime +7 -delete 2>/dev/null
+        local count=$(find "$BACKUP_DIR" -name "backup_*.sql" -type f | wc -l)
+        print_success "$count backup(s) mantido(s)"
+        echo ""
     else
         print_error "Falha ao criar backup!"
         echo ""
         rm -f "$BACKUP_FILE" 2>/dev/null
     fi
     
+    press_enter
+}
+
+# NOVA FUNCAO: Remover containers orfaos
+remove_orphans() {
+    print_separator
+    echo -e "${BOLD}REMOVER CONTAINERS ORFAOS${NC}"
+    print_separator
+    echo ""
+    
+    print_info "Containers orfaos sao containers que nao estao mais definidos"
+    print_info "no arquivo docker-compose atual."
+    echo ""
+    
+    # Listar containers orfaos
+    local orphans=$(run_docker docker compose -f "$COMPOSE_FILE" ps -a --format "{{.Name}}" 2>/dev/null | while read name; do
+        if ! run_docker docker compose -f "$COMPOSE_FILE" config --services | grep -q "${name##*-}"; then
+            echo "$name"
+        fi
+    done)
+    
+    if [ -z "$orphans" ]; then
+        print_success "Nenhum container orfao encontrado!"
+        echo ""
+        press_enter
+        return 0
+    fi
+    
+    echo -e "${YELLOW}Containers orfaos encontrados:${NC}"
+    echo "$orphans"
+    echo ""
+    
+    if confirm "Deseja remover estes containers?"; then
+        print_info "Removendo containers orfaos..."
+        run_docker docker compose -f "$COMPOSE_FILE" down --remove-orphans
+        print_success "Containers orfaos removidos!"
+    else
+        print_info "Operacao cancelada."
+    fi
+    
+    echo ""
+    press_enter
+}
+
+# NOVA FUNCAO: Limpar imagens nao utilizadas
+clean_images() {
+    print_separator
+    echo -e "${BOLD}LIMPAR IMAGENS NAO UTILIZADAS${NC}"
+    print_separator
+    echo ""
+    
+    print_info "Esta operacao remove imagens que nao estao sendo usadas"
+    print_info "por nenhum container."
+    echo ""
+    
+    # Mostrar tamanho atual
+    local size_before=$(run_docker docker system df --format "{{.Size}}" | head -1)
+    print_info "Espaco usado atualmente: $size_before"
+    echo ""
+    
+    if confirm "Deseja remover imagens nao utilizadas?"; then
+        print_info "Removendo imagens nao utilizadas..."
+        run_docker docker image prune -a -f 2>&1 | while read line; do
+            echo -e "${GRAY}  $line${NC}"
+        done
+        
+        local size_after=$(run_docker docker system df --format "{{.Size}}" | head -1)
+        print_success "Imagens removidas!"
+        print_info "Espaco usado agora: $size_after"
+    else
+        print_info "Operacao cancelada."
+    fi
+    
+    echo ""
+    press_enter
+}
+
+# NOVA FUNCAO: Limpar cache de build
+clean_build_cache() {
+    print_separator
+    echo -e "${BOLD}LIMPAR CACHE DE BUILD${NC}"
+    print_separator
+    echo ""
+    
+    print_warning "Esta operacao remove o cache de build do Docker."
+    print_warning "O proximo build sera mais lento, mas pode resolver problemas."
+    echo ""
+    
+    if confirm "Deseja limpar o cache de build?"; then
+        print_info "Limpando cache de build..."
+        run_docker docker builder prune -af 2>&1 | while read line; do
+            echo -e "${GRAY}  $line${NC}"
+        done
+        print_success "Cache de build limpo!"
+    else
+        print_info "Operacao cancelada."
+    fi
+    
+    echo ""
+    press_enter
+}
+
+# NOVA FUNCAO: Limpeza completa
+full_cleanup() {
+    print_separator
+    echo -e "${BOLD}LIMPEZA COMPLETA DO SISTEMA${NC}"
+    print_separator
+    echo ""
+    
+    print_warning "ATENCAO: Esta operacao vai:"
+    echo "  1. Remover todos os containers parados"
+    echo "  2. Remover todas as imagens nao utilizadas"
+    echo "  3. Remover todas as networks nao utilizadas"
+    echo "  4. Remover todo o cache de build"
+    echo ""
+    print_info "Volumes nomeados serao preservados!"
+    echo ""
+    
+    # Mostrar uso atual
+    print_info "Uso de disco atual:"
+    run_docker docker system df
+    echo ""
+    
+    if confirm "Deseja realmente fazer a limpeza completa?" "n"; then
+        print_info "Executando limpeza completa..."
+        run_docker docker system prune -af 2>&1 | while read line; do
+            echo -e "${GRAY}  $line${NC}"
+        done
+        
+        echo ""
+        print_success "Limpeza completa concluida!"
+        echo ""
+        
+        print_info "Uso de disco apos limpeza:"
+        run_docker docker system df
+    else
+        print_info "Operacao cancelada."
+    fi
+    
+    echo ""
+    press_enter
+}
+
+# NOVA FUNCAO: Mostrar uso de disco
+show_disk_usage() {
+    print_separator
+    echo -e "${BOLD}USO DE DISCO${NC}"
+    print_separator
+    echo ""
+    
+    run_docker docker system df -v
+    
+    echo ""
+    press_enter
+}
+
+# NOVA FUNCAO: Listar volumes
+list_volumes() {
+    print_separator
+    echo -e "${BOLD}VOLUMES DOCKER${NC}"
+    print_separator
+    echo ""
+    
+    run_docker docker volume ls
+    
+    echo ""
+    print_info "Para inspecionar um volume: docker volume inspect <nome>"
+    
+    echo ""
     press_enter
 }
 
@@ -508,8 +657,7 @@ update_system() {
     echo "  1. Fazer git pull origin main (atualizar codigo)"
     echo "  2. Criar backup de seguranca do banco de dados"
     echo "  3. Fazer rebuild das imagens Docker"
-    echo "  4. Reiniciar servicos"
-    echo "  5. Limpar Docker (liberar espaco em disco)"
+    echo "  4. Reiniciar servicos (removendo orfaos)"
     echo ""
     print_info "Seus dados serao preservados (volumes externos protegidos)!"
     echo ""
@@ -531,7 +679,7 @@ update_system() {
     echo ""
     
     if git pull origin main 2>&1 | while read line; do
-        echo -e "${YELLOW}  $line${NC}"
+        echo -e "${GRAY}  $line${NC}"
     done; then
         print_success "Codigo atualizado!"
     else
@@ -584,7 +732,7 @@ update_system() {
     
     print_info "Construindo novas imagens Docker..."
     run_docker docker compose -f "$COMPOSE_FILE" build 2>&1 | while read line; do
-        echo -e "${YELLOW}  $line${NC}"
+        echo -e "${GRAY}  $line${NC}"
     done
     print_success "Imagens reconstruidas!"
     echo ""
@@ -611,8 +759,8 @@ update_system() {
     fi
     
     echo ""
-    print_info "Iniciando containers..."
-    run_docker docker compose -f "$COMPOSE_FILE" up -d
+    print_info "Iniciando containers (com remocao de orfaos)..."
+    run_docker docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
     print_success "Servicos iniciados!"
     echo ""
     
@@ -620,13 +768,6 @@ update_system() {
     wait_healthy
     show_status
     show_access_info
-
-    # Limpeza automatica apos deploy
-    print_separator
-    echo -e "${BOLD}[5/5] Limpando Docker (liberando espaco)${NC}"
-    print_separator
-    echo ""
-    cleanup_docker
     
     print_success "Sistema atualizado com sucesso!"
     echo ""
@@ -671,6 +812,50 @@ execute_deploy() {
     LOGS=false
 }
 
+# Menu de manutencao
+maintenance_menu() {
+    while true; do
+        show_maintenance_menu
+        read -p "Escolha uma opcao: " opcao
+        
+        case $opcao in
+            1)
+                print_header
+                remove_orphans
+                ;;
+            2)
+                print_header
+                clean_images
+                ;;
+            3)
+                print_header
+                clean_build_cache
+                ;;
+            4)
+                print_header
+                full_cleanup
+                ;;
+            5)
+                print_header
+                show_disk_usage
+                ;;
+            6)
+                print_header
+                list_volumes
+                ;;
+            0)
+                return 0
+                ;;
+            *)
+                print_header
+                print_error "Opcao invalida!"
+                echo ""
+                press_enter
+                ;;
+        esac
+    done
+}
+
 # Menu detalhado
 detailed_menu() {
     while true; do
@@ -699,11 +884,6 @@ detailed_menu() {
                 print_header
                 show_logs
                 ;;
-            6)
-                print_header
-                cleanup_docker
-                press_enter
-                ;;
             0)
                 return 0
                 ;;
@@ -730,6 +910,9 @@ main() {
                 ;;
             2)
                 detailed_menu
+                ;;
+            3)
+                maintenance_menu
                 ;;
             0)
                 print_header
