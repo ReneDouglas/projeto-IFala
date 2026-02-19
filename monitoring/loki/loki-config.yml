@@ -2,6 +2,31 @@ auth_enabled: false
 
 server:
   http_listen_port: 3100
+  log_level: warn
+
+ingester:
+  lifecycler:
+    address: 127.0.0.1
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+  wal:
+    enabled: true
+    dir: /loki/wal
+  # Flush chunks ociosos para disco mais cedo — reduz footprint de memória
+  chunk_idle_period: 15m
+  max_chunk_age: 1h
+
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
 
 storage_config:
   boltdb_shipper:
@@ -14,24 +39,19 @@ storage_config:
 compactor:
   working_directory: /loki/boltdb-shipper-compactor
   shared_store: filesystem
+  # Habilita deleção automática de chunks expirados
+  retention_enabled: true
+  # Aguarda 2h após expiração antes de deletar (janela de segurança para queries em andamento)
+  retention_delete_delay: 2h
+  retention_delete_worker_count: 10
+  # Compacta índices a cada hora para manter o disco organizado
+  compaction_interval: 1h
 
-ingester:
-  lifecycler:
-    address: 127.0.0.1
-    ring:
-      kvstore:
-        store: inmemory
-      replication_factor: 1
-  wal:
-    enabled: true
-    dir: /loki/wal
-
-schema_config:
-  configs:
-    - from: 2020-10-24
-      store: boltdb-shipper
-      object_store: filesystem
-      schema: v11
-      index:
-        prefix: index_
-        period: 24h
+limits_config:
+  # Retenção de 15 dias — alinhado com Prometheus (ver docker-compose-prd.yml)
+  retention_period: 15d
+  # Limite de ingestão: 4 MB/s é mais do que suficiente para 1 app Spring Boot
+  ingestion_rate_mb: 4
+  ingestion_burst_size_mb: 8
+  # Tamanho máximo de uma linha de log (evita logs gigantes travarem a ingestão)
+  max_line_size: 256000
