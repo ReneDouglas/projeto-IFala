@@ -1,7 +1,20 @@
 # ========================================
 # DOCKER COMPOSE - AMBIENTE DE PRODUÇÃO
 # ========================================
-# Este arquivo configura todos os serviços otimizados para produção
+# Servidor alvo: 2GB RAM / 30GB HD
+#
+# Orçamento de memória (2048MB total):
+#   SO + Docker daemon  : ~400MB reservado
+#   ifala-backend       : 700MB  (heap máx 512m + metaspace + code cache + off-heap)
+#   postgres            : 300MB  (shared_buffers=128MB + conexões)
+#   prometheus          : 128MB
+#   grafana             : 150MB
+#   loki                : 100MB
+#   promtail            :  64MB
+#   nginx-gateway       :  64MB
+#   ifala-frontend      :  64MB
+#   ─────────────────────────────────────
+#   Total containers    : ~1570MB  ✓ margem de ~80MB
 
 services:
   # ----------------------------------------
@@ -11,6 +24,8 @@ services:
     image: postgres:16
     container_name: ifala-db-prd
     restart: always
+    mem_limit: 300m
+    mem_reservation: 128m
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -25,15 +40,21 @@ services:
       - '-c'
       - 'shared_preload_libraries=pg_stat_statements'
       - '-c'
-      - 'max_connections=200'
+      # Reduzido de 200 → 30: Spring Boot HikariCP usa max 15 conexões (ver application-prod.properties)
+      # 200 conexões reservam ~200MB só de connection overhead + slots de memória
+      - 'max_connections=30'
       - '-c'
-      - 'shared_buffers=256MB'
+      # Reduzido de 256MB → 128MB: regra ~25% da RAM disponível para o Postgres (~512MB após SO+app)
+      - 'shared_buffers=128MB'
       - '-c'
-      - 'effective_cache_size=1GB'
+      # Reduzido de 1GB → 512MB: apenas dica para o planner, não aloca memória real
+      - 'effective_cache_size=512MB'
       - '-c'
-      - 'work_mem=8MB'
+      # Reduzido de 8MB → 4MB: 30 conexões × 4MB = 120MB máximo por operação de sort/hash
+      - 'work_mem=4MB'
       - '-c'
-      - 'maintenance_work_mem=128MB'
+      # Reduzido de 128MB → 64MB: usado apenas em VACUUM, CREATE INDEX, etc.
+      - 'maintenance_work_mem=64MB'
     volumes:
       - pgdata_prd:/var/lib/postgresql/data
       - ./scripts/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -55,6 +76,10 @@ services:
       dockerfile: Dockerfile.prd
     container_name: ifala-backend-prd
     restart: always
+    # mem_limit deve ser ≥ Xmx(512m) + Metaspace(128m) + CodeCache(64m) + off-heap JVM (~100m)
+    # App consome 617MB hoje → 700MB dá margem para picos sem permitir consumo irrestrito
+    mem_limit: 700m
+    mem_reservation: 256m
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
@@ -98,6 +123,9 @@ services:
         - VITE_RECAPTCHA_SITE_KEY=${VITE_RECAPTCHA_SITE_KEY}
     container_name: ifala-frontend-prd
     restart: always
+    # NGINX com arquivos estáticos — uso de memória mínimo
+    mem_limit: 64m
+    mem_reservation: 16m
     networks:
       - ifala-network
     depends_on:
@@ -123,15 +151,23 @@ services:
     image: prom/prometheus:v2.51.2
     container_name: prometheus-prd
     restart: always
+    mem_limit: 128m
+    mem_reservation: 64m
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data_prd:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=30d'
+      # Reduzido de 30d → 15d para economizar disco (30GB HD)
+      - '--storage.tsdb.retention.time=15d'
+      # Limite de disco: com apenas 1 target (Spring Boot), 15d gera ~300-500MB
+      # 2GB é um teto seguro que evita que o Prometheus consuma o HD inteiro
+      - '--storage.tsdb.retention.size=2GB'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
+      # Desativa scrape de auto-descoberta desnecessário
+      - '--web.enable-lifecycle'
     networks:
       - ifala-network
     depends_on:
@@ -144,6 +180,8 @@ services:
     image: grafana/grafana-oss:10.4.2
     container_name: grafana-prd
     restart: always
+    mem_limit: 150m
+    mem_reservation: 64m
     environment:
       GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER}
       GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
@@ -152,6 +190,8 @@ services:
       GF_SERVER_SERVE_FROM_SUB_PATH: true
       GF_ANALYTICS_REPORTING_ENABLED: false
       GF_ANALYTICS_CHECK_FOR_UPDATES: false
+      # Desativa telemetria e envio de dados para a Grafana Labs
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: false
     volumes:
       - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/:ro
       - ./monitoring/grafana/dashboards/:/var/lib/grafana/dashboards/:ro
@@ -169,6 +209,8 @@ services:
     image: grafana/loki:2.9.5
     container_name: loki-prd
     restart: always
+    mem_limit: 100m
+    mem_reservation: 50m
     volumes:
       - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
       - loki_data_prd:/loki
@@ -183,6 +225,8 @@ services:
     image: grafana/promtail:3.1.0
     container_name: promtail-prd
     restart: always
+    mem_limit: 64m
+    mem_reservation: 32m
     volumes:
       - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
@@ -201,6 +245,8 @@ services:
     image: nginx:1.27-alpine
     container_name: nginx-gateway-prd
     restart: always
+    mem_limit: 64m
+    mem_reservation: 16m
     ports:
       - '80:80'
       - '443:443'
