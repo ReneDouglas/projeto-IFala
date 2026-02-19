@@ -34,15 +34,19 @@ EXPOSE 8080
 # Copiar apenas o JAR da aplicação do estágio de build
 COPY --from=builder /app/target/ifala-0.0.1-SNAPSHOT.jar ifala-api.jar
 
-# Configurações otimizadas para produção:
-# -Xms1g: Memória inicial do heap (mesmo valor que Xmx para melhor performance)
-# -Xmx1g: Memória máxima do heap
-# -XX:+UseStringDeduplication: Otimização de strings duplicadas
-# Nota: Java 25 já usa o melhor GC disponível por padrão (não precisa especificar UseG1GC)
+# Configurações otimizadas para servidor com 2GB RAM:
+# -Xms128m: Heap inicial baixo — o JVM cresce sob demanda (lazy commit)
+# -Xmx512m: Heap máximo — app usa ~617MB RSS total (heap + metaspace + code cache + off-heap)
+#            com 512m de heap, RSS total ficará em ~650-700MB, dentro do mem_limit do compose
+# -XX:MaxMetaspaceSize: Limita o metaspace (classes carregadas) — Spring Boot usa ~80-100MB
+# -XX:ReservedCodeCacheSize: Limita o JIT code cache — reduz footprint off-heap
+# -XX:+UseStringDeduplication: G1GC deduplica strings iguais na heap (beneficia Spring/Hibernate)
 ENTRYPOINT ["java", \
     "-Djava.net.preferIPv4Stack=true", \
-    "-Xms1g", \
-    "-Xmx1g", \
+    "-Xms128m", \
+    "-Xmx512m", \
+    "-XX:MaxMetaspaceSize=128m", \
+    "-XX:ReservedCodeCacheSize=64m", \
     "-XX:+UseStringDeduplication", \
     "-jar", \
     "ifala-api.jar"]
